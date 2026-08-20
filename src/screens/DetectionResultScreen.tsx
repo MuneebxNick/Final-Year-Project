@@ -1,0 +1,183 @@
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+
+import { PhotoWithBoundingBox } from '../components/PhotoWithBoundingBox';
+import { PrimaryButton } from '../components/Buttons';
+import { SeverityBadge } from '../components/SeverityBadge';
+import { markFormReset, reportStore } from '../data/reportStore';
+import { ScreenContainer } from '../layout/ScreenContainer';
+import { useBreakpoint } from '../layout/useBreakpoint';
+import { roadTypeLabels } from '../models/report';
+import type { RootStackParamList } from '../navigation';
+import { colors, radii, shadows } from '../theme';
+
+type Props = NativeStackScreenProps<RootStackParamList, 'DetectionResult'>;
+
+export function DetectionResultScreen({ navigation, route }: Props) {
+  const { isWide } = useBreakpoint();
+  const { draft } = route.params;
+
+  const submit = () => {
+    reportStore.add({
+      id: Date.now().toString(),
+      photoUri: draft.photoUri,
+      city: draft.city,
+      area: draft.area,
+      roadType: draft.roadType,
+      status: 'pending',
+      assignedTeam: 'unassigned',
+      createdAt: new Date(),
+      severity: draft.severity,
+      confidence: draft.confidence,
+      description: draft.description,
+      landmark: draft.landmark,
+      address: draft.address,
+      coords: draft.coords,
+      boundingBox: draft.boundingBox,
+      timelineStage: 'submitted',
+    });
+    markFormReset();
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'UserTabs', params: { screen: 'MyReports' } }],
+    });
+  };
+
+  return (
+    <ScrollView style={styles.flex} contentContainerStyle={styles.scroll}>
+      <ScreenContainer>
+      <Text style={styles.kicker}>Dummy AI result</Text>
+      <Text style={styles.title}>Pothole detected</Text>
+      <Text style={styles.lede}>
+        This overlay and score are mock data for the FYP demo. No model is called yet.
+      </Text>
+
+      <View style={isWide ? styles.split : undefined}>
+      <View style={isWide ? styles.left : undefined}>
+      <PhotoWithBoundingBox
+        uri={draft.photoUri}
+        boundingBox={draft.boundingBox}
+        height={isWide ? 360 : 240}
+      />
+      </View>
+
+      <View style={isWide ? styles.right : undefined}>
+      <View style={styles.row}>
+        <View>
+          <Text style={styles.metaLabel}>Severity</Text>
+          <SeverityBadge severity={draft.severity} />
+        </View>
+        <View>
+          <Text style={styles.metaLabel}>Confidence</Text>
+          <Text style={styles.confidence}>{draft.confidence}%</Text>
+        </View>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Location summary</Text>
+        <SummaryRow label="City" value={draft.city} />
+        <SummaryRow label="Area" value={draft.area} />
+        <SummaryRow label="Road type" value={roadTypeLabels[draft.roadType]} />
+        <SummaryRow label="Address" value={draft.address} />
+        {draft.landmark ? <SummaryRow label="Landmark" value={draft.landmark} /> : null}
+        {draft.description ? <SummaryRow label="Notes" value={draft.description} /> : null}
+      </View>
+
+      <PrimaryButton title="Submit Report" onPress={submit} />
+      </View>
+      </View>
+      </ScreenContainer>
+    </ScrollView>
+  );
+}
+
+function SummaryRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.summaryRow}>
+      <Text style={styles.summaryLabel}>{label}</Text>
+      <Text style={styles.summaryValue}>{value}</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+    backgroundColor: colors.cream,
+  },
+  scroll: {
+    flexGrow: 1,
+  },
+  split: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 28,
+  },
+  left: {
+    flex: 1.1,
+  },
+  right: {
+    flex: 1,
+  },
+  kicker: {
+    color: colors.blue,
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  title: {
+    marginTop: 4,
+    fontSize: 26,
+    fontWeight: '700',
+    color: colors.ink,
+  },
+  lede: {
+    marginTop: 8,
+    marginBottom: 20,
+    color: colors.muted,
+    lineHeight: 20,
+  },
+  row: {
+    marginTop: 18,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+  },
+  metaLabel: {
+    color: colors.muted,
+    marginBottom: 6,
+    fontSize: 13,
+  },
+  confidence: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.teal,
+  },
+  card: {
+    marginTop: 20,
+    marginBottom: 24,
+    backgroundColor: colors.white,
+    borderRadius: radii.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 20,
+    ...shadows.card,
+  },
+  cardTitle: {
+    fontWeight: '700',
+    fontSize: 16,
+    color: colors.ink,
+    marginBottom: 12,
+  },
+  summaryRow: {
+    marginBottom: 10,
+  },
+  summaryLabel: {
+    color: colors.muted,
+    fontSize: 12,
+  },
+  summaryValue: {
+    marginTop: 2,
+    fontWeight: '700',
+    color: colors.ink,
+  },
+});
