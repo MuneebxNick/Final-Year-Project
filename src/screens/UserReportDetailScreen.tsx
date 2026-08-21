@@ -1,10 +1,11 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
+import { LifetimePredictionCard } from '../components/LifetimePredictionCard';
 import { PhotoWithBoundingBox } from '../components/PhotoWithBoundingBox';
 import { SeverityBadge } from '../components/SeverityBadge';
 import { StatusBadge } from '../components/StatusBadge';
-import { useReports } from '../data/reportStore';
+import { useReports, useReportsHydrated } from '../data/reportStore';
 import { ScreenContainer } from '../layout/ScreenContainer';
 import { useBreakpoint } from '../layout/useBreakpoint';
 import {
@@ -22,7 +23,16 @@ type Props = NativeStackScreenProps<RootStackParamList, 'UserReportDetail'>;
 export function UserReportDetailScreen({ route }: Props) {
   const { isWide } = useBreakpoint();
   const reports = useReports();
+  const hydrated = useReportsHydrated();
   const report = reports.find((item) => item.id === route.params.reportId);
+
+  if (!hydrated) {
+    return (
+      <View style={styles.missing}>
+        <Text style={styles.missingText}>Loading report…</Text>
+      </View>
+    );
+  }
 
   if (!report) {
     return (
@@ -70,6 +80,8 @@ export function UserReportDetailScreen({ route }: Props) {
           />
         ) : null}
       </View>
+
+      <LifetimePredictionCard report={report} />
 
       <Text style={styles.cardTitle}>Status timeline</Text>
       <View style={styles.timeline}>

@@ -12,7 +12,9 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { PrimaryButton } from '../components/Buttons';
 import { TextField } from '../components/TextField';
-import { sessionStore } from '../data/sessionStore';
+import { api } from '../api/client';
+import { reportStore } from '../data/reportStore';
+import { sessionStore, type Session } from '../data/sessionStore';
 import { AuthCard } from '../layout/AuthCard';
 import { useBreakpoint } from '../layout/useBreakpoint';
 import { webCursor } from '../layout/webStyles';
@@ -27,6 +29,7 @@ export function SignupScreen({ navigation }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{
     name?: string;
     email?: string;
@@ -34,7 +37,7 @@ export function SignupScreen({ navigation }: Props) {
     confirm?: string;
   }>({});
 
-  const submit = () => {
+  const submit = async () => {
     const next: typeof errors = {};
     if (!name.trim()) next.name = 'Enter your name';
     const trimmed = email.trim();
@@ -46,8 +49,20 @@ export function SignupScreen({ navigation }: Props) {
     else if (confirm !== password) next.confirm = 'Passwords do not match';
     setErrors(next);
     if (Object.keys(next).length > 0) return;
-    sessionStore.signIn(trimmed, name.trim());
-    navigation.replace('UserTabs');
+    setLoading(true);
+    try {
+      const session = await api<Session>('/auth/signup', {
+        method: 'POST',
+        body: JSON.stringify({ name: name.trim(), email: trimmed, password }),
+      });
+      sessionStore.signIn(session);
+      void reportStore.refresh().catch(() => undefined);
+      navigation.replace('UserTabs');
+    } catch (error) {
+      setErrors({ email: error instanceof Error ? error.message : 'Could not create account' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -101,7 +116,7 @@ export function SignupScreen({ navigation }: Props) {
             returnKeyType="done"
             onSubmitEditing={submit}
           />
-          <PrimaryButton title="Create account" onPress={submit} />
+          <PrimaryButton title="Create account" onPress={submit} loading={loading} />
         </View>
         <View style={styles.row}>
           <Text style={styles.muted}>Already have an account?</Text>

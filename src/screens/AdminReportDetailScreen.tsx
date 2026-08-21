@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Image,
@@ -12,7 +12,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { TealButton } from '../components/Buttons';
 import { FilterChip } from '../components/FilterChip';
-import { reportStore, useReports } from '../data/reportStore';
+import { LifetimePredictionCard } from '../components/LifetimePredictionCard';
+import { reportStore, useReports, useReportsHydrated } from '../data/reportStore';
 import { AdminShell } from '../layout/AdminShell';
 import { ScreenContainer } from '../layout/ScreenContainer';
 import { useBreakpoint } from '../layout/useBreakpoint';
@@ -20,25 +21,23 @@ import {
   adminUiStatusLabels,
   adminUiStatuses,
   assignedTeamLabels,
-  formatReportDate,
-  fromAdminUiStatus,
   isIncompleteLocation,
   isLowConfidence,
   predefinedTeams,
-  predictLifetime,
   roadTypeLabels,
   toAdminUiStatus,
   type AdminUiStatus,
   type AssignedTeam,
 } from '../models/report';
 import type { RootStackParamList } from '../navigation';
-import { colors, radii, shadows } from '../theme';
+import { colors, radii } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AdminReportDetail'>;
 
 export function AdminReportDetailScreen({ navigation, route }: Props) {
   const { isWide } = useBreakpoint();
   const reports = useReports();
+  const hydrated = useReportsHydrated();
   const report = reports.find((item) => item.id === route.params.reportId);
 
   const initialTeam = useMemo<AssignedTeam>(() => {
@@ -50,6 +49,21 @@ export function AdminReportDetailScreen({ navigation, route }: Props) {
   const [uiStatus, setUiStatus] = useState<AdminUiStatus>(
     report ? toAdminUiStatus(report.status) : 'pending',
   );
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!report) return;
+    setTeam(report.assignedTeam === 'unassigned' ? 'roadMaintenance' : report.assignedTeam);
+    setUiStatus(toAdminUiStatus(report.status));
+  }, [report?.id]);
+
+  if (!hydrated) {
+    return (
+      <View style={styles.missing}>
+        <Text style={styles.missingText}>Loading report…</Text>
+      </View>
+    );
+  }
 
   if (!report) {
     return (
@@ -59,17 +73,26 @@ export function AdminReportDetailScreen({ navigation, route }: Props) {
     );
   }
 
-  const lifetime = predictLifetime(report);
   const flags = [
     isIncompleteLocation(report) ? 'Incomplete location' : null,
     isLowConfidence(report) ? 'Low detection confidence' : null,
   ].filter(Boolean) as string[];
 
-  const save = () => {
-    reportStore.updateAssignment(report.id, team, fromAdminUiStatus(uiStatus, team));
-    Alert.alert('Assignment updated.', undefined, [
-      { text: 'OK', onPress: () => navigation.goBack() },
-    ]);
+  const save = async () => {
+    setSaving(true);
+    try {
+      await reportStore.updateAssignment(report.id, team, uiStatus);
+      Alert.alert('Assignment updated.', undefined, [
+        { text: 'OK', onPress: () => navigation.goBack() },
+      ]);
+    } catch (error) {
+      Alert.alert(
+        'Could not save assignment',
+        error instanceof Error ? error.message : 'Try again in a moment.',
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -108,14 +131,7 @@ export function AdminReportDetailScreen({ navigation, route }: Props) {
                 </View>
               ) : null}
 
-              <View style={styles.lifetime}>
-                <Text style={styles.lifeTitle}>Pothole lifetime prediction</Text>
-                <Text style={styles.lifeValue}>{lifetime.daysUntilCritical} days until critical</Text>
-                <Text style={styles.lifeMeta}>
-                  Recommended repair deadline: {formatReportDate(lifetime.deadline)}
-                </Text>
-                <Text style={styles.lifeNote}>{lifetime.urgency}</Text>
-              </View>
+              <LifetimePredictionCard report={report} />
 
               <Text style={styles.section}>Status</Text>
               <View style={styles.chips}>
@@ -141,7 +157,7 @@ export function AdminReportDetailScreen({ navigation, route }: Props) {
                 ))}
               </View>
 
-              <TealButton title="Save assignment" onPress={save} style={styles.save} />
+              <TealButton title="Save assignment" onPress={save} style={styles.save} loading={saving} />
             </View>
           </View>
         </ScreenContainer>
@@ -234,42 +250,12 @@ const styles = StyleSheet.create({
     color: colors.pillOrange,
     fontWeight: '700',
   },
-  lifetime: {
-    backgroundColor: colors.white,
-    borderRadius: radii.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 16,
-    marginTop: 8,
-    ...shadows.card,
-  },
   section: {
     marginTop: 20,
     marginBottom: 10,
     fontWeight: '800',
     fontSize: 16,
     color: colors.ink,
-  },
-  lifeTitle: {
-    fontWeight: '800',
-    fontSize: 16,
-    color: colors.ink,
-    marginBottom: 8,
-  },
-  lifeValue: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: colors.teal,
-  },
-  lifeMeta: {
-    marginTop: 6,
-    fontWeight: '600',
-    color: colors.ink,
-  },
-  lifeNote: {
-    marginTop: 8,
-    color: colors.muted,
-    lineHeight: 20,
   },
   chips: {
     flexDirection: 'row',

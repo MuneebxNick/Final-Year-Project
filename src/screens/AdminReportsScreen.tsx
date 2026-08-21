@@ -13,7 +13,6 @@ import { useBreakpoint } from '../layout/useBreakpoint';
 import { webCursor, type WebPressableState } from '../layout/webStyles';
 import {
   assignedTeamLabels,
-  cities,
   isIncompleteLocation,
   isLowConfidence,
   roadTypeLabels,
@@ -21,9 +20,9 @@ import {
   severityRank,
   severities,
   toUserStatus,
+  uniqueCities,
   userStatusLabels,
   userStatuses,
-  type City,
   type Report,
   type Severity,
   type UserStatus,
@@ -36,7 +35,7 @@ type Props = CompositeScreenProps<
   NativeStackScreenProps<RootStackParamList>
 >;
 
-type CityFilter = 'all' | City;
+type CityFilter = 'all' | string;
 type SeverityFilter = 'all' | Severity;
 type StatusFilter = 'all' | UserStatus;
 type DateRange = 'all' | '7d' | '30d';
@@ -45,6 +44,7 @@ type SortMode = 'newest' | 'oldest' | 'severity';
 export function AdminReportsScreen({ navigation }: Props) {
   const { isWide } = useBreakpoint();
   const reports = useReports();
+  const cityOptions = useMemo(() => uniqueCities(reports), [reports]);
   const [city, setCity] = useState<CityFilter>('all');
   const [severity, setSeverity] = useState<SeverityFilter>('all');
   const [status, setStatus] = useState<StatusFilter>('all');
@@ -59,7 +59,7 @@ export function AdminReportsScreen({ navigation }: Props) {
           ? Date.now() - 30 * 24 * 60 * 60 * 1000
           : 0;
     const list = reports.filter((report) => {
-      if (city !== 'all' && report.city !== city) return false;
+      if (city !== 'all' && report.city.trim() !== city) return false;
       if (severity !== 'all' && report.severity !== severity) return false;
       if (status !== 'all' && toUserStatus(report.status) !== status) return false;
       if (cutoff && report.createdAt.getTime() < cutoff) return false;
@@ -85,7 +85,7 @@ export function AdminReportsScreen({ navigation }: Props) {
         <Text style={styles.filterLabel}>City</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
           <FilterChip label="All" selected={city === 'all'} onPress={() => setCity('all')} />
-          {cities.map((item) => (
+          {cityOptions.map((item) => (
             <FilterChip key={item} label={item} selected={city === item} onPress={() => setCity(item)} />
           ))}
         </ScrollView>

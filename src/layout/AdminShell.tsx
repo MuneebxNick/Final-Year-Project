@@ -3,6 +3,8 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { NavigationProp } from '@react-navigation/native';
 
 import type { AdminTabParamList, RootStackParamList } from '../navigation';
+import { reportStore } from '../data/reportStore';
+import { sessionStore } from '../data/sessionStore';
 import { colors } from '../theme';
 import { AppSidebar, adminSidebarItems } from './AppSidebar';
 import { useBreakpoint } from './useBreakpoint';
@@ -31,7 +33,11 @@ export function AdminShell({ navigation, activeKey = 'Reports', children }: Prop
         }
         footer={
           <Pressable
-            onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Landing' }] })}
+            onPress={() => {
+              sessionStore.signOut();
+              reportStore.clear();
+              navigation.reset({ index: 0, routes: [{ name: 'Landing' }] });
+            }}
             style={(state: WebPressableState) => [
               styles.signOut,
               webCursor,

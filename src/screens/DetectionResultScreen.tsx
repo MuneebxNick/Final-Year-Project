@@ -1,9 +1,11 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { PhotoWithBoundingBox } from '../components/PhotoWithBoundingBox';
 import { PrimaryButton } from '../components/Buttons';
 import { SeverityBadge } from '../components/SeverityBadge';
+import { uploadReportPhoto } from '../api/cloudinary';
 import { markFormReset, reportStore } from '../data/reportStore';
 import { ScreenContainer } from '../layout/ScreenContainer';
 import { useBreakpoint } from '../layout/useBreakpoint';
@@ -16,31 +18,27 @@ type Props = NativeStackScreenProps<RootStackParamList, 'DetectionResult'>;
 export function DetectionResultScreen({ navigation, route }: Props) {
   const { isWide } = useBreakpoint();
   const { draft } = route.params;
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const submit = () => {
-    reportStore.add({
-      id: Date.now().toString(),
-      photoUri: draft.photoUri,
-      city: draft.city,
-      area: draft.area,
-      roadType: draft.roadType,
-      status: 'pending',
-      assignedTeam: 'unassigned',
-      createdAt: new Date(),
-      severity: draft.severity,
-      confidence: draft.confidence,
-      description: draft.description,
-      landmark: draft.landmark,
-      address: draft.address,
-      coords: draft.coords,
-      boundingBox: draft.boundingBox,
-      timelineStage: 'submitted',
-    });
-    markFormReset();
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'UserTabs', params: { screen: 'MyReports' } }],
-    });
+  const submit = async () => {
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const photo = await uploadReportPhoto(draft.photoUri);
+      await reportStore.submit(draft, photo);
+      markFormReset();
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'UserTabs', params: { screen: 'MyReports' } }],
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Try again in a moment.';
+      setSubmitError(message);
+      Alert.alert('Could not submit the report', message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -83,7 +81,8 @@ export function DetectionResultScreen({ navigation, route }: Props) {
         {draft.description ? <SummaryRow label="Notes" value={draft.description} /> : null}
       </View>
 
-      <PrimaryButton title="Submit Report" onPress={submit} />
+      {submitError ? <Text style={styles.submitError}>{submitError}</Text> : null}
+      <PrimaryButton title="Submit Report" onPress={submit} loading={submitting} />
       </View>
       </View>
       </ScreenContainer>
@@ -167,6 +166,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.ink,
     marginBottom: 12,
+  },
+  submitError: {
+    marginBottom: 12,
+    color: colors.severityLarge,
+    lineHeight: 20,
   },
   summaryRow: {
     marginBottom: 10,

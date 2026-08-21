@@ -1,6 +1,18 @@
 export const cities = ['Lahore', 'Karachi', 'Rawalpindi'] as const;
 export type City = (typeof cities)[number];
 
+export function uniqueCities(reports: { city: string }[]): string[] {
+  const seen = new Set<string>();
+  const list: string[] = [];
+  reports.forEach((report) => {
+    const name = report.city.trim();
+    if (!name || seen.has(name)) return;
+    seen.add(name);
+    list.push(name);
+  });
+  return list.sort((a, b) => a.localeCompare(b));
+}
+
 export const roadTypes = ['highway', 'serviceRoad', 'localRoad'] as const;
 export type RoadType = (typeof roadTypes)[number];
 
@@ -141,6 +153,7 @@ export type Report = {
   coords?: GeoCoords;
   boundingBox: BoundingBox;
   timelineStage: TimelineStage;
+  submittedBy: string;
 };
 
 export type DetectionDraft = {
@@ -208,10 +221,31 @@ export function timelineFor(status: ReportStatus): TimelineStage {
   return 'underReview';
 }
 
+export const trafficDensities = ['low', 'medium', 'high'] as const;
+export type TrafficDensity = (typeof trafficDensities)[number];
+
+export const trafficDensityLabels: Record<TrafficDensity, string> = {
+  low: 'Low',
+  medium: 'Medium',
+  high: 'High',
+};
+
+export function seedHash(city: string, area: string): number {
+  let hash = 0;
+  const seed = `${city}|${area}`;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  }
+  return hash;
+}
+
 export type LifetimePrediction = {
   daysUntilCritical: number;
   deadline: Date;
   urgency: string;
+  trafficDensity: TrafficDensity;
+  rainProbability: number;
+  temperatureC: number;
 };
 
 export function predictLifetime(report: Report): LifetimePrediction {
@@ -227,7 +261,15 @@ export function predictLifetime(report: Report): LifetimePrediction {
       : daysUntilCritical <= 14
         ? 'Plan repair soon; monsoon wear may accelerate damage.'
         : 'Monitor the segment; current depth is still within a safe window.';
-  return { daysUntilCritical, deadline, urgency };
+  const hash = seedHash(report.city, report.area);
+  return {
+    daysUntilCritical,
+    deadline,
+    urgency,
+    trafficDensity: trafficDensities[hash % trafficDensities.length],
+    rainProbability: 20 + (hash % 61),
+    temperatureC: 24 + ((hash >>> 8) % 15),
+  };
 }
 
 export const predictiveCategories = ['urgent', 'planRepair', 'monitor'] as const;
@@ -291,11 +333,7 @@ export function mockDetect(city: string, area: string): {
   confidence: number;
   boundingBox: BoundingBox;
 } {
-  let hash = 0;
-  const seed = `${city}|${area}`;
-  for (let i = 0; i < seed.length; i += 1) {
-    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
-  }
+  const hash = seedHash(city, area);
   return {
     severity: severities[hash % severities.length],
     confidence: 72 + (hash % 24),

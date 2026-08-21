@@ -6,7 +6,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ReportCard } from '../components/ReportCard';
-import { useReports } from '../data/reportStore';
+import { useMyReports } from '../data/reportStore';
 import { ScreenContainer } from '../layout/ScreenContainer';
 import { useBreakpoint } from '../layout/useBreakpoint';
 import { webCursor, type WebPressableState } from '../layout/webStyles';
@@ -31,7 +31,7 @@ type SeveritySort = 'off' | 'high' | 'low';
 
 export function MyReportsScreen({ navigation }: Props) {
   const { isWide } = useBreakpoint();
-  const reports = useReports();
+  const reports = useMyReports();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [dateSort, setDateSort] = useState<DateSort>('newest');
   const [severitySort, setSeveritySort] = useState<SeveritySort>('off');

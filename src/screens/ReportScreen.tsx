@@ -21,15 +21,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { OutlineButton, PrimaryButton } from '../components/Buttons';
 import { TextField } from '../components/TextField';
+import { api } from '../api/client';
 import { consumeFormReset } from '../data/reportStore';
 import {
-    cities,
-    mockDetect,
     roadTypeLabels,
     roadTypes,
-    type City,
+    type BoundingBox,
     type GeoCoords,
     type RoadType,
+    type Severity,
 } from '../models/report';
 import { ScreenContainer } from '../layout/ScreenContainer';
 import { useBreakpoint } from '../layout/useBreakpoint';
@@ -50,8 +50,7 @@ const dummyLocation = {
 export function ReportScreen({ navigation }: Props) {
     const { isWide } = useBreakpoint();
     const [photoUri, setPhotoUri] = useState<string | null>(null);
-    const [city, setCity] = useState<City | ''>('');
-    const [cityOpen, setCityOpen] = useState(false);
+    const [city, setCity] = useState('');
     const [area, setArea] = useState('');
     const [roadType, setRoadType] = useState<RoadType>('localRoad');
     const [useGps, setUseGps] = useState(false);
@@ -61,6 +60,7 @@ export function ReportScreen({ navigation }: Props) {
     const [description, setDescription] = useState('');
     const [landmark, setLandmark] = useState('');
     const [sheetOpen, setSheetOpen] = useState(false);
+    const [analyzing, setAnalyzing] = useState(false);
     const [errors, setErrors] = useState<{
         city?: string;
         area?: string;
@@ -126,7 +126,7 @@ export function ReportScreen({ navigation }: Props) {
         setUseGps(true);
         setAddress(dummyLocation.address);
         setCoords(dummyLocation.coords);
-        if (!city) setCity('Lahore');
+        if (!city.trim()) setCity('Lahore');
         if (!area.trim()) setArea('Gulberg III');
         setLocating(false);
     };
@@ -148,7 +148,6 @@ export function ReportScreen({ navigation }: Props) {
                 setAddress(
                     `Current location (${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)})`,
                 );
-                if (!city) setCity('Lahore');
                 setLocating(false);
             },
             () => applyDummyLocation(),
@@ -156,9 +155,9 @@ export function ReportScreen({ navigation }: Props) {
         );
     };
 
-    const analyze = () => {
+    const analyze = async () => {
         const next: typeof errors = {};
-        if (!city) next.city = 'Select a city';
+        if (!city.trim()) next.city = 'Enter the city';
         if (!area.trim()) next.area = 'Enter the area';
         if (!address.trim()) next.address = 'Add an address or use current location';
         setErrors(next);
@@ -168,20 +167,37 @@ export function ReportScreen({ navigation }: Props) {
             return;
         }
 
-        const detection = mockDetect(city, area.trim());
-        navigation.navigate('DetectionResult', {
-            draft: {
-                photoUri,
-                city,
-                area: area.trim(),
-                roadType,
-                address: address.trim(),
-                coords,
-                description: description.trim() || undefined,
-                landmark: landmark.trim() || undefined,
-                ...detection,
-            },
-        });
+        setAnalyzing(true);
+        try {
+            const detection = await api<{
+                severity: Severity;
+                confidence: number;
+                boundingBox: BoundingBox;
+            }>('/ai/detect', {
+                method: 'POST',
+                body: JSON.stringify({ city: city.trim(), area: area.trim() }),
+            });
+            navigation.navigate('DetectionResult', {
+                draft: {
+                    photoUri,
+                    city: city.trim(),
+                    area: area.trim(),
+                    roadType,
+                    address: address.trim(),
+                    coords,
+                    description: description.trim() || undefined,
+                    landmark: landmark.trim() || undefined,
+                    ...detection,
+                },
+            });
+        } catch (error) {
+            Alert.alert(
+                'Could not analyze the photo',
+                error instanceof Error ? error.message : 'Check that the backend is running.',
+            );
+        } finally {
+            setAnalyzing(false);
+        }
     };
 
     return (
@@ -228,23 +244,19 @@ export function ReportScreen({ navigation }: Props) {
                             </View>
 
                             <View style={isWide ? styles.formCol : undefined}>
-                                <Text style={styles.label}>City</Text>
-                                <Pressable
-                                    onPress={() => setCityOpen(true)}
-                                    style={(state: WebPressableState) => [
-                                        styles.dropdown,
-                                        webCursor,
-                                        errors.city && styles.fieldError,
-                                        state.hovered && styles.dropdownHover,
-                                    ]}
-                                >
-                                    <Ionicons name="business-outline" size={20} color={colors.muted} />
-                                    <Text style={[styles.dropdownValue, !city && styles.placeholder]}>
-                                        {city || 'Lahore, Karachi, or Rawalpindi'}
-                                    </Text>
-                                    <Ionicons name="chevron-down" size={18} color={colors.muted} />
-                                </Pressable>
-                                {errors.city ? <Text style={styles.error}>{errors.city}</Text> : null}
+                                <TextField
+                                    label="City"
+                                    placeholder="City or town"
+                                    value={city}
+                                    onChangeText={(text) => {
+                                        setCity(text);
+                                        setErrors((prev) => ({ ...prev, city: undefined }));
+                                    }}
+                                    error={errors.city}
+                                    icon="business-outline"
+                                    autoCapitalize="words"
+                                    autoCorrect
+                                />
 
                                 <TextField
                                     label="Area"
@@ -327,36 +339,12 @@ export function ReportScreen({ navigation }: Props) {
                                     numberOfLines={4}
                                 />
 
-                                <PrimaryButton title="Analyze photo" onPress={analyze} style={styles.submit} />
+                                <PrimaryButton title="Analyze photo" onPress={analyze} style={styles.submit} loading={analyzing} />
                                 <OutlineButton title="Clear form" onPress={resetForm} style={styles.clear} />
                             </View>
                         </View>
                     </ScreenContainer>
                 </ScrollView>
-
-                <Modal visible={cityOpen} transparent animationType="fade" onRequestClose={() => setCityOpen(false)}>
-                    <Pressable style={styles.sheetBackdrop} onPress={() => setCityOpen(false)}>
-                        <Pressable style={styles.citySheet} onPress={() => { }}>
-                            <Text style={styles.cityTitle}>Select city</Text>
-                            {cities.map((item) => (
-                                <Pressable
-                                    key={item}
-                                    style={styles.cityRow}
-                                    onPress={() => {
-                                        setCity(item);
-                                        setCityOpen(false);
-                                        setErrors((prev) => ({ ...prev, city: undefined }));
-                                    }}
-                                >
-                                    <Text style={styles.cityRowLabel}>{item}</Text>
-                                    {city === item ? (
-                                        <Ionicons name="checkmark" size={20} color={colors.blue} />
-                                    ) : null}
-                                </Pressable>
-                            ))}
-                        </Pressable>
-                    </Pressable>
-                </Modal>
 
                 <Modal
                     visible={sheetOpen}
@@ -403,9 +391,6 @@ const styles = StyleSheet.create({
     },
     formCol: {
         flex: 1,
-    },
-    dropdownHover: {
-        borderColor: colors.blueMid,
     },
     gpsHover: {
         borderColor: colors.blueMid,
@@ -476,41 +461,6 @@ const styles = StyleSheet.create({
         color: colors.white,
         fontWeight: '700',
     },
-    label: {
-        fontWeight: '700',
-        color: colors.ink,
-        marginBottom: 8,
-    },
-    dropdown: {
-        minHeight: 56,
-        backgroundColor: colors.white,
-        borderRadius: radii.button,
-        borderWidth: 1,
-        borderColor: colors.inputBorder,
-        paddingHorizontal: 14,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 10,
-        marginBottom: 16,
-    },
-    dropdownValue: {
-        flex: 1,
-        fontSize: 16,
-        color: colors.ink,
-    },
-    placeholder: {
-        color: '#9AA6A4',
-    },
-    fieldError: {
-        borderColor: '#B3261E',
-    },
-    error: {
-        marginTop: -10,
-        marginBottom: 12,
-        marginLeft: 4,
-        color: '#B3261E',
-        fontSize: 13,
-    },
     section: {
         fontWeight: '700',
         color: colors.ink,
@@ -576,33 +526,6 @@ const styles = StyleSheet.create({
         borderTopRightRadius: 20,
         paddingBottom: 28,
         paddingTop: 8,
-    },
-    citySheet: {
-        backgroundColor: colors.white,
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        paddingBottom: 28,
-        paddingTop: 16,
-        paddingHorizontal: 8,
-    },
-    cityTitle: {
-        fontWeight: '800',
-        fontSize: 18,
-        color: colors.ink,
-        paddingHorizontal: 16,
-        marginBottom: 8,
-    },
-    cityRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 16,
-    },
-    cityRowLabel: {
-        flex: 1,
-        fontSize: 16,
-        fontWeight: '600',
-        color: colors.ink,
     },
     handle: {
         alignSelf: 'center',

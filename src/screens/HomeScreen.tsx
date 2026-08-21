@@ -6,7 +6,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ReportCard } from '../components/ReportCard';
-import { useReports } from '../data/reportStore';
+import { useMyReports } from '../data/reportStore';
 import { useSession } from '../data/sessionStore';
 import { ScreenContainer } from '../layout/ScreenContainer';
 import { useBreakpoint } from '../layout/useBreakpoint';
@@ -22,7 +22,7 @@ type Props = CompositeScreenProps<
 export function HomeScreen({ navigation }: Props) {
   const { isWide } = useBreakpoint();
   const session = useSession();
-  const reports = useReports();
+  const reports = useMyReports();
   const recent = reports.slice(0, 3);
   const firstName = session?.name.split(' ')[0] ?? 'there';
 

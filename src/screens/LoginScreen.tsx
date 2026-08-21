@@ -12,7 +12,9 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { PrimaryButton } from '../components/Buttons';
 import { TextField } from '../components/TextField';
-import { sessionStore } from '../data/sessionStore';
+import { api } from '../api/client';
+import { reportStore } from '../data/reportStore';
+import { sessionStore, type Session } from '../data/sessionStore';
 import { AuthCard } from '../layout/AuthCard';
 import { useBreakpoint } from '../layout/useBreakpoint';
 import { webCursor } from '../layout/webStyles';
@@ -25,9 +27,10 @@ export function LoginScreen({ navigation }: Props) {
   const { isWide } = useBreakpoint();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
-  const submit = () => {
+  const submit = async () => {
     const next: typeof errors = {};
     const trimmed = email.trim();
     if (!trimmed) next.email = 'Enter your email';
@@ -36,8 +39,26 @@ export function LoginScreen({ navigation }: Props) {
     else if (password.length < 6) next.password = 'Password must be at least 6 characters';
     setErrors(next);
     if (Object.keys(next).length > 0) return;
-    sessionStore.signIn(trimmed);
-    navigation.replace('UserTabs');
+    setLoading(true);
+    try {
+      const session = await api<Session>('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email: trimmed, password }),
+      });
+      sessionStore.signIn(session);
+      void reportStore.refresh().catch(() => undefined);
+      navigation.replace('UserTabs');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Could not sign in';
+      setErrors({
+        password:
+          message === 'Invalid email or password'
+            ? 'Invalid email or password. Use demo@rahscan.local / Demo1234! or the account you signed up with.'
+            : message,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -52,6 +73,7 @@ export function LoginScreen({ navigation }: Props) {
         <AuthCard>
         <Text style={styles.title}>Welcome back</Text>
         <Text style={styles.subtitle}>Sign in to report a pothole in your area.</Text>
+        <Text style={styles.demoHint}>Demo citizen: demo@rahscan.local / Demo1234!</Text>
         <View style={styles.form}>
           <TextField
             label="Email"
@@ -73,7 +95,7 @@ export function LoginScreen({ navigation }: Props) {
             returnKeyType="done"
             onSubmitEditing={submit}
           />
-          <PrimaryButton title="Continue" onPress={submit} />
+          <PrimaryButton title="Continue" onPress={submit} loading={loading} />
         </View>
         <View style={styles.row}>
           <Text style={styles.muted}>New to RahScan?</Text>
@@ -117,6 +139,12 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 15,
     lineHeight: 22,
+  },
+  demoHint: {
+    marginTop: 8,
+    color: colors.tealSoft,
+    fontSize: 13,
+    lineHeight: 18,
   },
   form: {
     marginTop: 32,

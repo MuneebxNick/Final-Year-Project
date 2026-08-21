@@ -6,7 +6,7 @@ import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-n
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { OutlineButton } from '../components/Buttons';
-import { useReports } from '../data/reportStore';
+import { reportStore, useMyReports } from '../data/reportStore';
 import { sessionStore, useSession } from '../data/sessionStore';
 import { ScreenContainer } from '../layout/ScreenContainer';
 import { useBreakpoint } from '../layout/useBreakpoint';
@@ -22,10 +22,11 @@ type Props = CompositeScreenProps<
 export function ProfileScreen({ navigation }: Props) {
   const { isWide } = useBreakpoint();
   const session = useSession();
-  const reports = useReports();
+  const reports = useMyReports();
 
   const signOut = () => {
     sessionStore.signOut();
+    reportStore.clear();
     const stack = navigation.getParent() as
       | NativeStackNavigationProp<RootStackParamList>
       | undefined;

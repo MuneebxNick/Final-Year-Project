@@ -13,6 +13,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppSidebar, adminSidebarItems } from '../layout/AppSidebar';
 import { useBreakpoint } from '../layout/useBreakpoint';
 import { webCursor, type WebPressableState } from '../layout/webStyles';
+import { reportStore } from '../data/reportStore';
+import { sessionStore } from '../data/sessionStore';
 import type { AdminTabParamList, RootStackParamList } from '../navigation';
 import { colors } from '../theme';
 import { AdminDashboardScreen } from './AdminDashboardScreen';
@@ -28,7 +30,11 @@ export function AdminTabs() {
   const navRef = useRef<BottomTabNavigationProp<AdminTabParamList> | null>(null);
   const [current, setCurrent] = useState<keyof AdminTabParamList>('Dashboard');
 
-  const signOut = () => stackNav.reset({ index: 0, routes: [{ name: 'Landing' }] });
+  const signOut = () => {
+    sessionStore.signOut();
+    reportStore.clear();
+    stackNav.reset({ index: 0, routes: [{ name: 'Landing' }] });
+  };
 
   return (
     <View style={[styles.root, isWide && styles.row]}>

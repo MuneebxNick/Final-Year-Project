@@ -50,15 +50,20 @@ export function trendSeries(reports: Report[], mode: TrendMode): TrendPoint[] {
     });
   }
 
-  return Array.from({ length: 5 }, (_, index) => {
-    const start = new Date(now);
-    start.setHours(0, 0, 0, 0);
-    start.setDate(now.getDate() - (4 - index) * 7);
-    const end = new Date(start);
-    end.setDate(start.getDate() + 7);
+  const currentYear = now.getFullYear();
+  return Array.from({ length: 6 }, (_, index) => {
+    const monthDate = new Date(currentYear, now.getMonth() - (5 - index), 1);
+    const year = monthDate.getFullYear();
+    const month = monthDate.getMonth();
+    const includeYear = year !== currentYear;
     return {
-      label: start.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
-      count: reports.filter((report) => report.createdAt >= start && report.createdAt < end).length,
+      label: monthDate.toLocaleDateString(
+        'en-GB',
+        includeYear ? { month: 'short', year: 'numeric' } : { month: 'short' },
+      ),
+      count: reports.filter(
+        (report) => report.createdAt.getFullYear() === year && report.createdAt.getMonth() === month,
+      ).length,
     };
   });
 }

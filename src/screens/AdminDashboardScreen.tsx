@@ -109,7 +109,9 @@ export function AdminDashboardScreen(_props: Props) {
             </View>
           </View>
           <Text style={styles.trendHint}>
-            {mode === 'weekly' ? 'Reports filed in the last 7 days.' : 'Reports grouped by week over the last 5 weeks.'}
+            {mode === 'weekly'
+              ? 'Reports filed in the last 7 days.'
+              : 'Reports grouped by calendar month over the last 6 months.'}
           </Text>
           <TrendChart points={trend} />
         </View>

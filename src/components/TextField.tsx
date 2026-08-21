@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { webInputNoOutline, webNoOutline } from '../layout/webStyles';
 import { colors, radii } from '../theme';
 
 type Props = {
@@ -80,7 +81,7 @@ export function TextField({
           onBlur={() => setFocused(false)}
           multiline={multiline}
           numberOfLines={numberOfLines}
-          style={[styles.input, multiline && styles.multiline]}
+          style={[styles.input, multiline && styles.multiline, webInputNoOutline]}
         />
         {secureTextEntry ? (
           <Pressable
@@ -88,6 +89,7 @@ export function TextField({
             hitSlop={10}
             accessibilityRole="button"
             accessibilityLabel={hidden ? 'Show password' : 'Hide password'}
+            style={webNoOutline}
           >
             <Ionicons
               name={hidden ? 'eye-outline' : 'eye-off-outline'}
@@ -135,6 +137,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.ink,
     paddingVertical: 14,
+    backgroundColor: 'transparent',
   },
   multiline: {
     minHeight: 88,

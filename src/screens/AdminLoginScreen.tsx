@@ -12,6 +12,9 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { TealButton } from '../components/Buttons';
 import { TextField } from '../components/TextField';
+import { api } from '../api/client';
+import { reportStore } from '../data/reportStore';
+import { sessionStore, type Session } from '../data/sessionStore';
 import { AuthCard } from '../layout/AuthCard';
 import { useBreakpoint } from '../layout/useBreakpoint';
 import type { RootStackParamList } from '../navigation';
@@ -23,9 +26,10 @@ export function AdminLoginScreen({ navigation }: Props) {
   const { isWide } = useBreakpoint();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
-  const submit = () => {
+  const submit = async () => {
     const next: typeof errors = {};
     const trimmed = email.trim();
     if (!trimmed) next.email = 'Enter your email';
@@ -34,7 +38,20 @@ export function AdminLoginScreen({ navigation }: Props) {
     else if (password.length < 6) next.password = 'Password must be at least 6 characters';
     setErrors(next);
     if (Object.keys(next).length > 0) return;
-    navigation.replace('AdminTabs');
+    setLoading(true);
+    try {
+      const session = await api<Session>('/auth/admin/login', {
+        method: 'POST',
+        body: JSON.stringify({ email: trimmed, password }),
+      });
+      sessionStore.signIn(session);
+      void reportStore.refresh().catch(() => undefined);
+      navigation.replace('AdminTabs');
+    } catch (error) {
+      setErrors({ password: error instanceof Error ? error.message : 'Could not sign in' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -54,6 +71,7 @@ export function AdminLoginScreen({ navigation }: Props) {
         <Text style={styles.subtitle}>
           Sign in to review citizen reports and assign field teams.
         </Text>
+        <Text style={styles.demoHint}>Demo admin: admin@rahscan.local / Admin1234!</Text>
         <View style={styles.form}>
           <TextField
             label="Work email"
@@ -74,7 +92,7 @@ export function AdminLoginScreen({ navigation }: Props) {
             returnKeyType="done"
             onSubmitEditing={submit}
           />
-          <TealButton title="Enter portal" onPress={submit} />
+          <TealButton title="Enter portal" onPress={submit} loading={loading} />
         </View>
         </AuthCard>
       </ScrollView>
@@ -117,6 +135,12 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 15,
     lineHeight: 22,
+  },
+  demoHint: {
+    marginTop: 8,
+    color: colors.tealSoft,
+    fontSize: 13,
+    lineHeight: 18,
   },
   form: {
     marginTop: 32,
