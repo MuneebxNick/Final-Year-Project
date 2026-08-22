@@ -45,6 +45,12 @@ export function LoginScreen({ navigation }: Props) {
         method: 'POST',
         body: JSON.stringify({ email: trimmed, password }),
       });
+      if (session.role !== 'citizen') {
+        setErrors({
+          password: 'Admin accounts use the Municipal Authority login on the home screen.',
+        });
+        return;
+      }
       sessionStore.signIn(session);
       void reportStore.refresh().catch(() => undefined);
       navigation.replace('UserTabs');

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -62,15 +62,7 @@ function withAlpha(hex: string, alpha: number) {
 }
 
 function clusterGlow(color: string, size: number): ViewStyle {
-  if (Platform.OS === 'web') {
-    return { boxShadow: `0 0 ${Math.round(size * 0.35)}px ${withAlpha(color, 0.45)}` } as ViewStyle;
-  }
-  return {
-    shadowColor: color,
-    shadowOpacity: 0.55,
-    shadowRadius: size * 0.28,
-    shadowOffset: { width: 0, height: 0 },
-  };
+  return { boxShadow: `0 0 ${Math.round(size * 0.35)}px ${withAlpha(color, 0.45)}` } as ViewStyle;
 }
 
 function pickRepresentative(list: Report[]): Report {
@@ -175,10 +167,10 @@ export function AdminMapScreen({ navigation }: Props) {
             return (
               <View
                 key={cluster.id}
-                pointerEvents="box-none"
                 style={[
                   styles.blobWrap,
                   {
+                    pointerEvents: 'box-none',
                     left: `${cluster.left}%`,
                     top: `${cluster.top}%`,
                     width: cluster.size,
@@ -190,11 +182,11 @@ export function AdminMapScreen({ navigation }: Props) {
                 ]}
               >
                 <View
-                  pointerEvents="none"
                   style={[
                     styles.blobRing,
                     glow,
                     {
+                      pointerEvents: 'none',
                       width: cluster.size,
                       height: cluster.size,
                       backgroundColor: withAlpha(cluster.color, cluster.opacity * 0.35),
@@ -202,10 +194,10 @@ export function AdminMapScreen({ navigation }: Props) {
                   ]}
                 />
                 <View
-                  pointerEvents="none"
                   style={[
                     styles.blobRing,
                     {
+                      pointerEvents: 'none',
                       width: cluster.size * 0.65,
                       height: cluster.size * 0.65,
                       backgroundColor: withAlpha(cluster.color, cluster.opacity * 0.55),
@@ -213,10 +205,10 @@ export function AdminMapScreen({ navigation }: Props) {
                   ]}
                 />
                 <View
-                  pointerEvents="none"
                   style={[
                     styles.blobRing,
                     {
+                      pointerEvents: 'none',
                       width: cluster.size * 0.4,
                       height: cluster.size * 0.4,
                       backgroundColor: withAlpha(cluster.color, cluster.opacity),

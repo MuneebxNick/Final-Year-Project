@@ -40,10 +40,16 @@ export function AdminLoginScreen({ navigation }: Props) {
     if (Object.keys(next).length > 0) return;
     setLoading(true);
     try {
-      const session = await api<Session>('/auth/admin/login', {
+      const session = await api<Session>('/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email: trimmed, password }),
       });
+      if (session.role !== 'admin') {
+        setErrors({
+          password: 'Citizen accounts use the main Get Started login, not this portal.',
+        });
+        return;
+      }
       sessionStore.signIn(session);
       void reportStore.refresh().catch(() => undefined);
       navigation.replace('AdminTabs');

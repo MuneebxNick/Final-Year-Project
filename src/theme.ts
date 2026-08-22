@@ -29,17 +29,11 @@ export const radii = {
 
 export const shadows = {
   card: {
-    shadowColor: '#0F3A43',
-    shadowOpacity: 0.07,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 8 },
+    boxShadow: '0px 8px 18px rgba(15, 58, 67, 0.07)',
     elevation: 3,
   },
   button: {
-    shadowColor: '#00C4B4',
-    shadowOpacity: 0.28,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
+    boxShadow: '0px 6px 12px rgba(0, 196, 180, 0.28)',
     elevation: 4,
   },
 } as const;

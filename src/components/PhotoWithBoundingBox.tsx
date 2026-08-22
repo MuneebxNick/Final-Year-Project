@@ -22,10 +22,10 @@ export function PhotoWithBoundingBox({ uri, boundingBox, height = 220 }: Props) 
       )}
       {uri && boundingBox ? (
         <View
-          pointerEvents="none"
           style={[
             styles.box,
             {
+              pointerEvents: 'none',
               left: `${boundingBox.left}%`,
               top: `${boundingBox.top}%`,
               width: `${boundingBox.width}%`,

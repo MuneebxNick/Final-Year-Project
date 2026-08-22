@@ -12,15 +12,10 @@ from ..schemas import AuthUser, LoginRequest, MeResponse, SignupRequest, user_to
 router = APIRouter()
 
 
-def _authenticate(db: Session, email: str, password: str, role: str) -> User:
+def _authenticate(db: Session, email: str, password: str) -> User:
     user = db.scalar(select(User).where(User.email == email.strip().lower()))
     if user is None or not verify_password(password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
-    if user.role != role:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin portal only" if role == "admin" else "Citizen login only",
-        )
     return user
 
 
@@ -46,13 +41,13 @@ def signup(body: SignupRequest, db: Annotated[Session, Depends(get_db)]) -> Auth
 
 @router.post("/login", response_model=AuthUser)
 def login(body: LoginRequest, db: Annotated[Session, Depends(get_db)]) -> AuthUser:
-    user = _authenticate(db, body.email, body.password, "citizen")
+    user = _authenticate(db, body.email, body.password)
     return user_to_auth(user, create_token(user))
 
 
 @router.post("/admin/login", response_model=AuthUser)
 def admin_login(body: LoginRequest, db: Annotated[Session, Depends(get_db)]) -> AuthUser:
-    user = _authenticate(db, body.email, body.password, "admin")
+    user = _authenticate(db, body.email, body.password)
     return user_to_auth(user, create_token(user))
 
 

@@ -1,4 +1,3 @@
-import hashlib
 import time
 from typing import Annotated
 
@@ -15,11 +14,6 @@ UPLOAD_FOLDER = "rahscan/reports"
 UPLOAD_FORMAT = "webp"
 
 
-def _sign(params: dict[str, str], api_secret: str) -> str:
-    payload = "&".join(f"{key}={params[key]}" for key in sorted(params)) + api_secret
-    return hashlib.sha1(payload.encode("utf-8")).hexdigest()
-
-
 @router.post("/signature", response_model=UploadSignature)
 def signature(_user: Annotated[User, Depends(require_citizen)]) -> UploadSignature:
     settings = get_settings()
@@ -31,31 +25,13 @@ def signature(_user: Annotated[User, Depends(require_citizen)]) -> UploadSignatu
                 "and restart the API."
             ),
         )
-    timestamp = int(time.time())
-    if settings.cloudinary_api_key and settings.cloudinary_api_secret:
-        preset = settings.cloudinary_upload_preset or "rahscan_reports"
-        params = {
-            "folder": UPLOAD_FOLDER,
-            "format": UPLOAD_FORMAT,
-            "timestamp": str(timestamp),
-            "upload_preset": preset,
-        }
-        return UploadSignature(
-            cloud_name=settings.cloudinary_cloud_name,
-            api_key=settings.cloudinary_api_key,
-            timestamp=timestamp,
-            signature=_sign(params, settings.cloudinary_api_secret),
-            folder=UPLOAD_FOLDER,
-            format=UPLOAD_FORMAT,
-            upload_preset=preset,
-            unsigned=False,
-        )
-    preset = settings.cloudinary_unsigned_preset or "rahscan_reports_unsigned"
+    # Client-side uploads must use the unsigned preset. Signed uploads 401 when
+    # CLOUDINARY_API_SECRET does not match the Cloudinary dashboard secret.
     return UploadSignature(
         cloud_name=settings.cloudinary_cloud_name,
-        timestamp=timestamp,
+        timestamp=int(time.time()),
         folder=UPLOAD_FOLDER,
         format=UPLOAD_FORMAT,
-        upload_preset=preset,
+        upload_preset=settings.cloudinary_unsigned_preset or "rahscan_reports_unsigned",
         unsigned=True,
     )
