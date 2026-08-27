@@ -22,6 +22,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { OutlineButton, PrimaryButton } from '../components/Buttons';
 import { TextField } from '../components/TextField';
 import { detectPotholes, mapYoloToDraft } from '../api/detect';
+import { reverseGeocode } from '../api/geocode';
 import { consumeFormReset } from '../data/reportStore';
 import {
     roadTypeLabels,
@@ -39,11 +40,6 @@ type Props = CompositeScreenProps<
     BottomTabScreenProps<UserTabParamList, 'Report'>,
     NativeStackScreenProps<RootStackParamList>
 >;
-
-const dummyLocation = {
-    address: 'Gulberg III, near Main Boulevard',
-    coords: { lat: 31.5204, lng: 74.3587 } satisfies GeoCoords,
-};
 
 export function ReportScreen({ navigation }: Props) {
     const { isWide } = useBreakpoint();
@@ -120,36 +116,57 @@ export function ReportScreen({ navigation }: Props) {
         }
     };
 
-    const applyDummyLocation = () => {
-        setUseGps(true);
-        setAddress(dummyLocation.address);
-        setCoords(dummyLocation.coords);
-        if (!city.trim()) setCity('Lahore');
-        if (!area.trim()) setArea('Gulberg III');
+    const failLocation = (message: string) => {
         setLocating(false);
+        Alert.alert('Location unavailable', message);
     };
 
     const requestLocation = () => {
         setLocating(true);
         const geo = typeof navigator !== 'undefined' ? navigator.geolocation : undefined;
         if (!geo) {
-            applyDummyLocation();
+            failLocation('This device cannot provide GPS. Enter city, area, and address manually.');
             return;
         }
         geo.getCurrentPosition(
-            (position) => {
-                setUseGps(true);
-                setCoords({
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude,
-                });
-                setAddress(
-                    `Current location (${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)})`,
-                );
-                setLocating(false);
+            async (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                const gps = { lat, lng };
+                try {
+                    const place = await reverseGeocode(lat, lng);
+                    setUseGps(true);
+                    setCoords(gps);
+                    if (place.city) {
+                        setCity(place.city);
+                        setErrors((prev) => ({ ...prev, city: undefined }));
+                    } else {
+                        Alert.alert(
+                            'City not found',
+                            'Your GPS coordinates were saved. Enter the city, area, and address yourself.',
+                        );
+                    }
+                } catch {
+                    setUseGps(true);
+                    setCoords(gps);
+                    Alert.alert(
+                        'Place not found',
+                        'Your GPS coordinates were saved. Enter the city, area, and address yourself.',
+                    );
+                } finally {
+                    setLocating(false);
+                }
             },
-            () => applyDummyLocation(),
-            { timeout: 7000, maximumAge: 60_000 },
+            (error: { code?: number }) => {
+                const message =
+                    error?.code === 1
+                        ? 'Location permission was denied. Enable it in your browser or device settings, then try again.'
+                        : error?.code === 3
+                          ? 'Location request timed out. Try again or enter the address manually.'
+                          : 'Could not get your current location. Enter the address manually.';
+                failLocation(message);
+            },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
         );
     };
 
@@ -157,7 +174,7 @@ export function ReportScreen({ navigation }: Props) {
         const next: typeof errors = {};
         if (!city.trim()) next.city = 'Enter the city';
         if (!area.trim()) next.area = 'Enter the area';
-        if (!address.trim()) next.address = 'Add an address or use current location';
+        if (!address.trim()) next.address = 'Enter the street address';
         setErrors(next);
         if (Object.keys(next).length > 0) return;
         if (!photoUri) {
@@ -302,10 +319,15 @@ export function ReportScreen({ navigation }: Props) {
                                         {locating ? 'Finding location…' : 'Use Current Location'}
                                     </Text>
                                 </Pressable>
+                                {coords ? (
+                                    <Text style={styles.gpsCoords}>
+                                        GPS: {coords.lat.toFixed(6)}, {coords.lng.toFixed(6)}
+                                    </Text>
+                                ) : null}
 
                                 <TextField
                                     label="Address"
-                                    placeholder="Or type the street address manually"
+                                    placeholder="Street, house number, or nearby road"
                                     value={address}
                                     onChangeText={(text) => {
                                         setAddress(text);
@@ -504,6 +526,12 @@ const styles = StyleSheet.create({
     gpsLabel: {
         fontWeight: '700',
         color: colors.ink,
+    },
+    gpsCoords: {
+        marginTop: -4,
+        marginBottom: 12,
+        color: colors.muted,
+        fontSize: 13,
     },
     submit: {
         marginTop: 8,

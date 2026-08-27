@@ -95,7 +95,7 @@ export function UserReportDetailScreen({ route }: Props) {
         {report.coords ? (
           <Detail
             label="Coordinates"
-            value={`${report.coords.lat.toFixed(4)}, ${report.coords.lng.toFixed(4)}`}
+            value={`${report.coords.lat.toFixed(6)}, ${report.coords.lng.toFixed(6)}`}
           />
         ) : null}
       </View>

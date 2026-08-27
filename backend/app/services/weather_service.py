@@ -16,6 +16,8 @@ _GEOCODE_CACHE: dict[str, tuple[float, float] | None] = {}
 
 _FALLBACK_RAIN = 30
 _FALLBACK_TEMP = 28.0
+_COUNTRY_ALIASES = frozenset({"pakistan", "pk"})
+_GEOCODE_COUNT = 10
 
 
 def _season_now() -> str:
@@ -27,20 +29,83 @@ def _season_now() -> str:
     return "Summer"
 
 
-def _geocode_query(location: str) -> str:
-    query = location.strip()
-    if "pakistan" not in query.lower():
-        query = f"{query}, Pakistan"
-    return query
+def _location_parts(location: str) -> list[str]:
+    """Split 'Area, City, Pakistan' into significant parts, dropping country suffixes."""
+    parts = [p.strip() for p in location.split(",") if p.strip()]
+    while parts and parts[-1].lower() in _COUNTRY_ALIASES:
+        parts.pop()
+    return parts
 
 
-def _pick_pakistan_result(results: list[dict]) -> dict | None:
+def _query_names(location: str) -> list[str]:
+    """Ordered geocoding names. Comma-qualifiers are tried first, then area, then city."""
+    original = location.strip()
+    parts = _location_parts(original)
+    names: list[str] = []
+
+    def _add(name: str) -> None:
+        key = name.strip()
+        if key and key.lower() not in {n.lower() for n in names}:
+            names.append(key)
+
+    _add(original)
+    if parts:
+        _add(", ".join(parts))
+        _add(parts[0])
+        if len(parts) >= 2:
+            _add(parts[-1])
+    return names
+
+
+def _admin_blob(item: dict) -> str:
+    return " ".join(
+        str(item.get(key) or "")
+        for key in ("name", "admin1", "admin2", "admin3", "admin4")
+    ).lower()
+
+
+def _hint_in_result(item: dict, hint: str) -> bool:
+    needle = hint.strip().lower()
+    return bool(needle) and needle in _admin_blob(item)
+
+
+def _result_score(item: dict, area: str, city: str | None) -> tuple:
+    name = str(item.get("name") or "").lower()
+    area_l = area.strip().lower()
+    city_l = (city or "").strip().lower()
+    try:
+        population = int(item.get("population") or 0)
+    except (TypeError, ValueError):
+        population = 0
+    pk = 1 if str(item.get("country_code") or "").upper() == "PK" else 0
+    return (
+        pk,
+        1 if city_l and _hint_in_result(item, city_l) else 0,
+        1 if city_l and name == city_l else 0,
+        1 if area_l and name == area_l else 0,
+        1 if area_l and area_l in name else 0,
+        population,
+    )
+
+
+def _pick_result(results: list[dict], parts: list[str], query_name: str) -> dict | None:
     if not results:
         return None
-    for item in results:
-        if str(item.get("country_code", "")).upper() == "PK":
-            return item
-    return results[0]
+    pk_results = [item for item in results if str(item.get("country_code") or "").upper() == "PK"]
+    pool = pk_results or results
+
+    area = parts[0] if parts else query_name
+    city = parts[-1] if len(parts) >= 2 else None
+    query_is_city_fallback = bool(city) and query_name.strip().lower() == city.strip().lower()
+
+    if city and not query_is_city_fallback:
+        matched = [item for item in pool if _hint_in_result(item, city)]
+        if not matched:
+            return None
+        pool = matched
+
+    pool.sort(key=lambda item: _result_score(item, area, city), reverse=True)
+    return pool[0]
 
 
 def _coords_from_result(item: dict) -> tuple[float, float] | None:
@@ -52,37 +117,50 @@ def _coords_from_result(item: dict) -> tuple[float, float] | None:
     return (lat, lon)
 
 
+def _geocode_search(client: httpx.Client, name: str) -> list[dict]:
+    response = client.get(
+        _GEOCODE_URL,
+        params={
+            "name": name,
+            "count": _GEOCODE_COUNT,
+            "language": "en",
+            "countryCode": "PK",
+        },
+    )
+    response.raise_for_status()
+    payload = response.json()
+    results = payload.get("results") if isinstance(payload, dict) else None
+    if not isinstance(results, list):
+        return []
+    return [item for item in results if isinstance(item, dict)]
+
+
 def get_coordinates(location: str) -> tuple[float, float] | None:
     cache_key = location.strip().lower()
     if cache_key in _GEOCODE_CACHE:
         return _GEOCODE_CACHE[cache_key]
 
+    parts = _location_parts(location)
+    names = _query_names(location)
+    if not names:
+        _GEOCODE_CACHE[cache_key] = None
+        return None
+
     try:
         with httpx.Client(timeout=_TIMEOUT) as client:
-            response = client.get(
-                _GEOCODE_URL,
-                params={
-                    "name": _geocode_query(location),
-                    "count": 5,
-                    "language": "en",
-                    "countryCode": "PK",
-                },
-            )
-            response.raise_for_status()
-            payload = response.json()
+            for name in names:
+                results = _geocode_search(client, name)
+                chosen = _pick_result(results, parts, name)
+                coords = _coords_from_result(chosen) if chosen else None
+                if coords is not None:
+                    _GEOCODE_CACHE[cache_key] = coords
+                    return coords
     except (httpx.HTTPError, ValueError, TypeError):
         _GEOCODE_CACHE[cache_key] = None
         return None
 
-    results = payload.get("results") if isinstance(payload, dict) else None
-    if not isinstance(results, list) or not results:
-        _GEOCODE_CACHE[cache_key] = None
-        return None
-
-    chosen = _pick_pakistan_result(results)
-    coords = _coords_from_result(chosen) if chosen else None
-    _GEOCODE_CACHE[cache_key] = coords
-    return coords
+    _GEOCODE_CACHE[cache_key] = None
+    return None
 
 
 def _rain_at_current_hour(hourly: dict, current_time: str | None) -> int | None:

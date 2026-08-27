@@ -251,6 +251,13 @@ export const trafficDensityLabels: Record<TrafficDensity, string> = {
   high: 'High',
 };
 
+/** Traffic is a property of the road class, not of city/area. */
+export function trafficDensityFromRoadType(roadType: RoadType): TrafficDensity {
+  if (roadType === 'highway') return 'high';
+  if (roadType === 'serviceRoad') return 'low';
+  return 'medium';
+}
+
 export function seedHash(city: string, area: string): number {
   let hash = 0;
   const seed = `${city}|${area}`;

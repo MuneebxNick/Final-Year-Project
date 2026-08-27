@@ -1,0 +1,44 @@
+{
+  "severity": {
+    "Small": 0,
+    "Medium": 1,
+    "Large": 2
+  },
+  "road_type": {
+    "Simple Road": 0,
+    "Service Road": 1,
+    "Highway": 2
+  },
+  "traffic_density": {
+    "Low": 0,
+    "Medium": 1,
+    "High": 2
+  },
+  "season": {
+    "Winter": 0,
+    "Summer": 1,
+    "Monsoon": 2
+  },
+  "reverse": {
+    "severity": {
+      "0": "Small",
+      "1": "Medium",
+      "2": "Large"
+    },
+    "road_type": {
+      "0": "Simple Road",
+      "1": "Service Road",
+      "2": "Highway"
+    },
+    "traffic_density": {
+      "0": "Low",
+      "1": "Medium",
+      "2": "High"
+    },
+    "season": {
+      "0": "Winter",
+      "1": "Summer",
+      "2": "Monsoon"
+    }
+  }
+}

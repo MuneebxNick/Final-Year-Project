@@ -125,6 +125,12 @@ export function AdminReportDetailScreen({ navigation, route }: Props) {
                 label="Address"
                 value={report.address.trim() || 'Not provided'}
               />
+              {report.coords ? (
+                <DetailRow
+                  label="Coordinates"
+                  value={`${report.coords.lat.toFixed(6)}, ${report.coords.lng.toFixed(6)}`}
+                />
+              ) : null}
               <DetailRow label="Confidence" value={`${report.confidence}%`} />
 
               {flags.length > 0 ? (
