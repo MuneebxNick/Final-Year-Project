@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, AliasChoices
 from pydantic.alias_generators import to_camel
 
 from .models import Report as ReportRow
@@ -34,6 +34,11 @@ class BoundingBox(CamelModel):
     height: float
 
 
+class DetectionBox(BoundingBox):
+    severity: Severity
+    confidence: int
+
+
 class GeoCoords(CamelModel):
     lat: float
     lng: float
@@ -48,6 +53,29 @@ class DetectResponse(CamelModel):
     severity: Severity
     confidence: int
     bounding_box: BoundingBox
+
+
+YoloSeverity = Literal["Small", "Medium", "Large"]
+
+
+class PixelBoundingBox(BaseModel):
+    x1: float
+    y1: float
+    x2: float
+    y2: float
+
+
+class YoloDetectionOut(BaseModel):
+    bounding_box: PixelBoundingBox
+    confidence: float
+    severity: YoloSeverity
+    area_percentage: float
+
+
+class YoloDetectResponse(BaseModel):
+    detections: list[YoloDetectionOut]
+    highest_severity: YoloSeverity | None = None
+    message: str | None = None
 
 
 class SignupRequest(CamelModel):
@@ -90,6 +118,7 @@ class ReportOut(CamelModel):
     address: str
     coords: GeoCoords | None = None
     bounding_box: BoundingBox
+    bounding_boxes: list[DetectionBox] = Field(default_factory=list)
     timeline_stage: TimelineStage
     submitted_by: str
 
@@ -107,6 +136,10 @@ class ReportCreate(CamelModel):
     severity: Severity
     confidence: int
     bounding_box: BoundingBox
+    bounding_boxes: list[DetectionBox] = Field(
+        default_factory=list,
+        validation_alias=AliasChoices("boundingBoxes", "bounding_boxes"),
+    )
 
 
 class AdminReportPatch(CamelModel):
@@ -143,10 +176,46 @@ def timeline_for(status: ReportStatus) -> TimelineStage:
     return "underReview"
 
 
+def _detections_from_row(row: ReportRow) -> list[DetectionBox]:
+    raw = row.detections
+    if isinstance(raw, list) and len(raw) > 0:
+        boxes: list[DetectionBox] = []
+        for item in raw:
+            if not isinstance(item, dict):
+                continue
+            try:
+                boxes.append(
+                    DetectionBox(
+                        left=float(item.get("left", 0)),
+                        top=float(item.get("top", 0)),
+                        width=float(item.get("width", 0)),
+                        height=float(item.get("height", 0)),
+                        severity=item.get("severity", row.severity),  # type: ignore[arg-type]
+                        confidence=int(item.get("confidence", row.confidence)),
+                    )
+                )
+            except (TypeError, ValueError):
+                continue
+        if boxes:
+            return boxes
+    return [
+        DetectionBox(
+            left=row.bbox_left,
+            top=row.bbox_top,
+            width=row.bbox_width,
+            height=row.bbox_height,
+            severity=row.severity,  # type: ignore[arg-type]
+            confidence=row.confidence,
+        )
+    ]
+
+
 def report_to_out(row: ReportRow) -> ReportOut:
     coords = None
     if row.lat is not None and row.lng is not None:
         coords = GeoCoords(lat=row.lat, lng=row.lng)
+    boxes = _detections_from_row(row)
+    primary = boxes[0]
     return ReportOut(
         id=str(row.id),
         photo_uri=row.photo_url,
@@ -163,11 +232,12 @@ def report_to_out(row: ReportRow) -> ReportOut:
         address=row.address or "",
         coords=coords,
         bounding_box=BoundingBox(
-            left=row.bbox_left,
-            top=row.bbox_top,
-            width=row.bbox_width,
-            height=row.bbox_height,
+            left=primary.left,
+            top=primary.top,
+            width=primary.width,
+            height=primary.height,
         ),
+        bounding_boxes=boxes,
         timeline_stage=row.timeline_stage,  # type: ignore[arg-type]
         submitted_by=row.submitter.email if row.submitter else "",
     )

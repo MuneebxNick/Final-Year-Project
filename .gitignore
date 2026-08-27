@@ -39,6 +39,12 @@ backend/**/__pycache__/
 **/__pycache__/
 *.pyc
 
+# YOLO weights downloaded at runtime — do not commit
+*.pt
+
+# Local detection test fixtures (binaries; report lives in docs/)
+backend/test_images/
+
 # typescript
 *.tsbuildinfo
 

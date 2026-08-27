@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session, joinedload
 from ..auth import require_citizen
 from ..db import get_db
 from ..models import Report, User
-from ..schemas import ReportCreate, ReportOut, report_to_out
+from ..schemas import DetectionBox, ReportCreate, ReportOut, report_to_out
 
 router = APIRouter()
 
@@ -39,6 +39,19 @@ def create_report(
     area = body.area.strip()
     if not city:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="City is required")
+    boxes = list(body.bounding_boxes)
+    if not boxes:
+        boxes = [
+            DetectionBox(
+                left=body.bounding_box.left,
+                top=body.bounding_box.top,
+                width=body.bounding_box.width,
+                height=body.bounding_box.height,
+                severity=body.severity,
+                confidence=body.confidence,
+            )
+        ]
+    primary = boxes[0]
     row = Report(
         photo_url=photo_url,
         photo_public_id=body.photo_public_id,
@@ -55,10 +68,11 @@ def create_report(
         address=body.address or "",
         lat=body.coords.lat if body.coords else None,
         lng=body.coords.lng if body.coords else None,
-        bbox_left=body.bounding_box.left,
-        bbox_top=body.bounding_box.top,
-        bbox_width=body.bounding_box.width,
-        bbox_height=body.bounding_box.height,
+        bbox_left=primary.left,
+        bbox_top=primary.top,
+        bbox_width=primary.width,
+        bbox_height=primary.height,
+        detections=[box.model_dump() for box in boxes],
         submitted_by=user.id,
         created_at=datetime.now(timezone.utc),
     )

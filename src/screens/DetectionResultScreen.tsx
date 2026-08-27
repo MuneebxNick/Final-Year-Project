@@ -9,7 +9,7 @@ import { uploadReportPhoto } from '../api/cloudinary';
 import { markFormReset, reportStore } from '../data/reportStore';
 import { ScreenContainer } from '../layout/ScreenContainer';
 import { useBreakpoint } from '../layout/useBreakpoint';
-import { roadTypeLabels } from '../models/report';
+import { roadTypeLabels, severityColors } from '../models/report';
 import type { RootStackParamList } from '../navigation';
 import { colors, radii, shadows } from '../theme';
 
@@ -18,6 +18,10 @@ type Props = NativeStackScreenProps<RootStackParamList, 'DetectionResult'>;
 export function DetectionResultScreen({ navigation, route }: Props) {
   const { isWide } = useBreakpoint();
   const { draft } = route.params;
+  const potholes =
+    draft.boundingBoxes && draft.boundingBoxes.length > 0
+      ? [...draft.boundingBoxes].sort((a, b) => a.left - b.left)
+      : [{ ...draft.boundingBox, severity: draft.severity, confidence: draft.confidence }];
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -26,7 +30,7 @@ export function DetectionResultScreen({ navigation, route }: Props) {
     setSubmitError(null);
     try {
       const photo = await uploadReportPhoto(draft.photoUri);
-      await reportStore.submit(draft, photo);
+      await reportStore.submit({ ...draft, boundingBoxes: potholes }, photo);
       markFormReset();
       navigation.reset({
         index: 0,
@@ -44,10 +48,12 @@ export function DetectionResultScreen({ navigation, route }: Props) {
   return (
     <ScrollView style={styles.flex} contentContainerStyle={styles.scroll}>
       <ScreenContainer>
-      <Text style={styles.kicker}>Dummy AI result</Text>
-      <Text style={styles.title}>Pothole detected</Text>
+      <Text style={styles.kicker}>AI detection</Text>
+      <Text style={styles.title}>
+        {(potholes.length > 1 ? 'Potholes detected' : 'Pothole detected')}
+      </Text>
       <Text style={styles.lede}>
-        This overlay and score are mock data for the FYP demo. No model is called yet.
+        Each numbered outline is one pothole, with its own severity and confidence.
       </Text>
 
       <View style={isWide ? styles.split : undefined}>
@@ -55,20 +61,28 @@ export function DetectionResultScreen({ navigation, route }: Props) {
       <PhotoWithBoundingBox
         uri={draft.photoUri}
         boundingBox={draft.boundingBox}
+        boundingBoxes={potholes}
         height={isWide ? 360 : 240}
       />
       </View>
 
       <View style={isWide ? styles.right : undefined}>
-      <View style={styles.row}>
-        <View>
-          <Text style={styles.metaLabel}>Severity</Text>
-          <SeverityBadge severity={draft.severity} />
-        </View>
-        <View>
-          <Text style={styles.metaLabel}>Confidence</Text>
-          <Text style={styles.confidence}>{draft.confidence}%</Text>
-        </View>
+      <View style={styles.potholeList}>
+        {potholes.map((pothole, index) => (
+          <View key={`${pothole.left}-${pothole.top}-${index}`} style={styles.potholeRow}>
+            <View style={[styles.potholeIndex, { backgroundColor: severityColors[pothole.severity] }]}>
+              <Text style={styles.potholeIndexText}>{index + 1}</Text>
+            </View>
+            <View style={styles.potholeMeta}>
+              <Text style={styles.metaLabel}>Pothole {index + 1}</Text>
+              <SeverityBadge severity={pothole.severity} />
+            </View>
+            <View style={styles.potholeScore}>
+              <Text style={styles.metaLabel}>Confidence</Text>
+              <Text style={styles.potholeConfidence}>{pothole.confidence ?? draft.confidence}%</Text>
+            </View>
+          </View>
+        ))}
       </View>
 
       <View style={styles.card}>
@@ -134,6 +148,43 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     color: colors.muted,
     lineHeight: 20,
+  },
+  potholeList: {
+    marginTop: 18,
+    gap: 12,
+  },
+  potholeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.card,
+    padding: 12,
+  },
+  potholeIndex: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  potholeIndexText: {
+    color: colors.white,
+    fontWeight: '800',
+    fontSize: 14,
+  },
+  potholeMeta: {
+    flex: 1,
+  },
+  potholeScore: {
+    alignItems: 'flex-end',
+  },
+  potholeConfidence: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.teal,
   },
   row: {
     marginTop: 18,

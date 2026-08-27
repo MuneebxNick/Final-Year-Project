@@ -10,7 +10,9 @@ import { ScreenContainer } from '../layout/ScreenContainer';
 import { useBreakpoint } from '../layout/useBreakpoint';
 import {
   formatReportDate,
+  overlayBoxesForReport,
   roadTypeLabels,
+  severityColors,
   timelineStageLabels,
   timelineStages,
   type TimelineStage,
@@ -43,6 +45,7 @@ export function UserReportDetailScreen({ route }: Props) {
   }
 
   const currentIndex = timelineStages.indexOf(report.timelineStage);
+  const potholes = overlayBoxesForReport(report);
 
   return (
     <ScrollView style={styles.flex} contentContainerStyle={styles.scroll}>
@@ -52,15 +55,31 @@ export function UserReportDetailScreen({ route }: Props) {
       <PhotoWithBoundingBox
         uri={report.photoUri}
         boundingBox={report.boundingBox}
+        boundingBoxes={potholes}
         height={isWide ? 360 : 240}
       />
 
-      <View style={styles.badges}>
-        <SeverityBadge severity={report.severity} />
-        <StatusBadge status={report.status} variant="user" />
+      <View style={styles.potholeList}>
+        {potholes.map((pothole, index) => (
+          <View key={`${pothole.left}-${pothole.top}-${index}`} style={styles.potholeRow}>
+            <View style={[styles.potholeIndex, { backgroundColor: severityColors[pothole.severity] }]}>
+              <Text style={styles.potholeIndexText}>{index + 1}</Text>
+            </View>
+            <View style={styles.potholeMeta}>
+              <Text style={styles.metaLabel}>Pothole {index + 1}</Text>
+              <SeverityBadge severity={pothole.severity} />
+            </View>
+            <View style={styles.potholeScore}>
+              <Text style={styles.metaLabel}>Confidence</Text>
+              <Text style={styles.potholeConfidence}>{pothole.confidence ?? report.confidence}%</Text>
+            </View>
+          </View>
+        ))}
       </View>
 
-      <Text style={styles.confidence}>Confidence {report.confidence}%</Text>
+      <View style={styles.badges}>
+        <StatusBadge status={report.status} variant="user" />
+      </View>
       <Text style={styles.date}>Submitted {formatReportDate(report.createdAt)}</Text>
       </View>
 
@@ -190,6 +209,48 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     marginTop: 16,
+  },
+  potholeList: {
+    marginTop: 16,
+    gap: 10,
+  },
+  potholeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.card,
+    padding: 12,
+  },
+  potholeIndex: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  potholeIndexText: {
+    color: colors.white,
+    fontWeight: '800',
+    fontSize: 14,
+  },
+  potholeMeta: {
+    flex: 1,
+  },
+  potholeScore: {
+    alignItems: 'flex-end',
+  },
+  metaLabel: {
+    color: colors.muted,
+    marginBottom: 4,
+    fontSize: 12,
+  },
+  potholeConfidence: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.teal,
   },
   confidence: {
     marginTop: 12,

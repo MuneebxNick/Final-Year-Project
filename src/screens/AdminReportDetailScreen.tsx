@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
-  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,6 +12,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { TealButton } from '../components/Buttons';
 import { FilterChip } from '../components/FilterChip';
 import { LifetimePredictionCard } from '../components/LifetimePredictionCard';
+import { PhotoWithBoundingBox } from '../components/PhotoWithBoundingBox';
 import { reportStore, useReports, useReportsHydrated } from '../data/reportStore';
 import { AdminShell } from '../layout/AdminShell';
 import { ScreenContainer } from '../layout/ScreenContainer';
@@ -23,6 +23,7 @@ import {
   assignedTeamLabels,
   isIncompleteLocation,
   isLowConfidence,
+  overlayBoxesForReport,
   predefinedTeams,
   roadTypeLabels,
   toAdminUiStatus,
@@ -102,7 +103,12 @@ export function AdminReportDetailScreen({ navigation, route }: Props) {
           <View style={isWide ? styles.split : undefined}>
             <View style={[styles.photoBox, isWide && styles.photoBoxWide]}>
               {report.photoUri ? (
-                <Image source={{ uri: report.photoUri }} style={styles.photo} />
+                <PhotoWithBoundingBox
+                  uri={report.photoUri}
+                  boundingBox={report.boundingBox}
+                  boundingBoxes={overlayBoxesForReport(report)}
+                  height={isWide ? 360 : 240}
+                />
               ) : (
                 <View style={styles.photoEmpty}>
                   <Ionicons name="image-outline" size={40} color={colors.tealMid} />

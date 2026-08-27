@@ -1,16 +1,26 @@
+from contextlib import asynccontextmanager
 from typing import Annotated
 
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
+from .ai.model import load_model
 from .config import get_settings
-from .db import get_db, ping_db
-from .routers import admin, ai, auth, reports, uploads
+from .db import ensure_schema, get_db, ping_db
+from .routers import admin, ai, auth, detect, reports, uploads
 
 settings = get_settings()
 
-app = FastAPI(title="RahScan API", version="1.0.0")
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    ensure_schema()
+    load_model()
+    yield
+
+
+app = FastAPI(title="RahScan API", version="1.0.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
@@ -20,6 +30,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(detect.router, prefix="/api", tags=["detect"])
 app.include_router(ai.router, prefix="/ai", tags=["ai"])
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(reports.router, prefix="/reports", tags=["reports"])

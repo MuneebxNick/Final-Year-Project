@@ -1,12 +1,11 @@
-from fastapi import APIRouter
-
-from ..ai.detect import mock_detect
-from ..schemas import DetectRequest, DetectResponse
+from fastapi import APIRouter, HTTPException, status
 
 router = APIRouter()
 
 
-@router.post("/detect", response_model=DetectResponse)
-def detect(body: DetectRequest) -> DetectResponse:
-    result = mock_detect(body.city, body.area.strip())
-    return DetectResponse.model_validate(result)
+@router.post("/detect")
+def detect() -> None:
+    raise HTTPException(
+        status_code=status.HTTP_410_GONE,
+        detail="This dummy detector has been retired. Use POST /api/detect with an image.",
+    )

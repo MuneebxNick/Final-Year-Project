@@ -4,6 +4,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, Uuid, func
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import Base
@@ -47,6 +48,7 @@ class Report(Base):
     bbox_top: Mapped[float] = mapped_column(Float, nullable=False)
     bbox_width: Mapped[float] = mapped_column(Float, nullable=False)
     bbox_height: Mapped[float] = mapped_column(Float, nullable=False)
+    detections: Mapped[list | None] = mapped_column(JSONB, nullable=True)
     submitted_by: Mapped[uuid.UUID] = mapped_column(
         Uuid(as_uuid=True), ForeignKey("users.id"), nullable=False
     )

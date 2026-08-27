@@ -21,15 +21,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { OutlineButton, PrimaryButton } from '../components/Buttons';
 import { TextField } from '../components/TextField';
-import { api } from '../api/client';
+import { detectPotholes, mapYoloToDraft } from '../api/detect';
 import { consumeFormReset } from '../data/reportStore';
 import {
     roadTypeLabels,
     roadTypes,
-    type BoundingBox,
     type GeoCoords,
     type RoadType,
-    type Severity,
 } from '../models/report';
 import { ScreenContainer } from '../layout/ScreenContainer';
 import { useBreakpoint } from '../layout/useBreakpoint';
@@ -169,14 +167,12 @@ export function ReportScreen({ navigation }: Props) {
 
         setAnalyzing(true);
         try {
-            const detection = await api<{
-                severity: Severity;
-                confidence: number;
-                boundingBox: BoundingBox;
-            }>('/ai/detect', {
-                method: 'POST',
-                body: JSON.stringify({ city: city.trim(), area: area.trim() }),
-            });
+            const result = await detectPotholes(photoUri);
+            const detection = await mapYoloToDraft(photoUri, result);
+            if (!detection) {
+                Alert.alert('No potholes detected.', result.message ?? 'Try another photo of the damaged road.');
+                return;
+            }
             navigation.navigate('DetectionResult', {
                 draft: {
                     photoUri,
@@ -210,7 +206,7 @@ export function ReportScreen({ navigation }: Props) {
                     <ScreenContainer>
                         <Text style={styles.heading}>Report a pothole</Text>
                         <Text style={styles.lede}>
-                            Add a photo and location. Dummy AI will estimate severity on the next screen.
+                            Add a photo and location. You can stand close — the app will not mark a close-up as Large.
                         </Text>
 
                         <View style={isWide ? styles.split : undefined}>

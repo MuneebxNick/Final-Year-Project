@@ -43,3 +43,11 @@ def get_db() -> Generator[Session, None, None]:
 
 def ping_db(db: Session) -> None:
     db.execute(text("SELECT 1"))
+
+
+def ensure_schema() -> None:
+    """Add columns introduced after the first reports table was created."""
+    get_engine()
+    assert engine is not None
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE reports ADD COLUMN IF NOT EXISTS detections JSONB"))

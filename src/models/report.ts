@@ -68,6 +68,13 @@ export function toUserStatus(status: ReportStatus): UserStatus {
 export const severities = ['small', 'medium', 'large'] as const;
 export type Severity = (typeof severities)[number];
 
+/** Map YOLO Title-Case (or any casing) onto the UI Severity keys. */
+export function toSeverity(value: string | null | undefined): Severity {
+  const key = (value ?? '').trim().toLowerCase();
+  if (key === 'small' || key === 'medium' || key === 'large') return key;
+  return 'medium';
+}
+
 export const severityLabels: Record<Severity, string> = {
   small: 'Small',
   medium: 'Medium',
@@ -152,8 +159,14 @@ export type Report = {
   address: string;
   coords?: GeoCoords;
   boundingBox: BoundingBox;
+  boundingBoxes?: OverlayBox[];
   timelineStage: TimelineStage;
   submittedBy: string;
+};
+
+export type OverlayBox = BoundingBox & {
+  severity: Severity;
+  confidence?: number;
 };
 
 export type DetectionDraft = {
@@ -168,7 +181,15 @@ export type DetectionDraft = {
   severity: Severity;
   confidence: number;
   boundingBox: BoundingBox;
+  boundingBoxes: OverlayBox[];
 };
+
+export function overlayBoxesForReport(report: Pick<Report, 'boundingBox' | 'boundingBoxes' | 'severity' | 'confidence'>): OverlayBox[] {
+  if (report.boundingBoxes && report.boundingBoxes.length > 0) {
+    return [...report.boundingBoxes].sort((a, b) => a.left - b.left);
+  }
+  return [{ ...report.boundingBox, severity: report.severity, confidence: report.confidence }];
+}
 
 export function formatReportDate(date: Date): string {
   return date.toLocaleDateString('en-GB', {

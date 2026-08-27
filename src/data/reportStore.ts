@@ -28,7 +28,14 @@ export function consumeFormReset() {
 }
 
 function parseReport(raw: ApiReport): Report {
-  return { ...raw, createdAt: new Date(raw.createdAt) };
+  const boxes = raw.boundingBoxes?.length
+    ? raw.boundingBoxes
+    : (raw as { bounding_boxes?: Report['boundingBoxes'] }).bounding_boxes;
+  return {
+    ...raw,
+    createdAt: new Date(raw.createdAt),
+    boundingBoxes: boxes && boxes.length > 0 ? boxes : undefined,
+  };
 }
 
 class ReportStore {
@@ -91,6 +98,7 @@ class ReportStore {
         severity: draft.severity,
         confidence: draft.confidence,
         boundingBox: draft.boundingBox,
+        boundingBoxes: draft.boundingBoxes,
       }),
     });
     const report = parseReport(created);
