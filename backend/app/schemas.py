@@ -78,6 +78,20 @@ class YoloDetectResponse(BaseModel):
     message: str | None = None
 
 
+WeatherSeason = Literal["Monsoon", "Summer", "Winter"]
+WeatherSource = Literal["open-meteo", "fallback"]
+
+
+class WeatherOut(BaseModel):
+    location: str
+    latitude: float | None = None
+    longitude: float | None = None
+    rainfall_probability: int
+    temperature_celsius: float
+    season: WeatherSeason
+    source: WeatherSource
+
+
 class SignupRequest(CamelModel):
     name: str
     email: str

@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from .ai.model import load_model
 from .config import get_settings
 from .db import ensure_schema, get_db, ping_db
-from .routers import admin, ai, auth, detect, reports, uploads
+from .routers import admin, ai, auth, detect, reports, uploads, weather
 
 settings = get_settings()
 
@@ -31,6 +31,7 @@ app.add_middleware(
 )
 
 app.include_router(detect.router, prefix="/api", tags=["detect"])
+app.include_router(weather.router, prefix="/api", tags=["weather"])
 app.include_router(ai.router, prefix="/ai", tags=["ai"])
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(reports.router, prefix="/reports", tags=["reports"])
