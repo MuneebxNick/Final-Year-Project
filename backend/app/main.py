@@ -9,6 +9,7 @@ from .ai.model import load_model
 from .config import get_settings
 from .db import ensure_schema, get_db, ping_db
 from .ml.lifetime import load_lifetime_model
+from .ml.maintenance import load_maintenance
 from .routers import admin, ai, auth, detect, geocode, predict, reports, uploads, weather
 
 settings = get_settings()
@@ -19,6 +20,7 @@ async def lifespan(_app: FastAPI):
     ensure_schema()
     load_model()
     load_lifetime_model()
+    load_maintenance()
     yield
 
 

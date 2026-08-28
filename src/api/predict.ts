@@ -1,12 +1,75 @@
 import {
   trafficDensityFromRoadType,
   type BoundingBox,
+  type PredictiveCategory,
+  type PredictiveSegment,
   type Report,
   type RoadType,
   type Severity,
   type TrafficDensity,
 } from '../models/report';
 import { api } from './client';
+
+export type PredictiveMaintenanceApiSegment = {
+  segment_id: string;
+  city: string;
+  area: string;
+  road_type: string;
+  predicted_report_count: number;
+  trend_direction: 'increasing' | 'decreasing' | 'stable';
+  category: 'Urgent' | 'Plan Repair' | 'Monitor';
+  budget_estimate_pkr: number;
+};
+
+const CATEGORY_MAP: Record<PredictiveMaintenanceApiSegment['category'], PredictiveCategory> = {
+  Urgent: 'urgent',
+  'Plan Repair': 'planRepair',
+  Monitor: 'monitor',
+};
+
+function reasonForSegment(segment: PredictiveMaintenanceApiSegment): string {
+  const road = segment.road_type.trim();
+  const place = road ? `this ${road.toLowerCase()}` : 'this stretch';
+
+  if (segment.trend_direction === 'increasing') {
+    return `Forecast shows accelerating wear on ${place}.`;
+  }
+  if (segment.trend_direction === 'decreasing') {
+    return `Forecast shows improving conditions on ${place}.`;
+  }
+  if (segment.trend_direction === 'stable') {
+    return `Stable forecast; keep ${place} on the watch list.`;
+  }
+
+  // Category fallbacks if trend is unexpected
+  const category = CATEGORY_MAP[segment.category] ?? 'monitor';
+  if (category === 'urgent') {
+    return 'High predicted report volume on this stretch.';
+  }
+  if (category === 'planRepair') {
+    return 'Elevated forecast suggests scheduling repair soon.';
+  }
+  return 'Isolated forecast risk; keep on the watch list.';
+}
+
+export function mapPredictiveMaintenanceSegment(
+  segment: PredictiveMaintenanceApiSegment,
+): PredictiveSegment {
+  return {
+    id: segment.segment_id,
+    city: segment.city,
+    area: segment.area,
+    category: CATEGORY_MAP[segment.category] ?? 'monitor',
+    reportCount: segment.predicted_report_count,
+    budgetPkr: segment.budget_estimate_pkr,
+    reason: reasonForSegment(segment),
+  };
+}
+
+export async function fetchPredictiveMaintenance(): Promise<PredictiveSegment[]> {
+  const rows = await api<PredictiveMaintenanceApiSegment[]>('/api/predictive-maintenance');
+  return rows.map(mapPredictiveMaintenanceSegment);
+}
 
 export type LifetimePredictRequest = {
   severity: Severity | 'Small' | 'Medium' | 'Large';

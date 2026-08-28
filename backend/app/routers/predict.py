@@ -1,9 +1,31 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
 
 from ..ml.lifetime import get_encoders, get_lifetime_model, predict_lifetime
-from ..schemas import LifetimePredictRequest, LifetimePredictResponse
+from ..ml.maintenance import list_segments
+from ..schemas import (
+    LifetimePredictRequest,
+    LifetimePredictResponse,
+    PredictiveMaintenanceSegment,
+)
 
 router = APIRouter()
+
+
+@router.get(
+    "/predictive-maintenance",
+    response_model=list[PredictiveMaintenanceSegment],
+)
+def predictive_maintenance(
+    city: str | None = Query(default=None),
+    category: str | None = Query(default=None),
+) -> list[PredictiveMaintenanceSegment]:
+    rows = list_segments(city=city, category=category)
+    if rows is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Predictive maintenance models are unavailable.",
+        )
+    return [PredictiveMaintenanceSegment.model_validate(row) for row in rows]
 
 
 @router.post("/predict/lifetime", response_model=LifetimePredictResponse)

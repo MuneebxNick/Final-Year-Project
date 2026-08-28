@@ -1,15 +1,22 @@
-import { useMemo } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
+import { fetchPredictiveMaintenance } from '../api/predict';
 import { formatPkr } from '../data/adminInsights';
-import { useReports } from '../data/reportStore';
 import { ScreenContainer } from '../layout/ScreenContainer';
 import {
   predictiveCategories,
   predictiveCategoryLabels,
-  predictiveSegments,
   type PredictiveCategory,
+  type PredictiveSegment,
 } from '../models/report';
 import type { AdminTabParamList } from '../navigation';
 import { colors, radii, shadows } from '../theme';
@@ -23,44 +30,88 @@ const CATEGORY_COLOR: Record<PredictiveCategory, string> = {
 };
 
 export function AdminPredictiveScreen(_props: Props) {
-  const reports = useReports();
-  const segments = useMemo(() => predictiveSegments(reports), [reports]);
+  const [segments, setSegments] = useState<PredictiveSegment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
+
+  const retry = useCallback(() => {
+    setRetryKey((key) => key + 1);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    fetchPredictiveMaintenance()
+      .then((result) => {
+        if (!cancelled) setSegments(result);
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        const message =
+          err instanceof Error && err.message.trim()
+            ? err.message.trim()
+            : 'Could not load forecasts.';
+        setError(message.length > 120 ? 'Could not load forecasts.' : message);
+        setSegments([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [retryKey]);
 
   return (
     <ScrollView style={styles.flex} contentContainerStyle={styles.scroll}>
       <ScreenContainer>
         <Text style={styles.heading}>Predictive maintenance</Text>
         <Text style={styles.lede}>
-          Dummy road-segment forecasts grouped from current reports. Budgets are illustrative only.
+          Forecasts from the maintenance model, grouped by urgency. Budgets are illustrative only.
         </Text>
 
-        {predictiveCategories.map((category) => {
-          const items = segments.filter((segment) => segment.category === category);
-          return (
-            <View key={category} style={styles.group}>
-              <View style={styles.groupHead}>
-                <View style={[styles.dot, { backgroundColor: CATEGORY_COLOR[category] }]} />
-                <Text style={styles.groupTitle}>{predictiveCategoryLabels[category]}</Text>
-                <Text style={styles.groupCount}>{items.length}</Text>
-              </View>
-              {items.length === 0 ? (
-                <Text style={styles.empty}>No segments in this band.</Text>
-              ) : (
-                items.map((segment) => (
-                  <View key={segment.id} style={styles.card}>
-                    <Text style={styles.city}>{segment.city}</Text>
-                    <Text style={styles.area}>{segment.area}</Text>
-                    <Text style={styles.reason}>{segment.reason}</Text>
-                    <View style={styles.meta}>
-                      <Text style={styles.budget}>{formatPkr(segment.budgetPkr)}</Text>
-                      <Text style={styles.count}>{segment.reportCount} reports</Text>
+        {loading ? (
+          <View style={styles.statusBlock}>
+            <ActivityIndicator color={colors.teal} />
+          </View>
+        ) : error ? (
+          <Pressable onPress={retry} style={styles.statusBlock} accessibilityRole="button">
+            <Text style={styles.errorText}>{error}</Text>
+            <Text style={styles.retryText}>Tap to retry</Text>
+          </Pressable>
+        ) : (
+          predictiveCategories.map((category) => {
+            const items = segments.filter((segment) => segment.category === category);
+            return (
+              <View key={category} style={styles.group}>
+                <View style={styles.groupHead}>
+                  <View style={[styles.dot, { backgroundColor: CATEGORY_COLOR[category] }]} />
+                  <Text style={styles.groupTitle}>{predictiveCategoryLabels[category]}</Text>
+                  <Text style={styles.groupCount}>{items.length}</Text>
+                </View>
+                {items.length === 0 ? (
+                  <Text style={styles.empty}>No segments in this band.</Text>
+                ) : (
+                  items.map((segment) => (
+                    <View key={segment.id} style={styles.card}>
+                      <Text style={styles.city}>{segment.city}</Text>
+                      <Text style={styles.area}>{segment.area}</Text>
+                      <Text style={styles.reason}>{segment.reason}</Text>
+                      <View style={styles.meta}>
+                        <Text style={styles.budget}>{formatPkr(segment.budgetPkr)}</Text>
+                        <Text style={styles.count}>{segment.reportCount} reports</Text>
+                      </View>
                     </View>
-                  </View>
-                ))
-              )}
-            </View>
-          );
-        })}
+                  ))
+                )}
+              </View>
+            );
+          })
+        )}
       </ScreenContainer>
     </ScrollView>
   );
@@ -83,6 +134,21 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 16,
     color: colors.muted,
+  },
+  statusBlock: {
+    alignItems: 'center',
+    paddingVertical: 24,
+    gap: 8,
+  },
+  errorText: {
+    color: colors.muted,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  retryText: {
+    color: colors.ink,
+    fontWeight: '700',
+    marginTop: 4,
   },
   group: {
     marginBottom: 20,

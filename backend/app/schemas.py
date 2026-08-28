@@ -93,6 +93,21 @@ class WeatherOut(BaseModel):
     source: WeatherSource
 
 
+MaintenanceCategory = Literal["Urgent", "Plan Repair", "Monitor"]
+MaintenanceTrend = Literal["increasing", "decreasing", "stable"]
+
+
+class PredictiveMaintenanceSegment(BaseModel):
+    segment_id: str
+    city: str
+    area: str
+    road_type: str
+    predicted_report_count: int
+    trend_direction: MaintenanceTrend
+    category: MaintenanceCategory
+    budget_estimate_pkr: int
+
+
 class ReverseGeocodeOut(BaseModel):
     city: str = ""
     area: str = ""

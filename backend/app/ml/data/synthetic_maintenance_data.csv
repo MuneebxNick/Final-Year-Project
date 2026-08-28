@@ -1,0 +1,553 @@
+segment_id,city,area,road_type,month,report_count
+SEG-001,Lahore,Gulberg,Highway,2025-09-01,14
+SEG-001,Lahore,Gulberg,Highway,2025-10-01,13
+SEG-001,Lahore,Gulberg,Highway,2025-11-01,17
+SEG-001,Lahore,Gulberg,Highway,2025-12-01,18
+SEG-001,Lahore,Gulberg,Highway,2026-01-01,20
+SEG-001,Lahore,Gulberg,Highway,2026-02-01,21
+SEG-001,Lahore,Gulberg,Highway,2026-03-01,23
+SEG-001,Lahore,Gulberg,Highway,2026-04-01,26
+SEG-001,Lahore,Gulberg,Highway,2026-05-01,27
+SEG-001,Lahore,Gulberg,Highway,2026-06-01,27
+SEG-001,Lahore,Gulberg,Highway,2026-07-01,27
+SEG-001,Lahore,Gulberg,Highway,2026-08-01,28
+SEG-002,Lahore,DHA,Service Road,2025-09-01,28
+SEG-002,Lahore,DHA,Service Road,2025-10-01,10
+SEG-002,Lahore,DHA,Service Road,2025-11-01,9
+SEG-002,Lahore,DHA,Service Road,2025-12-01,8
+SEG-002,Lahore,DHA,Service Road,2026-01-01,12
+SEG-002,Lahore,DHA,Service Road,2026-02-01,13
+SEG-002,Lahore,DHA,Service Road,2026-03-01,9
+SEG-002,Lahore,DHA,Service Road,2026-04-01,10
+SEG-002,Lahore,DHA,Service Road,2026-05-01,12
+SEG-002,Lahore,DHA,Service Road,2026-06-01,27
+SEG-002,Lahore,DHA,Service Road,2026-07-01,24
+SEG-002,Lahore,DHA,Service Road,2026-08-01,24
+SEG-003,Lahore,Johar Town,Simple Road,2025-09-01,3
+SEG-003,Lahore,Johar Town,Simple Road,2025-10-01,4
+SEG-003,Lahore,Johar Town,Simple Road,2025-11-01,3
+SEG-003,Lahore,Johar Town,Simple Road,2025-12-01,3
+SEG-003,Lahore,Johar Town,Simple Road,2026-01-01,3
+SEG-003,Lahore,Johar Town,Simple Road,2026-02-01,4
+SEG-003,Lahore,Johar Town,Simple Road,2026-03-01,5
+SEG-003,Lahore,Johar Town,Simple Road,2026-04-01,4
+SEG-003,Lahore,Johar Town,Simple Road,2026-05-01,4
+SEG-003,Lahore,Johar Town,Simple Road,2026-06-01,4
+SEG-003,Lahore,Johar Town,Simple Road,2026-07-01,4
+SEG-003,Lahore,Johar Town,Simple Road,2026-08-01,4
+SEG-004,Lahore,Model Town,Highway,2025-09-01,38
+SEG-004,Lahore,Model Town,Highway,2025-10-01,18
+SEG-004,Lahore,Model Town,Highway,2025-11-01,17
+SEG-004,Lahore,Model Town,Highway,2025-12-01,20
+SEG-004,Lahore,Model Town,Highway,2026-01-01,16
+SEG-004,Lahore,Model Town,Highway,2026-02-01,15
+SEG-004,Lahore,Model Town,Highway,2026-03-01,18
+SEG-004,Lahore,Model Town,Highway,2026-04-01,19
+SEG-004,Lahore,Model Town,Highway,2026-05-01,18
+SEG-004,Lahore,Model Town,Highway,2026-06-01,40
+SEG-004,Lahore,Model Town,Highway,2026-07-01,41
+SEG-004,Lahore,Model Town,Highway,2026-08-01,39
+SEG-005,Lahore,Township,Simple Road,2025-09-01,7
+SEG-005,Lahore,Township,Simple Road,2025-10-01,9
+SEG-005,Lahore,Township,Simple Road,2025-11-01,9
+SEG-005,Lahore,Township,Simple Road,2025-12-01,13
+SEG-005,Lahore,Township,Simple Road,2026-01-01,14
+SEG-005,Lahore,Township,Simple Road,2026-02-01,18
+SEG-005,Lahore,Township,Simple Road,2026-03-01,17
+SEG-005,Lahore,Township,Simple Road,2026-04-01,17
+SEG-005,Lahore,Township,Simple Road,2026-05-01,19
+SEG-005,Lahore,Township,Simple Road,2026-06-01,20
+SEG-005,Lahore,Township,Simple Road,2026-07-01,24
+SEG-005,Lahore,Township,Simple Road,2026-08-01,24
+SEG-006,Lahore,Cantt,Service Road,2025-09-01,20
+SEG-006,Lahore,Cantt,Service Road,2025-10-01,10
+SEG-006,Lahore,Cantt,Service Road,2025-11-01,9
+SEG-006,Lahore,Cantt,Service Road,2025-12-01,7
+SEG-006,Lahore,Cantt,Service Road,2026-01-01,9
+SEG-006,Lahore,Cantt,Service Road,2026-02-01,13
+SEG-006,Lahore,Cantt,Service Road,2026-03-01,7
+SEG-006,Lahore,Cantt,Service Road,2026-04-01,8
+SEG-006,Lahore,Cantt,Service Road,2026-05-01,9
+SEG-006,Lahore,Cantt,Service Road,2026-06-01,20
+SEG-006,Lahore,Cantt,Service Road,2026-07-01,18
+SEG-006,Lahore,Cantt,Service Road,2026-08-01,18
+SEG-007,Lahore,Allama Iqbal Town,Simple Road,2025-09-01,0
+SEG-007,Lahore,Allama Iqbal Town,Simple Road,2025-10-01,4
+SEG-007,Lahore,Allama Iqbal Town,Simple Road,2025-11-01,6
+SEG-007,Lahore,Allama Iqbal Town,Simple Road,2025-12-01,7
+SEG-007,Lahore,Allama Iqbal Town,Simple Road,2026-01-01,8
+SEG-007,Lahore,Allama Iqbal Town,Simple Road,2026-02-01,8
+SEG-007,Lahore,Allama Iqbal Town,Simple Road,2026-03-01,10
+SEG-007,Lahore,Allama Iqbal Town,Simple Road,2026-04-01,12
+SEG-007,Lahore,Allama Iqbal Town,Simple Road,2026-05-01,13
+SEG-007,Lahore,Allama Iqbal Town,Simple Road,2026-06-01,14
+SEG-007,Lahore,Allama Iqbal Town,Simple Road,2026-07-01,15
+SEG-007,Lahore,Allama Iqbal Town,Simple Road,2026-08-01,18
+SEG-008,Lahore,Garden Town,Highway,2025-09-01,10
+SEG-008,Lahore,Garden Town,Highway,2025-10-01,10
+SEG-008,Lahore,Garden Town,Highway,2025-11-01,10
+SEG-008,Lahore,Garden Town,Highway,2025-12-01,9
+SEG-008,Lahore,Garden Town,Highway,2026-01-01,9
+SEG-008,Lahore,Garden Town,Highway,2026-02-01,9
+SEG-008,Lahore,Garden Town,Highway,2026-03-01,10
+SEG-008,Lahore,Garden Town,Highway,2026-04-01,10
+SEG-008,Lahore,Garden Town,Highway,2026-05-01,8
+SEG-008,Lahore,Garden Town,Highway,2026-06-01,9
+SEG-008,Lahore,Garden Town,Highway,2026-07-01,9
+SEG-008,Lahore,Garden Town,Highway,2026-08-01,9
+SEG-009,Karachi,Clifton,Highway,2025-09-01,28
+SEG-009,Karachi,Clifton,Highway,2025-10-01,12
+SEG-009,Karachi,Clifton,Highway,2025-11-01,14
+SEG-009,Karachi,Clifton,Highway,2025-12-01,15
+SEG-009,Karachi,Clifton,Highway,2026-01-01,17
+SEG-009,Karachi,Clifton,Highway,2026-02-01,12
+SEG-009,Karachi,Clifton,Highway,2026-03-01,15
+SEG-009,Karachi,Clifton,Highway,2026-04-01,15
+SEG-009,Karachi,Clifton,Highway,2026-05-01,16
+SEG-009,Karachi,Clifton,Highway,2026-06-01,27
+SEG-009,Karachi,Clifton,Highway,2026-07-01,26
+SEG-009,Karachi,Clifton,Highway,2026-08-01,26
+SEG-010,Karachi,Defence,Service Road,2025-09-01,9
+SEG-010,Karachi,Defence,Service Road,2025-10-01,11
+SEG-010,Karachi,Defence,Service Road,2025-11-01,10
+SEG-010,Karachi,Defence,Service Road,2025-12-01,12
+SEG-010,Karachi,Defence,Service Road,2026-01-01,14
+SEG-010,Karachi,Defence,Service Road,2026-02-01,16
+SEG-010,Karachi,Defence,Service Road,2026-03-01,18
+SEG-010,Karachi,Defence,Service Road,2026-04-01,17
+SEG-010,Karachi,Defence,Service Road,2026-05-01,17
+SEG-010,Karachi,Defence,Service Road,2026-06-01,20
+SEG-010,Karachi,Defence,Service Road,2026-07-01,22
+SEG-010,Karachi,Defence,Service Road,2026-08-01,23
+SEG-011,Karachi,Gulshan-e-Iqbal,Simple Road,2025-09-01,9
+SEG-011,Karachi,Gulshan-e-Iqbal,Simple Road,2025-10-01,7
+SEG-011,Karachi,Gulshan-e-Iqbal,Simple Road,2025-11-01,5
+SEG-011,Karachi,Gulshan-e-Iqbal,Simple Road,2025-12-01,5
+SEG-011,Karachi,Gulshan-e-Iqbal,Simple Road,2026-01-01,8
+SEG-011,Karachi,Gulshan-e-Iqbal,Simple Road,2026-02-01,5
+SEG-011,Karachi,Gulshan-e-Iqbal,Simple Road,2026-03-01,7
+SEG-011,Karachi,Gulshan-e-Iqbal,Simple Road,2026-04-01,7
+SEG-011,Karachi,Gulshan-e-Iqbal,Simple Road,2026-05-01,6
+SEG-011,Karachi,Gulshan-e-Iqbal,Simple Road,2026-06-01,8
+SEG-011,Karachi,Gulshan-e-Iqbal,Simple Road,2026-07-01,12
+SEG-011,Karachi,Gulshan-e-Iqbal,Simple Road,2026-08-01,12
+SEG-012,Karachi,Saddar,Highway,2025-09-01,16
+SEG-012,Karachi,Saddar,Highway,2025-10-01,19
+SEG-012,Karachi,Saddar,Highway,2025-11-01,19
+SEG-012,Karachi,Saddar,Highway,2025-12-01,23
+SEG-012,Karachi,Saddar,Highway,2026-01-01,22
+SEG-012,Karachi,Saddar,Highway,2026-02-01,27
+SEG-012,Karachi,Saddar,Highway,2026-03-01,26
+SEG-012,Karachi,Saddar,Highway,2026-04-01,27
+SEG-012,Karachi,Saddar,Highway,2026-05-01,33
+SEG-012,Karachi,Saddar,Highway,2026-06-01,35
+SEG-012,Karachi,Saddar,Highway,2026-07-01,35
+SEG-012,Karachi,Saddar,Highway,2026-08-01,41
+SEG-013,Karachi,North Nazimabad,Simple Road,2025-09-01,6
+SEG-013,Karachi,North Nazimabad,Simple Road,2025-10-01,5
+SEG-013,Karachi,North Nazimabad,Simple Road,2025-11-01,4
+SEG-013,Karachi,North Nazimabad,Simple Road,2025-12-01,8
+SEG-013,Karachi,North Nazimabad,Simple Road,2026-01-01,2
+SEG-013,Karachi,North Nazimabad,Simple Road,2026-02-01,5
+SEG-013,Karachi,North Nazimabad,Simple Road,2026-03-01,4
+SEG-013,Karachi,North Nazimabad,Simple Road,2026-04-01,4
+SEG-013,Karachi,North Nazimabad,Simple Road,2026-05-01,7
+SEG-013,Karachi,North Nazimabad,Simple Road,2026-06-01,7
+SEG-013,Karachi,North Nazimabad,Simple Road,2026-07-01,10
+SEG-013,Karachi,North Nazimabad,Simple Road,2026-08-01,6
+SEG-014,Karachi,Korangi,Service Road,2025-09-01,4
+SEG-014,Karachi,Korangi,Service Road,2025-10-01,5
+SEG-014,Karachi,Korangi,Service Road,2025-11-01,3
+SEG-014,Karachi,Korangi,Service Road,2025-12-01,6
+SEG-014,Karachi,Korangi,Service Road,2026-01-01,4
+SEG-014,Karachi,Korangi,Service Road,2026-02-01,5
+SEG-014,Karachi,Korangi,Service Road,2026-03-01,4
+SEG-014,Karachi,Korangi,Service Road,2026-04-01,5
+SEG-014,Karachi,Korangi,Service Road,2026-05-01,6
+SEG-014,Karachi,Korangi,Service Road,2026-06-01,4
+SEG-014,Karachi,Korangi,Service Road,2026-07-01,4
+SEG-014,Karachi,Korangi,Service Road,2026-08-01,4
+SEG-015,Karachi,PECHS,Highway,2025-09-01,27
+SEG-015,Karachi,PECHS,Highway,2025-10-01,14
+SEG-015,Karachi,PECHS,Highway,2025-11-01,15
+SEG-015,Karachi,PECHS,Highway,2025-12-01,15
+SEG-015,Karachi,PECHS,Highway,2026-01-01,14
+SEG-015,Karachi,PECHS,Highway,2026-02-01,15
+SEG-015,Karachi,PECHS,Highway,2026-03-01,16
+SEG-015,Karachi,PECHS,Highway,2026-04-01,15
+SEG-015,Karachi,PECHS,Highway,2026-05-01,16
+SEG-015,Karachi,PECHS,Highway,2026-06-01,29
+SEG-015,Karachi,PECHS,Highway,2026-07-01,30
+SEG-015,Karachi,PECHS,Highway,2026-08-01,31
+SEG-016,Karachi,Gulistan-e-Jauhar,Simple Road,2025-09-01,5
+SEG-016,Karachi,Gulistan-e-Jauhar,Simple Road,2025-10-01,7
+SEG-016,Karachi,Gulistan-e-Jauhar,Simple Road,2025-11-01,6
+SEG-016,Karachi,Gulistan-e-Jauhar,Simple Road,2025-12-01,7
+SEG-016,Karachi,Gulistan-e-Jauhar,Simple Road,2026-01-01,7
+SEG-016,Karachi,Gulistan-e-Jauhar,Simple Road,2026-02-01,9
+SEG-016,Karachi,Gulistan-e-Jauhar,Simple Road,2026-03-01,11
+SEG-016,Karachi,Gulistan-e-Jauhar,Simple Road,2026-04-01,11
+SEG-016,Karachi,Gulistan-e-Jauhar,Simple Road,2026-05-01,12
+SEG-016,Karachi,Gulistan-e-Jauhar,Simple Road,2026-06-01,13
+SEG-016,Karachi,Gulistan-e-Jauhar,Simple Road,2026-07-01,13
+SEG-016,Karachi,Gulistan-e-Jauhar,Simple Road,2026-08-01,17
+SEG-017,Islamabad,F-7,Highway,2025-09-01,42
+SEG-017,Islamabad,F-7,Highway,2025-10-01,16
+SEG-017,Islamabad,F-7,Highway,2025-11-01,20
+SEG-017,Islamabad,F-7,Highway,2025-12-01,15
+SEG-017,Islamabad,F-7,Highway,2026-01-01,16
+SEG-017,Islamabad,F-7,Highway,2026-02-01,16
+SEG-017,Islamabad,F-7,Highway,2026-03-01,15
+SEG-017,Islamabad,F-7,Highway,2026-04-01,19
+SEG-017,Islamabad,F-7,Highway,2026-05-01,18
+SEG-017,Islamabad,F-7,Highway,2026-06-01,38
+SEG-017,Islamabad,F-7,Highway,2026-07-01,40
+SEG-017,Islamabad,F-7,Highway,2026-08-01,41
+SEG-018,Islamabad,G-9,Simple Road,2025-09-01,4
+SEG-018,Islamabad,G-9,Simple Road,2025-10-01,4
+SEG-018,Islamabad,G-9,Simple Road,2025-11-01,4
+SEG-018,Islamabad,G-9,Simple Road,2025-12-01,4
+SEG-018,Islamabad,G-9,Simple Road,2026-01-01,3
+SEG-018,Islamabad,G-9,Simple Road,2026-02-01,3
+SEG-018,Islamabad,G-9,Simple Road,2026-03-01,4
+SEG-018,Islamabad,G-9,Simple Road,2026-04-01,4
+SEG-018,Islamabad,G-9,Simple Road,2026-05-01,5
+SEG-018,Islamabad,G-9,Simple Road,2026-06-01,4
+SEG-018,Islamabad,G-9,Simple Road,2026-07-01,4
+SEG-018,Islamabad,G-9,Simple Road,2026-08-01,5
+SEG-019,Islamabad,Blue Area,Service Road,2025-09-01,4
+SEG-019,Islamabad,Blue Area,Service Road,2025-10-01,5
+SEG-019,Islamabad,Blue Area,Service Road,2025-11-01,5
+SEG-019,Islamabad,Blue Area,Service Road,2025-12-01,5
+SEG-019,Islamabad,Blue Area,Service Road,2026-01-01,4
+SEG-019,Islamabad,Blue Area,Service Road,2026-02-01,5
+SEG-019,Islamabad,Blue Area,Service Road,2026-03-01,6
+SEG-019,Islamabad,Blue Area,Service Road,2026-04-01,5
+SEG-019,Islamabad,Blue Area,Service Road,2026-05-01,5
+SEG-019,Islamabad,Blue Area,Service Road,2026-06-01,4
+SEG-019,Islamabad,Blue Area,Service Road,2026-07-01,5
+SEG-019,Islamabad,Blue Area,Service Road,2026-08-01,4
+SEG-020,Islamabad,F-10,Highway,2025-09-01,15
+SEG-020,Islamabad,F-10,Highway,2025-10-01,14
+SEG-020,Islamabad,F-10,Highway,2025-11-01,17
+SEG-020,Islamabad,F-10,Highway,2025-12-01,16
+SEG-020,Islamabad,F-10,Highway,2026-01-01,19
+SEG-020,Islamabad,F-10,Highway,2026-02-01,21
+SEG-020,Islamabad,F-10,Highway,2026-03-01,20
+SEG-020,Islamabad,F-10,Highway,2026-04-01,25
+SEG-020,Islamabad,F-10,Highway,2026-05-01,25
+SEG-020,Islamabad,F-10,Highway,2026-06-01,22
+SEG-020,Islamabad,F-10,Highway,2026-07-01,27
+SEG-020,Islamabad,F-10,Highway,2026-08-01,27
+SEG-021,Islamabad,I-8,Simple Road,2025-09-01,11
+SEG-021,Islamabad,I-8,Simple Road,2025-10-01,3
+SEG-021,Islamabad,I-8,Simple Road,2025-11-01,3
+SEG-021,Islamabad,I-8,Simple Road,2025-12-01,3
+SEG-021,Islamabad,I-8,Simple Road,2026-01-01,6
+SEG-021,Islamabad,I-8,Simple Road,2026-02-01,3
+SEG-021,Islamabad,I-8,Simple Road,2026-03-01,6
+SEG-021,Islamabad,I-8,Simple Road,2026-04-01,4
+SEG-021,Islamabad,I-8,Simple Road,2026-05-01,4
+SEG-021,Islamabad,I-8,Simple Road,2026-06-01,10
+SEG-021,Islamabad,I-8,Simple Road,2026-07-01,10
+SEG-021,Islamabad,I-8,Simple Road,2026-08-01,9
+SEG-022,Rawalpindi,Saddar,Highway,2025-09-01,12
+SEG-022,Rawalpindi,Saddar,Highway,2025-10-01,13
+SEG-022,Rawalpindi,Saddar,Highway,2025-11-01,13
+SEG-022,Rawalpindi,Saddar,Highway,2025-12-01,12
+SEG-022,Rawalpindi,Saddar,Highway,2026-01-01,12
+SEG-022,Rawalpindi,Saddar,Highway,2026-02-01,11
+SEG-022,Rawalpindi,Saddar,Highway,2026-03-01,12
+SEG-022,Rawalpindi,Saddar,Highway,2026-04-01,11
+SEG-022,Rawalpindi,Saddar,Highway,2026-05-01,11
+SEG-022,Rawalpindi,Saddar,Highway,2026-06-01,13
+SEG-022,Rawalpindi,Saddar,Highway,2026-07-01,12
+SEG-022,Rawalpindi,Saddar,Highway,2026-08-01,12
+SEG-023,Rawalpindi,Satellite Town,Simple Road,2025-09-01,15
+SEG-023,Rawalpindi,Satellite Town,Simple Road,2025-10-01,5
+SEG-023,Rawalpindi,Satellite Town,Simple Road,2025-11-01,4
+SEG-023,Rawalpindi,Satellite Town,Simple Road,2025-12-01,4
+SEG-023,Rawalpindi,Satellite Town,Simple Road,2026-01-01,7
+SEG-023,Rawalpindi,Satellite Town,Simple Road,2026-02-01,5
+SEG-023,Rawalpindi,Satellite Town,Simple Road,2026-03-01,6
+SEG-023,Rawalpindi,Satellite Town,Simple Road,2026-04-01,5
+SEG-023,Rawalpindi,Satellite Town,Simple Road,2026-05-01,6
+SEG-023,Rawalpindi,Satellite Town,Simple Road,2026-06-01,13
+SEG-023,Rawalpindi,Satellite Town,Simple Road,2026-07-01,14
+SEG-023,Rawalpindi,Satellite Town,Simple Road,2026-08-01,13
+SEG-024,Rawalpindi,Chaklala,Service Road,2025-09-01,22
+SEG-024,Rawalpindi,Chaklala,Service Road,2025-10-01,11
+SEG-024,Rawalpindi,Chaklala,Service Road,2025-11-01,8
+SEG-024,Rawalpindi,Chaklala,Service Road,2025-12-01,9
+SEG-024,Rawalpindi,Chaklala,Service Road,2026-01-01,8
+SEG-024,Rawalpindi,Chaklala,Service Road,2026-02-01,8
+SEG-024,Rawalpindi,Chaklala,Service Road,2026-03-01,9
+SEG-024,Rawalpindi,Chaklala,Service Road,2026-04-01,9
+SEG-024,Rawalpindi,Chaklala,Service Road,2026-05-01,11
+SEG-024,Rawalpindi,Chaklala,Service Road,2026-06-01,22
+SEG-024,Rawalpindi,Chaklala,Service Road,2026-07-01,23
+SEG-024,Rawalpindi,Chaklala,Service Road,2026-08-01,21
+SEG-025,Rawalpindi,Committee Chowk,Simple Road,2025-09-01,5
+SEG-025,Rawalpindi,Committee Chowk,Simple Road,2025-10-01,7
+SEG-025,Rawalpindi,Committee Chowk,Simple Road,2025-11-01,8
+SEG-025,Rawalpindi,Committee Chowk,Simple Road,2025-12-01,6
+SEG-025,Rawalpindi,Committee Chowk,Simple Road,2026-01-01,9
+SEG-025,Rawalpindi,Committee Chowk,Simple Road,2026-02-01,11
+SEG-025,Rawalpindi,Committee Chowk,Simple Road,2026-03-01,10
+SEG-025,Rawalpindi,Committee Chowk,Simple Road,2026-04-01,13
+SEG-025,Rawalpindi,Committee Chowk,Simple Road,2026-05-01,13
+SEG-025,Rawalpindi,Committee Chowk,Simple Road,2026-06-01,15
+SEG-025,Rawalpindi,Committee Chowk,Simple Road,2026-07-01,12
+SEG-025,Rawalpindi,Committee Chowk,Simple Road,2026-08-01,17
+SEG-026,Faisalabad,D Ground,Highway,2025-09-01,18
+SEG-026,Faisalabad,D Ground,Highway,2025-10-01,20
+SEG-026,Faisalabad,D Ground,Highway,2025-11-01,21
+SEG-026,Faisalabad,D Ground,Highway,2025-12-01,25
+SEG-026,Faisalabad,D Ground,Highway,2026-01-01,24
+SEG-026,Faisalabad,D Ground,Highway,2026-02-01,26
+SEG-026,Faisalabad,D Ground,Highway,2026-03-01,27
+SEG-026,Faisalabad,D Ground,Highway,2026-04-01,31
+SEG-026,Faisalabad,D Ground,Highway,2026-05-01,33
+SEG-026,Faisalabad,D Ground,Highway,2026-06-01,36
+SEG-026,Faisalabad,D Ground,Highway,2026-07-01,38
+SEG-026,Faisalabad,D Ground,Highway,2026-08-01,37
+SEG-027,Faisalabad,Peoples Colony,Simple Road,2025-09-01,6
+SEG-027,Faisalabad,Peoples Colony,Simple Road,2025-10-01,3
+SEG-027,Faisalabad,Peoples Colony,Simple Road,2025-11-01,5
+SEG-027,Faisalabad,Peoples Colony,Simple Road,2025-12-01,2
+SEG-027,Faisalabad,Peoples Colony,Simple Road,2026-01-01,3
+SEG-027,Faisalabad,Peoples Colony,Simple Road,2026-02-01,3
+SEG-027,Faisalabad,Peoples Colony,Simple Road,2026-03-01,4
+SEG-027,Faisalabad,Peoples Colony,Simple Road,2026-04-01,4
+SEG-027,Faisalabad,Peoples Colony,Simple Road,2026-05-01,4
+SEG-027,Faisalabad,Peoples Colony,Simple Road,2026-06-01,8
+SEG-027,Faisalabad,Peoples Colony,Simple Road,2026-07-01,7
+SEG-027,Faisalabad,Peoples Colony,Simple Road,2026-08-01,6
+SEG-028,Faisalabad,Jinnah Colony,Service Road,2025-09-01,9
+SEG-028,Faisalabad,Jinnah Colony,Service Road,2025-10-01,11
+SEG-028,Faisalabad,Jinnah Colony,Service Road,2025-11-01,12
+SEG-028,Faisalabad,Jinnah Colony,Service Road,2025-12-01,13
+SEG-028,Faisalabad,Jinnah Colony,Service Road,2026-01-01,14
+SEG-028,Faisalabad,Jinnah Colony,Service Road,2026-02-01,13
+SEG-028,Faisalabad,Jinnah Colony,Service Road,2026-03-01,17
+SEG-028,Faisalabad,Jinnah Colony,Service Road,2026-04-01,18
+SEG-028,Faisalabad,Jinnah Colony,Service Road,2026-05-01,20
+SEG-028,Faisalabad,Jinnah Colony,Service Road,2026-06-01,23
+SEG-028,Faisalabad,Jinnah Colony,Service Road,2026-07-01,20
+SEG-028,Faisalabad,Jinnah Colony,Service Road,2026-08-01,22
+SEG-029,Faisalabad,Madina Town,Simple Road,2025-09-01,13
+SEG-029,Faisalabad,Madina Town,Simple Road,2025-10-01,5
+SEG-029,Faisalabad,Madina Town,Simple Road,2025-11-01,9
+SEG-029,Faisalabad,Madina Town,Simple Road,2025-12-01,7
+SEG-029,Faisalabad,Madina Town,Simple Road,2026-01-01,10
+SEG-029,Faisalabad,Madina Town,Simple Road,2026-02-01,6
+SEG-029,Faisalabad,Madina Town,Simple Road,2026-03-01,6
+SEG-029,Faisalabad,Madina Town,Simple Road,2026-04-01,6
+SEG-029,Faisalabad,Madina Town,Simple Road,2026-05-01,5
+SEG-029,Faisalabad,Madina Town,Simple Road,2026-06-01,12
+SEG-029,Faisalabad,Madina Town,Simple Road,2026-07-01,9
+SEG-029,Faisalabad,Madina Town,Simple Road,2026-08-01,11
+SEG-030,Multan,Cantt,Highway,2025-09-01,8
+SEG-030,Multan,Cantt,Highway,2025-10-01,8
+SEG-030,Multan,Cantt,Highway,2025-11-01,7
+SEG-030,Multan,Cantt,Highway,2025-12-01,8
+SEG-030,Multan,Cantt,Highway,2026-01-01,8
+SEG-030,Multan,Cantt,Highway,2026-02-01,9
+SEG-030,Multan,Cantt,Highway,2026-03-01,8
+SEG-030,Multan,Cantt,Highway,2026-04-01,9
+SEG-030,Multan,Cantt,Highway,2026-05-01,8
+SEG-030,Multan,Cantt,Highway,2026-06-01,9
+SEG-030,Multan,Cantt,Highway,2026-07-01,9
+SEG-030,Multan,Cantt,Highway,2026-08-01,9
+SEG-031,Multan,Gulgasht,Simple Road,2025-09-01,5
+SEG-031,Multan,Gulgasht,Simple Road,2025-10-01,7
+SEG-031,Multan,Gulgasht,Simple Road,2025-11-01,9
+SEG-031,Multan,Gulgasht,Simple Road,2025-12-01,11
+SEG-031,Multan,Gulgasht,Simple Road,2026-01-01,12
+SEG-031,Multan,Gulgasht,Simple Road,2026-02-01,10
+SEG-031,Multan,Gulgasht,Simple Road,2026-03-01,11
+SEG-031,Multan,Gulgasht,Simple Road,2026-04-01,11
+SEG-031,Multan,Gulgasht,Simple Road,2026-05-01,14
+SEG-031,Multan,Gulgasht,Simple Road,2026-06-01,14
+SEG-031,Multan,Gulgasht,Simple Road,2026-07-01,18
+SEG-031,Multan,Gulgasht,Simple Road,2026-08-01,17
+SEG-032,Multan,Bosan Road,Service Road,2025-09-01,7
+SEG-032,Multan,Bosan Road,Service Road,2025-10-01,7
+SEG-032,Multan,Bosan Road,Service Road,2025-11-01,7
+SEG-032,Multan,Bosan Road,Service Road,2025-12-01,7
+SEG-032,Multan,Bosan Road,Service Road,2026-01-01,8
+SEG-032,Multan,Bosan Road,Service Road,2026-02-01,8
+SEG-032,Multan,Bosan Road,Service Road,2026-03-01,8
+SEG-032,Multan,Bosan Road,Service Road,2026-04-01,8
+SEG-032,Multan,Bosan Road,Service Road,2026-05-01,7
+SEG-032,Multan,Bosan Road,Service Road,2026-06-01,7
+SEG-032,Multan,Bosan Road,Service Road,2026-07-01,8
+SEG-032,Multan,Bosan Road,Service Road,2026-08-01,8
+SEG-033,Peshawar,Hayatabad,Highway,2025-09-01,33
+SEG-033,Peshawar,Hayatabad,Highway,2025-10-01,18
+SEG-033,Peshawar,Hayatabad,Highway,2025-11-01,19
+SEG-033,Peshawar,Hayatabad,Highway,2025-12-01,17
+SEG-033,Peshawar,Hayatabad,Highway,2026-01-01,18
+SEG-033,Peshawar,Hayatabad,Highway,2026-02-01,18
+SEG-033,Peshawar,Hayatabad,Highway,2026-03-01,18
+SEG-033,Peshawar,Hayatabad,Highway,2026-04-01,17
+SEG-033,Peshawar,Hayatabad,Highway,2026-05-01,17
+SEG-033,Peshawar,Hayatabad,Highway,2026-06-01,35
+SEG-033,Peshawar,Hayatabad,Highway,2026-07-01,34
+SEG-033,Peshawar,Hayatabad,Highway,2026-08-01,33
+SEG-034,Peshawar,University Town,Simple Road,2025-09-01,4
+SEG-034,Peshawar,University Town,Simple Road,2025-10-01,4
+SEG-034,Peshawar,University Town,Simple Road,2025-11-01,4
+SEG-034,Peshawar,University Town,Simple Road,2025-12-01,4
+SEG-034,Peshawar,University Town,Simple Road,2026-01-01,3
+SEG-034,Peshawar,University Town,Simple Road,2026-02-01,3
+SEG-034,Peshawar,University Town,Simple Road,2026-03-01,3
+SEG-034,Peshawar,University Town,Simple Road,2026-04-01,3
+SEG-034,Peshawar,University Town,Simple Road,2026-05-01,4
+SEG-034,Peshawar,University Town,Simple Road,2026-06-01,4
+SEG-034,Peshawar,University Town,Simple Road,2026-07-01,4
+SEG-034,Peshawar,University Town,Simple Road,2026-08-01,4
+SEG-035,Peshawar,Saddar,Service Road,2025-09-01,25
+SEG-035,Peshawar,Saddar,Service Road,2025-10-01,12
+SEG-035,Peshawar,Saddar,Service Road,2025-11-01,10
+SEG-035,Peshawar,Saddar,Service Road,2025-12-01,9
+SEG-035,Peshawar,Saddar,Service Road,2026-01-01,8
+SEG-035,Peshawar,Saddar,Service Road,2026-02-01,9
+SEG-035,Peshawar,Saddar,Service Road,2026-03-01,12
+SEG-035,Peshawar,Saddar,Service Road,2026-04-01,12
+SEG-035,Peshawar,Saddar,Service Road,2026-05-01,11
+SEG-035,Peshawar,Saddar,Service Road,2026-06-01,24
+SEG-035,Peshawar,Saddar,Service Road,2026-07-01,26
+SEG-035,Peshawar,Saddar,Service Road,2026-08-01,25
+SEG-036,Hyderabad,Latifabad,Simple Road,2025-09-01,10
+SEG-036,Hyderabad,Latifabad,Simple Road,2025-10-01,10
+SEG-036,Hyderabad,Latifabad,Simple Road,2025-11-01,10
+SEG-036,Hyderabad,Latifabad,Simple Road,2025-12-01,11
+SEG-036,Hyderabad,Latifabad,Simple Road,2026-01-01,13
+SEG-036,Hyderabad,Latifabad,Simple Road,2026-02-01,11
+SEG-036,Hyderabad,Latifabad,Simple Road,2026-03-01,15
+SEG-036,Hyderabad,Latifabad,Simple Road,2026-04-01,16
+SEG-036,Hyderabad,Latifabad,Simple Road,2026-05-01,20
+SEG-036,Hyderabad,Latifabad,Simple Road,2026-06-01,19
+SEG-036,Hyderabad,Latifabad,Simple Road,2026-07-01,20
+SEG-036,Hyderabad,Latifabad,Simple Road,2026-08-01,23
+SEG-037,Hyderabad,Qasimabad,Highway,2025-09-01,27
+SEG-037,Hyderabad,Qasimabad,Highway,2025-10-01,14
+SEG-037,Hyderabad,Qasimabad,Highway,2025-11-01,19
+SEG-037,Hyderabad,Qasimabad,Highway,2025-12-01,18
+SEG-037,Hyderabad,Qasimabad,Highway,2026-01-01,15
+SEG-037,Hyderabad,Qasimabad,Highway,2026-02-01,14
+SEG-037,Hyderabad,Qasimabad,Highway,2026-03-01,16
+SEG-037,Hyderabad,Qasimabad,Highway,2026-04-01,15
+SEG-037,Hyderabad,Qasimabad,Highway,2026-05-01,16
+SEG-037,Hyderabad,Qasimabad,Highway,2026-06-01,22
+SEG-037,Hyderabad,Qasimabad,Highway,2026-07-01,25
+SEG-037,Hyderabad,Qasimabad,Highway,2026-08-01,28
+SEG-038,Hyderabad,Autobahn,Service Road,2025-09-01,9
+SEG-038,Hyderabad,Autobahn,Service Road,2025-10-01,13
+SEG-038,Hyderabad,Autobahn,Service Road,2025-11-01,12
+SEG-038,Hyderabad,Autobahn,Service Road,2025-12-01,13
+SEG-038,Hyderabad,Autobahn,Service Road,2026-01-01,15
+SEG-038,Hyderabad,Autobahn,Service Road,2026-02-01,15
+SEG-038,Hyderabad,Autobahn,Service Road,2026-03-01,15
+SEG-038,Hyderabad,Autobahn,Service Road,2026-04-01,19
+SEG-038,Hyderabad,Autobahn,Service Road,2026-05-01,19
+SEG-038,Hyderabad,Autobahn,Service Road,2026-06-01,21
+SEG-038,Hyderabad,Autobahn,Service Road,2026-07-01,23
+SEG-038,Hyderabad,Autobahn,Service Road,2026-08-01,23
+SEG-039,Quetta,Jinnah Road,Highway,2025-09-01,23
+SEG-039,Quetta,Jinnah Road,Highway,2025-10-01,16
+SEG-039,Quetta,Jinnah Road,Highway,2025-11-01,18
+SEG-039,Quetta,Jinnah Road,Highway,2025-12-01,18
+SEG-039,Quetta,Jinnah Road,Highway,2026-01-01,18
+SEG-039,Quetta,Jinnah Road,Highway,2026-02-01,17
+SEG-039,Quetta,Jinnah Road,Highway,2026-03-01,17
+SEG-039,Quetta,Jinnah Road,Highway,2026-04-01,16
+SEG-039,Quetta,Jinnah Road,Highway,2026-05-01,18
+SEG-039,Quetta,Jinnah Road,Highway,2026-06-01,20
+SEG-039,Quetta,Jinnah Road,Highway,2026-07-01,21
+SEG-039,Quetta,Jinnah Road,Highway,2026-08-01,20
+SEG-040,Quetta,Satellite Town,Simple Road,2025-09-01,2
+SEG-040,Quetta,Satellite Town,Simple Road,2025-10-01,3
+SEG-040,Quetta,Satellite Town,Simple Road,2025-11-01,1
+SEG-040,Quetta,Satellite Town,Simple Road,2025-12-01,2
+SEG-040,Quetta,Satellite Town,Simple Road,2026-01-01,1
+SEG-040,Quetta,Satellite Town,Simple Road,2026-02-01,2
+SEG-040,Quetta,Satellite Town,Simple Road,2026-03-01,2
+SEG-040,Quetta,Satellite Town,Simple Road,2026-04-01,3
+SEG-040,Quetta,Satellite Town,Simple Road,2026-05-01,2
+SEG-040,Quetta,Satellite Town,Simple Road,2026-06-01,2
+SEG-040,Quetta,Satellite Town,Simple Road,2026-07-01,2
+SEG-040,Quetta,Satellite Town,Simple Road,2026-08-01,2
+SEG-041,Sialkot,Cantt,Highway,2025-09-01,43
+SEG-041,Sialkot,Cantt,Highway,2025-10-01,17
+SEG-041,Sialkot,Cantt,Highway,2025-11-01,14
+SEG-041,Sialkot,Cantt,Highway,2025-12-01,17
+SEG-041,Sialkot,Cantt,Highway,2026-01-01,18
+SEG-041,Sialkot,Cantt,Highway,2026-02-01,16
+SEG-041,Sialkot,Cantt,Highway,2026-03-01,16
+SEG-041,Sialkot,Cantt,Highway,2026-04-01,17
+SEG-041,Sialkot,Cantt,Highway,2026-05-01,17
+SEG-041,Sialkot,Cantt,Highway,2026-06-01,44
+SEG-041,Sialkot,Cantt,Highway,2026-07-01,43
+SEG-041,Sialkot,Cantt,Highway,2026-08-01,43
+SEG-042,Sialkot,Model Town,Simple Road,2025-09-01,4
+SEG-042,Sialkot,Model Town,Simple Road,2025-10-01,6
+SEG-042,Sialkot,Model Town,Simple Road,2025-11-01,9
+SEG-042,Sialkot,Model Town,Simple Road,2025-12-01,9
+SEG-042,Sialkot,Model Town,Simple Road,2026-01-01,13
+SEG-042,Sialkot,Model Town,Simple Road,2026-02-01,12
+SEG-042,Sialkot,Model Town,Simple Road,2026-03-01,14
+SEG-042,Sialkot,Model Town,Simple Road,2026-04-01,17
+SEG-042,Sialkot,Model Town,Simple Road,2026-05-01,19
+SEG-042,Sialkot,Model Town,Simple Road,2026-06-01,21
+SEG-042,Sialkot,Model Town,Simple Road,2026-07-01,24
+SEG-042,Sialkot,Model Town,Simple Road,2026-08-01,24
+SEG-043,Gujranwala,Satellite Town,Highway,2025-09-01,8
+SEG-043,Gujranwala,Satellite Town,Highway,2025-10-01,8
+SEG-043,Gujranwala,Satellite Town,Highway,2025-11-01,7
+SEG-043,Gujranwala,Satellite Town,Highway,2025-12-01,7
+SEG-043,Gujranwala,Satellite Town,Highway,2026-01-01,8
+SEG-043,Gujranwala,Satellite Town,Highway,2026-02-01,7
+SEG-043,Gujranwala,Satellite Town,Highway,2026-03-01,7
+SEG-043,Gujranwala,Satellite Town,Highway,2026-04-01,7
+SEG-043,Gujranwala,Satellite Town,Highway,2026-05-01,8
+SEG-043,Gujranwala,Satellite Town,Highway,2026-06-01,7
+SEG-043,Gujranwala,Satellite Town,Highway,2026-07-01,7
+SEG-043,Gujranwala,Satellite Town,Highway,2026-08-01,7
+SEG-044,Gujranwala,Model Town,Service Road,2025-09-01,9
+SEG-044,Gujranwala,Model Town,Service Road,2025-10-01,11
+SEG-044,Gujranwala,Model Town,Service Road,2025-11-01,14
+SEG-044,Gujranwala,Model Town,Service Road,2025-12-01,13
+SEG-044,Gujranwala,Model Town,Service Road,2026-01-01,18
+SEG-044,Gujranwala,Model Town,Service Road,2026-02-01,21
+SEG-044,Gujranwala,Model Town,Service Road,2026-03-01,21
+SEG-044,Gujranwala,Model Town,Service Road,2026-04-01,23
+SEG-044,Gujranwala,Model Town,Service Road,2026-05-01,25
+SEG-044,Gujranwala,Model Town,Service Road,2026-06-01,27
+SEG-044,Gujranwala,Model Town,Service Road,2026-07-01,30
+SEG-044,Gujranwala,Model Town,Service Road,2026-08-01,31
+SEG-045,Bahawalpur,Model Town,Simple Road,2025-09-01,4
+SEG-045,Bahawalpur,Model Town,Simple Road,2025-10-01,4
+SEG-045,Bahawalpur,Model Town,Simple Road,2025-11-01,6
+SEG-045,Bahawalpur,Model Town,Simple Road,2025-12-01,5
+SEG-045,Bahawalpur,Model Town,Simple Road,2026-01-01,10
+SEG-045,Bahawalpur,Model Town,Simple Road,2026-02-01,8
+SEG-045,Bahawalpur,Model Town,Simple Road,2026-03-01,10
+SEG-045,Bahawalpur,Model Town,Simple Road,2026-04-01,10
+SEG-045,Bahawalpur,Model Town,Simple Road,2026-05-01,12
+SEG-045,Bahawalpur,Model Town,Simple Road,2026-06-01,16
+SEG-045,Bahawalpur,Model Town,Simple Road,2026-07-01,14
+SEG-045,Bahawalpur,Model Town,Simple Road,2026-08-01,15
+SEG-046,Bahawalpur,Satellite Town,Highway,2025-09-01,7
+SEG-046,Bahawalpur,Satellite Town,Highway,2025-10-01,6
+SEG-046,Bahawalpur,Satellite Town,Highway,2025-11-01,7
+SEG-046,Bahawalpur,Satellite Town,Highway,2025-12-01,7
+SEG-046,Bahawalpur,Satellite Town,Highway,2026-01-01,7
+SEG-046,Bahawalpur,Satellite Town,Highway,2026-02-01,6
+SEG-046,Bahawalpur,Satellite Town,Highway,2026-03-01,8
+SEG-046,Bahawalpur,Satellite Town,Highway,2026-04-01,7
+SEG-046,Bahawalpur,Satellite Town,Highway,2026-05-01,7
+SEG-046,Bahawalpur,Satellite Town,Highway,2026-06-01,7
+SEG-046,Bahawalpur,Satellite Town,Highway,2026-07-01,8
+SEG-046,Bahawalpur,Satellite Town,Highway,2026-08-01,7

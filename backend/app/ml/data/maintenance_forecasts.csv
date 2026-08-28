@@ -1,0 +1,47 @@
+segment_id,city,area,road_type,predicted_report_count,trend_direction
+SEG-012,Karachi,Saddar,Highway,41,increasing
+SEG-026,Faisalabad,D Ground,Highway,40,increasing
+SEG-041,Sialkot,Cantt,Highway,35,stable
+SEG-004,Lahore,Model Town,Highway,34,stable
+SEG-017,Islamabad,F-7,Highway,33,stable
+SEG-044,Gujranwala,Model Town,Service Road,33,increasing
+SEG-001,Lahore,Gulberg,Highway,31,stable
+SEG-020,Islamabad,F-10,Highway,29,stable
+SEG-033,Peshawar,Hayatabad,Highway,29,stable
+SEG-042,Sialkot,Model Town,Simple Road,26,increasing
+SEG-015,Karachi,PECHS,Highway,26,stable
+SEG-005,Lahore,Township,Simple Road,26,increasing
+SEG-010,Karachi,Defence,Service Road,24,increasing
+SEG-028,Faisalabad,Jinnah Colony,Service Road,24,increasing
+SEG-038,Hyderabad,Autobahn,Service Road,24,increasing
+SEG-009,Karachi,Clifton,Highway,23,stable
+SEG-036,Hyderabad,Latifabad,Simple Road,23,increasing
+SEG-037,Hyderabad,Qasimabad,Highway,22,stable
+SEG-035,Peshawar,Saddar,Service Road,21,stable
+SEG-002,Lahore,DHA,Service Road,20,stable
+SEG-007,Lahore,Allama Iqbal Town,Simple Road,19,increasing
+SEG-039,Quetta,Jinnah Road,Highway,19,stable
+SEG-031,Multan,Gulgasht,Simple Road,18,increasing
+SEG-024,Rawalpindi,Chaklala,Service Road,18,stable
+SEG-045,Bahawalpur,Model Town,Simple Road,17,increasing
+SEG-025,Rawalpindi,Committee Chowk,Simple Road,17,increasing
+SEG-016,Karachi,Gulistan-e-Jauhar,Simple Road,16,increasing
+SEG-006,Lahore,Cantt,Service Road,15,stable
+SEG-022,Rawalpindi,Saddar,Highway,12,stable
+SEG-023,Rawalpindi,Satellite Town,Simple Road,11,stable
+SEG-011,Karachi,Gulshan-e-Iqbal,Simple Road,10,stable
+SEG-030,Multan,Cantt,Highway,9,stable
+SEG-029,Faisalabad,Madina Town,Simple Road,9,stable
+SEG-008,Lahore,Garden Town,Highway,9,stable
+SEG-032,Multan,Bosan Road,Service Road,8,stable
+SEG-021,Islamabad,I-8,Simple Road,8,stable
+SEG-013,Karachi,North Nazimabad,Simple Road,7,stable
+SEG-046,Bahawalpur,Satellite Town,Highway,7,stable
+SEG-043,Gujranwala,Satellite Town,Highway,7,stable
+SEG-027,Faisalabad,Peoples Colony,Simple Road,6,stable
+SEG-019,Islamabad,Blue Area,Service Road,5,stable
+SEG-003,Lahore,Johar Town,Simple Road,4,stable
+SEG-014,Karachi,Korangi,Service Road,4,stable
+SEG-018,Islamabad,G-9,Simple Road,4,stable
+SEG-034,Peshawar,University Town,Simple Road,4,stable
+SEG-040,Quetta,Satellite Town,Simple Road,2,stable
