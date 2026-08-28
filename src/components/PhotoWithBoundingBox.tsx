@@ -1,4 +1,5 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Image, StyleSheet, Text, View, type LayoutChangeEvent, type ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { severityColors, toSeverity, type BoundingBox, type OverlayBox, type Severity } from '../models/report';
@@ -11,6 +12,13 @@ type Props = {
   height?: number;
 };
 
+type Size = { width: number; height: number };
+
+type NaturalSize =
+  | { state: 'loading' }
+  | { state: 'ready'; width: number; height: number }
+  | { state: 'unavailable' };
+
 function overlayList(boundingBox?: BoundingBox, boundingBoxes?: OverlayBox[]): OverlayBox[] {
   if (boundingBoxes && boundingBoxes.length > 0) return boundingBoxes;
   if (boundingBox) return [{ ...boundingBox, severity: 'medium' }];
@@ -22,20 +30,80 @@ function boxColor(severity: Severity | string | undefined) {
   return palette[toSeverity(severity)] ?? colors.blueMid;
 }
 
+function useNaturalSize(uri: string | null): NaturalSize {
+  const [size, setSize] = useState<NaturalSize>({ state: 'loading' });
+
+  useEffect(() => {
+    setSize((prev) => (prev.state === 'loading' ? prev : { state: 'loading' }));
+    if (!uri) return;
+
+    let active = true;
+    Image.getSize(
+      uri,
+      (width, height) => {
+        if (!active) return;
+        setSize(width > 0 && height > 0 ? { state: 'ready', width, height } : { state: 'unavailable' });
+      },
+      () => {
+        if (active) setSize({ state: 'unavailable' });
+      },
+    );
+
+    return () => {
+      active = false;
+    };
+  }, [uri]);
+
+  return size;
+}
+
+/**
+ * Box percentages are relative to the original image, but `contain` letterboxes that image
+ * inside the container, so they have to be resolved against the fitted rect rather than the
+ * container. Returns null while the fitted rect is still unknown, and falls back to the whole
+ * container if the image size can never be read.
+ */
+function fittedRect(container: Size | null, natural: NaturalSize): ViewStyle | null {
+  if (natural.state === 'unavailable') return { left: 0, top: 0, right: 0, bottom: 0 };
+  if (natural.state !== 'ready' || !container) return null;
+  if (container.width <= 0 || container.height <= 0) return null;
+
+  const scale = Math.min(container.width / natural.width, container.height / natural.height);
+  const width = natural.width * scale;
+  const height = natural.height * scale;
+  return {
+    left: (container.width - width) / 2,
+    top: (container.height - height) / 2,
+    width,
+    height,
+  };
+}
+
 export function PhotoWithBoundingBox({ uri, boundingBox, boundingBoxes, height = 220 }: Props) {
   const boxes = overlayList(boundingBox, boundingBoxes);
+  const [container, setContainer] = useState<Size | null>(null);
+  const natural = useNaturalSize(uri);
+  const rect = fittedRect(container, natural);
+
+  const handleLayout = (event: LayoutChangeEvent) => {
+    const { width, height: measured } = event.nativeEvent.layout;
+    setContainer((prev) =>
+      prev && prev.width === width && prev.height === measured ? prev : { width, height: measured },
+    );
+  };
 
   return (
-    <View style={[styles.wrap, { height }]}>
+    <View style={[styles.wrap, { height }]} onLayout={handleLayout}>
       {uri ? (
-        <Image source={{ uri }} style={styles.image} />
+        <Image source={{ uri }} style={styles.image} resizeMode="contain" />
       ) : (
         <View style={styles.empty}>
           <Ionicons name="image-outline" size={40} color={colors.tealMid} />
         </View>
       )}
-      {uri
-        ? boxes.map((box, index) => {
+      {uri && rect ? (
+        <View style={[styles.overlay, rect, { pointerEvents: 'none' }]}>
+          {boxes.map((box, index) => {
             const color = boxColor(box.severity);
             return (
               <View
@@ -60,8 +128,9 @@ export function PhotoWithBoundingBox({ uri, boundingBox, boundingBoxes, height =
                 <View style={[styles.corner, styles.br, { borderColor: color }]} />
               </View>
             );
-          })
-        : null}
+          })}
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -83,12 +152,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  overlay: {
+    position: 'absolute',
+  },
   box: {
     position: 'absolute',
     borderWidth: 2,
     borderRadius: 2,
     backgroundColor: 'transparent',
-    pointerEvents: 'none',
   },
   corner: {
     position: 'absolute',

@@ -5,12 +5,23 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from io import BytesIO
 
-from PIL import Image, UnidentifiedImageError
+from PIL import Image, ImageOps, UnidentifiedImageError
 
 from .model import get_model
 from .utils import classify_severity
 
 _SEVERITY_RANK = {"Small": 1, "Medium": 2, "Large": 3}
+
+# A box below this confidence may still be reported, but it must not be the one
+# that promotes a report to Large.
+_PROMOTE_MIN_CONFIDENCE = 0.5
+
+# Promotion is only for a hole already near the 15% Large boundary that also
+# clearly dominates the next-biggest one. Without both gates the rule fires on
+# almost any multi-box photo and severity ends up depending on how many holes
+# happen to be in frame.
+_PROMOTE_MIN_AREA_PCT = 12.0
+_PROMOTE_RATIO = 2.0
 
 
 class DetectionError(Exception):
@@ -48,15 +59,17 @@ class DetectionResult:
 
 
 def _promote_largest_hole(detections: list[BoxDetection]) -> list[BoxDetection]:
-    """When several holes are in one photo, the clearly bigger one is Large."""
+    """When several holes are in one photo, a near-Large dominant one is Large."""
     ranked = sorted(detections, key=lambda item: item.area_percentage)
     largest = ranked[-1]
     second = ranked[-2]
     bigger_enough = (
-        largest.area_percentage >= 10
-        or largest.area_percentage >= second.area_percentage * 1.4
+        largest.area_percentage >= _PROMOTE_MIN_AREA_PCT
+        and largest.area_percentage >= second.area_percentage * _PROMOTE_RATIO
     )
     if not bigger_enough or largest.severity == "Large":
+        return detections
+    if largest.confidence < _PROMOTE_MIN_CONFIDENCE:
         return detections
     return [
         replace(item, severity="Large")
@@ -68,7 +81,11 @@ def _promote_largest_hole(detections: list[BoxDetection]) -> list[BoxDetection]:
 
 def run_detection(image_bytes: bytes) -> DetectionResult:
     try:
-        image = Image.open(BytesIO(image_bytes)).convert("RGB")
+        opened = Image.open(BytesIO(image_bytes))
+        # Phones record rotation in EXIF rather than rotating the pixels. Bake it
+        # in before size is read so boxes and area_percentage use the orientation
+        # the user actually sees.
+        image = (ImageOps.exif_transpose(opened) or opened).convert("RGB")
     except (UnidentifiedImageError, OSError, ValueError) as exc:
         raise InvalidImageError("Could not read the image.") from exc
 
@@ -79,12 +96,13 @@ def run_detection(image_bytes: bytes) -> DetectionResult:
         raise ModelUnavailableError("Pothole model is unavailable.")
 
     try:
-        # Lower conf + larger imgsz so distant/small potholes are less likely to be dropped.
+        # Larger imgsz so distant/small potholes are less likely to be dropped;
+        # conf high enough that faint artifacts never reach the UI or the database.
         results = model.predict(
             image,
             verbose=False,
             device="cpu",
-            conf=0.15,
+            conf=0.35,
             iou=0.5,
             imgsz=1280,
             max_det=50,

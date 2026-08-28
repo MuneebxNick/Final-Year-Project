@@ -55,6 +55,7 @@ export function ReportScreen({ navigation }: Props) {
     const [landmark, setLandmark] = useState('');
     const [sheetOpen, setSheetOpen] = useState(false);
     const [analyzing, setAnalyzing] = useState(false);
+    const [analyzeError, setAnalyzeError] = useState<string | null>(null);
     const [errors, setErrors] = useState<{
         city?: string;
         area?: string;
@@ -72,6 +73,7 @@ export function ReportScreen({ navigation }: Props) {
         setDescription('');
         setLandmark('');
         setErrors({});
+        setAnalyzeError(null);
     };
 
     useFocusEffect(
@@ -162,8 +164,8 @@ export function ReportScreen({ navigation }: Props) {
                     error?.code === 1
                         ? 'Location permission was denied. Enable it in your browser or device settings, then try again.'
                         : error?.code === 3
-                          ? 'Location request timed out. Try again or enter the address manually.'
-                          : 'Could not get your current location. Enter the address manually.';
+                            ? 'Location request timed out. Try again or enter the address manually.'
+                            : 'Could not get your current location. Enter the address manually.';
                 failLocation(message);
             },
             { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
@@ -176,18 +178,26 @@ export function ReportScreen({ navigation }: Props) {
         if (!area.trim()) next.area = 'Enter the area';
         if (!address.trim()) next.address = 'Enter the street address';
         setErrors(next);
-        if (Object.keys(next).length > 0) return;
+        if (Object.keys(next).length > 0) {
+            setAnalyzeError(null);
+            return;
+        }
         if (!photoUri) {
-            Alert.alert('Add a photo of the road damage.');
+            const message = 'Add a photo of the road damage.';
+            setAnalyzeError(message);
+            Alert.alert(message);
             return;
         }
 
+        setAnalyzeError(null);
         setAnalyzing(true);
         try {
             const result = await detectPotholes(photoUri);
             const detection = await mapYoloToDraft(photoUri, result);
             if (!detection) {
-                Alert.alert('No potholes detected.', result.message ?? 'Try another photo of the damaged road.');
+                const message = result.message ?? 'Try another photo of the damaged road.';
+                setAnalyzeError(message);
+                Alert.alert('No potholes detected.', message);
                 return;
             }
             navigation.navigate('DetectionResult', {
@@ -204,10 +214,10 @@ export function ReportScreen({ navigation }: Props) {
                 },
             });
         } catch (error) {
-            Alert.alert(
-                'Could not analyze the photo',
-                error instanceof Error ? error.message : 'Check that the backend is running.',
-            );
+            const message =
+                error instanceof Error ? error.message : 'Check that the backend is running.';
+            setAnalyzeError(message);
+            Alert.alert('Could not analyze the photo', message);
         } finally {
             setAnalyzing(false);
         }
@@ -219,11 +229,16 @@ export function ReportScreen({ navigation }: Props) {
                 style={styles.flex}
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             >
-                <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+                <ScrollView
+                    style={styles.flex}
+                    contentContainerStyle={styles.scroll}
+                    keyboardShouldPersistTaps="always"
+                >
                     <ScreenContainer>
                         <Text style={styles.heading}>Report a pothole</Text>
                         <Text style={styles.lede}>
-                            Add a photo and location. You can stand close — the app will not mark a close-up as Large.
+                            Add a photo and location. Stand a few steps back, shoot along the road rather than
+                            straight down, and keep shadows off the hole.
                         </Text>
 
                         <View style={isWide ? styles.split : undefined}>
@@ -357,6 +372,7 @@ export function ReportScreen({ navigation }: Props) {
                                     numberOfLines={4}
                                 />
 
+                                {analyzeError ? <Text style={styles.analyzeError}>{analyzeError}</Text> : null}
                                 <PrimaryButton title="Analyze photo" onPress={analyze} style={styles.submit} loading={analyzing} />
                                 <OutlineButton title="Clear form" onPress={resetForm} style={styles.clear} />
                             </View>
@@ -366,7 +382,7 @@ export function ReportScreen({ navigation }: Props) {
 
                 <Modal
                     visible={sheetOpen}
-                    animationType="slide"
+                    animationType={Platform.OS === 'web' ? 'none' : 'slide'}
                     transparent
                     onRequestClose={() => setSheetOpen(false)}
                 >
@@ -532,6 +548,12 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         color: colors.muted,
         fontSize: 13,
+    },
+    analyzeError: {
+        marginTop: 8,
+        marginBottom: 4,
+        color: colors.severityLarge,
+        lineHeight: 20,
     },
     submit: {
         marginTop: 8,

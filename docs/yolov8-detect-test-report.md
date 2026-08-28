@@ -1,13 +1,55 @@
 # RahScan YOLOv8 pothole detection test report
 
-**Date:** 27 August 2026  
 **Endpoint:** `POST http://127.0.0.1:8000/api/detect` (multipart field `file`)  
-**Model URL:** `https://huggingface.co/Samdutse/pothole-yolov8/resolve/main/best.pt`  
-**Weights cache:** `backend/weights/best.pt` (downloaded on first startup; gitignored via `*.pt`)  
-**Device:** CPU (`model.predict(..., device="cpu")` in `backend/app/ai/detect.py`)  
-**YOLO loaded:** Yes — uvicorn log: `Found …best.pt locally at weights/best.pt` then `Application startup complete`. `GET /health` → **200** `{"ok": true}`. Valid JPEGs returned **200**, not 503.
+**Model URL:** `https://huggingface.co/EngJamesO/pothole-detector/resolve/main/models/yolov8n.pt`  
+**Weights cache:** `backend/weights/yolov8n.pt` (6.2 MB, downloaded on first startup; gitignored via `*.pt`)  
+**Predict settings:** `conf=0.35, iou=0.5, imgsz=1280, max_det=50`  
+**Device:** CPU (`model.predict(..., device="cpu")` in `backend/app/ai/detect.py`)
 
-## How the test was run
+> **The per-image tables below are from the 27 August 2026 run against the previous
+> Samdutse `best.pt` checkpoint at `conf=0.15`.** They are kept as the record of that
+> run. The checkpoint and confidence floor have since changed — see the update
+> immediately below. Numbers in those tables should not be read as current behaviour.
+
+## Update — 28 August 2026: checkpoint swapped to EngJamesO yolov8n
+
+The Samdutse checkpoint scored poorly on photos taken with the project owner's own
+phone. Benchmarked at the app's own predict settings it ranked 8th of 10 candidates,
+so `backend/app/ai/model.py` now loads EngJamesO **yolov8n** instead. Three related
+changes landed in `backend/app/ai/detect.py` at the same time:
+
+- `ImageOps.exif_transpose` runs immediately after `Image.open`, so a phone photo that
+  stores its rotation in EXIF is straightened before width/height are read. Without it
+  the pixels reach the model sideways and `area_percentage` is computed against the
+  wrong axes.
+- The predict `conf` floor moved from **0.15 → 0.35**, so faint artifacts never reach
+  the UI, the database, or severity.
+- `_promote_largest_hole` now requires the largest box to clear **0.5** confidence
+  before it may be promoted to `Large`. Previously a low-confidence blob could set
+  `highest_severity` for an entire report purely on area.
+
+Measured by calling `run_detection()` directly (not through the endpoint) on the two
+reference photos, CPU, this Mac:
+
+| Photo | Checkpoint | Boxes (confidence) | `highest_severity` |
+| --- | --- | --- | --- |
+| Internet reference, 678×452 | Samdutse `best.pt` @ conf 0.15 | 0.83, 0.80, 0.62, 0.16 | Medium |
+| Internet reference, 678×452 | **yolov8n @ conf 0.35** | **0.84, 0.76, 0.61** | Medium |
+| Phone photo, 576×1024 | Samdutse `best.pt` @ conf 0.15 | 0.79, 0.33, **0.19** | Large |
+| Phone photo, 576×1024 | **yolov8n @ conf 0.35** | **0.76, 0.57** | Medium |
+
+On the phone photo the real pothole goes from **0.19 → 0.76** confidence, and the
+0.19 box that used to drive `highest_severity` is gone. The internet photo's peak is
+unchanged (0.83 → 0.84) and its new box is marginally larger (5.48% → 6.04% area).
+Both photos report **Medium**: `_promote_largest_hole` lifts a box to `Large` only
+when it covers at least **12%** of the frame *and* at least **2×** the runner-up, so a
+mid-band hole is not promoted merely because a smaller hole sits beside it. The
+severity bands in `backend/app/ai/utils.py` were not touched.
+
+Model load is ~3.9 s; inference is ~0.22–0.24 s per photo after warmup, against
+~0.5–0.7 s for the previous checkpoint.
+
+## How the original 27 August test was run
 
 1. Recreated `backend/.venv` on **Python 3.13** with working `torch`/`ultralytics`.
 2. Started uvicorn **without** `--reload` on port 8000 (a `--reload` server would restart when `best.pt` is written under `backend/`).
@@ -111,9 +153,51 @@ No potholes on the two controls is the expected API behavior, not a crash: HTTP 
 ## Caveats
 
 - **CPU only.** Inference is `device="cpu"`; this Intel Mac has no CUDA/MPS torch wheel in this venv.
-- **Pretrained Hugging Face model**, not trained by RahScan. Weights are Samuel Yaula Dutse’s `Samdutse/pothole-yolov8` (`best.pt`). Reported 81.6% mAP@50 on *their* data; this report is a small qualitative check, not a validation set.
-- **Default Ultralytics confidence** (typically 0.25). The Finland second box at **0.29** is barely above that; Bengaluru at **0.39** is a large box with modest confidence — possible over-coverage of the damaged area.
+- **Pretrained Hugging Face model**, not trained by RahScan. Weights are now `EngJamesO/pothole-detector` (`models/yolov8n.pt`), single class `Pothole`. The tables in this report predate that swap and were produced with `Samdutse/pothole-yolov8` (`best.pt`). Either way this is a small qualitative check, not a validation set.
+- **Confidence floor is 0.35**, above the Ultralytics default of 0.25. Boxes weaker than that are dropped before the response is built, so a faint or partially occluded hole can be missed entirely. The 27 August tables were taken at 0.15 and therefore include boxes (Finland 0.29, Bengaluru 0.39 borderline, and similar) that today's settings would filter or keep differently.
 - **Severity is box area, not depth or hazard.** A close-up small pothole can score Large (`otro_bache` 39%); a distant real pothole can score Small (`pot_holes` 2.58%).
 - **Not a production accuracy claim.** Six pothole photos and two controls; lighting, camera, and geography differ from the training set.
 - **Python 3.13 on Intel macOS** cannot `pip install torch` from PyPI. This test used conda-forge pytorch in `.venv`. Apple Silicon or Linux/Windows with official wheels would be the usual path.
 - Test binaries were **not** committed. Do not commit `.venv`, `.env`, or `*.pt`.
+
+## Update — 28 August 2026: gated black-point correction for veiled photos
+
+A washed-out phone photo that returned zero boxes was not over-exposed. Mean luminance
+was 136 against 131 and 127 on photos that already detect, so a brightness slider
+cannot tell them apart. The 0.5th-percentile luma (black point) is the signature that
+does:
+
+| Photo | Mean luma | Black point (p0.5 luma) | Pixels ≥ 250 |
+| --- | --- | --- | --- |
+| Failing (veiled) | 136 | **83** | 0.00% |
+| Working | 131, 127 | **13 to 37** | — |
+
+Nothing is clipped. Haze lifts the whole tonal range off black and flattens the local
+contrast YOLO keys on. `_normalize_exposure` in `backend/app/ai/detect.py` therefore
+gates on that black point and, when it fires, stretches each channel from the
+0.25th/99.75th percentiles through a 768-entry LUT.
+
+The constants are not knife-edge tunings:
+
+- `_BLACK_POINT_MAX = 50`. Working photos sit at 13–37 and the failing frame at 83,
+  so there is a gap; anywhere in **40 to 60** is safe. 50 is the middle of that gap.
+- `_CUT = 0.25` (percentile anchors), so a handful of hot pixels cannot disable the
+  stretch the way `autocontrast(cutoff=0)` does.
+- `_PROBE_PX = 512` is the thumbnail the gate is measured on; percentiles are
+  scale-stable. `_GAIN_MAX = 3.0` caps the stretch on near-uniform frames.
+
+Measured at the app's real settings (`conf=0.35`, `imgsz=1280`, CPU, yolov8n):
+
+| Photo | Before | After | Gate |
+| --- | --- | --- | --- |
+| Reconstructed failing frame | 0 boxes | **0.73, 0.67** | fires |
+| Synthetic washed IMG_5085 | 0 boxes | **0.81, 0.64** | fires |
+| IMG_5085, img3, darkened own photo | unchanged | **+0.00** | declines |
+| 29 real images in the assets folder | — | **zero detections changed** | fires on 2 UI screenshots that detect nothing either way |
+
+Rejected: `ImageEnhance.Brightness` and linear mean-brightness scaling recover zero
+detections (they preserve the haze ratios). `autocontrast(cutoff=0)` collapses when
+~60 stray hot pixels are present. Fixed `gamma 2.2` wipes out a correctly dark photo.
+A second brightening stage for dark frames destroyed a dark low-contrast sample
+(0.72 → zero boxes); under-exposure was not the failure mode (gamma 0.40 versions
+still detect).
