@@ -97,13 +97,23 @@ MaintenanceCategory = Literal["Urgent", "Plan Repair", "Monitor"]
 MaintenanceTrend = Literal["increasing", "decreasing", "stable"]
 
 
+MaintenanceRiskWindow = Literal[
+    "High risk within 1-2 weeks",
+    "Moderate risk within 3-4 weeks",
+    "Low risk (30+ days)",
+]
+
+
 class PredictiveMaintenanceSegment(BaseModel):
     segment_id: str
     city: str
     area: str
     road_type: str
-    predicted_report_count: int
+    predicted_reports_next_30_days: int
+    historical_avg_reports_per_30_days: float
     trend_direction: MaintenanceTrend
+    risk_window: MaintenanceRiskWindow
+    priority: MaintenanceCategory
     category: MaintenanceCategory
     budget_estimate_pkr: int
 

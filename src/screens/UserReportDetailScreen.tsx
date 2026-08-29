@@ -1,7 +1,6 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import { LifetimePredictionCard } from '../components/LifetimePredictionCard';
 import { PhotoWithBoundingBox } from '../components/PhotoWithBoundingBox';
 import { SeverityBadge } from '../components/SeverityBadge';
 import { StatusBadge } from '../components/StatusBadge';
@@ -99,8 +98,6 @@ export function UserReportDetailScreen({ route }: Props) {
           />
         ) : null}
       </View>
-
-      <LifetimePredictionCard report={report} />
 
       <Text style={styles.cardTitle}>Status timeline</Text>
       <View style={styles.timeline}>

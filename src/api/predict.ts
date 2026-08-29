@@ -15,8 +15,11 @@ export type PredictiveMaintenanceApiSegment = {
   city: string;
   area: string;
   road_type: string;
-  predicted_report_count: number;
+  predicted_reports_next_30_days: number;
+  historical_avg_reports_per_30_days: number;
   trend_direction: 'increasing' | 'decreasing' | 'stable';
+  risk_window: string;
+  priority: 'Urgent' | 'Plan Repair' | 'Monitor';
   category: 'Urgent' | 'Plan Repair' | 'Monitor';
   budget_estimate_pkr: number;
 };
@@ -60,7 +63,11 @@ export function mapPredictiveMaintenanceSegment(
     city: segment.city,
     area: segment.area,
     category: CATEGORY_MAP[segment.category] ?? 'monitor',
-    reportCount: segment.predicted_report_count,
+    predictedReportsNext30Days: segment.predicted_reports_next_30_days,
+    historicalAvgReportsPer30Days: segment.historical_avg_reports_per_30_days,
+    trendDirection: segment.trend_direction,
+    riskWindow: segment.risk_window,
+    priority: segment.priority,
     budgetPkr: segment.budget_estimate_pkr,
     reason: reasonForSegment(segment),
   };

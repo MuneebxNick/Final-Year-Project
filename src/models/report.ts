@@ -309,12 +309,18 @@ export const predictiveCategoryLabels: Record<PredictiveCategory, string> = {
   monitor: 'Monitor',
 };
 
+export type PredictiveTrend = 'increasing' | 'decreasing' | 'stable';
+
 export type PredictiveSegment = {
   id: string;
   city: string;
   area: string;
   category: PredictiveCategory;
-  reportCount: number;
+  predictedReportsNext30Days: number;
+  historicalAvgReportsPer30Days: number;
+  trendDirection: PredictiveTrend;
+  riskWindow: string;
+  priority: 'Urgent' | 'Plan Repair' | 'Monitor';
   budgetPkr: number;
   reason: string;
 };
@@ -349,7 +355,11 @@ export function predictiveSegments(reports: Report[]): PredictiveSegment[] {
       city,
       area,
       category,
-      reportCount: list.length,
+      predictedReportsNext30Days: list.length,
+      historicalAvgReportsPer30Days: list.length,
+      trendDirection: 'stable' as PredictiveTrend,
+      riskWindow: 'Low risk (30+ days)',
+      priority: predictiveCategoryLabels[category],
       budgetPkr,
       reason,
     };

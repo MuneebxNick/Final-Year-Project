@@ -7,6 +7,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
 import { fetchPredictiveMaintenance } from '../api/predict';
@@ -17,6 +18,7 @@ import {
   predictiveCategoryLabels,
   type PredictiveCategory,
   type PredictiveSegment,
+  type PredictiveTrend,
 } from '../models/report';
 import type { AdminTabParamList } from '../navigation';
 import { colors, radii, shadows } from '../theme';
@@ -28,6 +30,28 @@ const CATEGORY_COLOR: Record<PredictiveCategory, string> = {
   planRepair: colors.pillOrange,
   monitor: colors.pillGreen,
 };
+
+const TREND_LABEL: Record<PredictiveTrend, string> = {
+  increasing: 'Increasing',
+  decreasing: 'Decreasing',
+  stable: 'Stable',
+};
+
+const TREND_ICON: Record<PredictiveTrend, keyof typeof Ionicons.glyphMap> = {
+  increasing: 'trending-up',
+  decreasing: 'trending-down',
+  stable: 'remove',
+};
+
+const TREND_COLOR: Record<PredictiveTrend, string> = {
+  increasing: colors.pillRed,
+  decreasing: colors.pillGreen,
+  stable: colors.muted,
+};
+
+function isHighRisk(riskWindow: string): boolean {
+  return riskWindow.startsWith('High');
+}
 
 export function AdminPredictiveScreen(_props: Props) {
   const [segments, setSegments] = useState<PredictiveSegment[]>([]);
@@ -98,13 +122,43 @@ export function AdminPredictiveScreen(_props: Props) {
                 ) : (
                   items.map((segment) => (
                     <View key={segment.id} style={styles.card}>
+                      <View style={styles.riskRow}>
+                        {isHighRisk(segment.riskWindow) ? (
+                          <Ionicons name="warning" size={18} color={colors.pillRed} />
+                        ) : null}
+                        <Text
+                          style={[
+                            styles.riskWindow,
+                            isHighRisk(segment.riskWindow) && styles.riskWindowHigh,
+                          ]}
+                        >
+                          {segment.riskWindow}
+                        </Text>
+                      </View>
                       <Text style={styles.city}>{segment.city}</Text>
                       <Text style={styles.area}>{segment.area}</Text>
-                      <Text style={styles.reason}>{segment.reason}</Text>
-                      <View style={styles.meta}>
-                        <Text style={styles.budget}>{formatPkr(segment.budgetPkr)}</Text>
-                        <Text style={styles.count}>{segment.reportCount} reports</Text>
+                      <Text style={styles.count}>
+                        ~{segment.predictedReportsNext30Days} reports expected in next 30 days
+                      </Text>
+                      <View style={styles.trendRow}>
+                        <Ionicons
+                          name={TREND_ICON[segment.trendDirection]}
+                          size={16}
+                          color={TREND_COLOR[segment.trendDirection]}
+                        />
+                        <Text
+                          style={[
+                            styles.trend,
+                            { color: TREND_COLOR[segment.trendDirection] },
+                          ]}
+                        >
+                          {TREND_LABEL[segment.trendDirection]}
+                        </Text>
                       </View>
+                      <Text style={styles.historical}>
+                        Historical avg: {segment.historicalAvgReportsPer30Days} reports / 30 days
+                      </Text>
+                      <Text style={styles.budget}>{formatPkr(segment.budgetPkr)}</Text>
                     </View>
                   ))
                 )}
@@ -196,22 +250,43 @@ const styles = StyleSheet.create({
     marginTop: 4,
     color: colors.muted,
   },
-  reason: {
-    marginTop: 10,
-    color: colors.ink,
-    lineHeight: 20,
-  },
-  meta: {
-    marginTop: 12,
+  riskRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
   },
-  budget: {
-    fontWeight: '800',
-    color: colors.teal,
+  riskWindow: {
+    flex: 1,
+    fontWeight: '700',
+    color: colors.ink,
+  },
+  riskWindowHigh: {
+    color: colors.pillRed,
   },
   count: {
+    marginTop: 10,
+    color: colors.ink,
+    fontWeight: '600',
+    lineHeight: 20,
+  },
+  trendRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 8,
+  },
+  trend: {
+    fontWeight: '700',
+  },
+  historical: {
+    marginTop: 8,
     color: colors.muted,
     fontWeight: '600',
+  },
+  budget: {
+    marginTop: 12,
+    fontWeight: '800',
+    color: colors.teal,
   },
 });

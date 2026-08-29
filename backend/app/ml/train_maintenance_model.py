@@ -30,7 +30,7 @@ COLUMNS = [
     "city",
     "area",
     "road_type",
-    "predicted_report_count",
+    "predicted_reports_next_30_days",
     "trend_direction",
 ]
 
@@ -97,7 +97,7 @@ def forecast_segment(group: pd.DataFrame) -> dict:
         "city": meta["city"],
         "area": meta["area"],
         "road_type": meta["road_type"],
-        "predicted_report_count": predicted,
+        "predicted_reports_next_30_days": predicted,
         "trend_direction": _trend_direction(last_trend, next_trend),
     }
 
@@ -108,7 +108,7 @@ def train_forecasts(frame: pd.DataFrame) -> pd.DataFrame:
         for _, group in frame.groupby("segment_id", sort=True)
     ]
     return pd.DataFrame(rows, columns=COLUMNS).sort_values(
-        "predicted_report_count",
+        "predicted_reports_next_30_days",
         ascending=False,
         ignore_index=True,
     )
@@ -124,7 +124,7 @@ def print_report(forecasts: pd.DataFrame, path: Path) -> None:
     for row in forecasts.itertuples(index=False):
         print(
             f"{row.segment_id:<12} {row.city:<14} {row.area:<22} "
-            f"{row.road_type:<14} {row.predicted_report_count:>5}  {row.trend_direction}"
+            f"{row.road_type:<14} {row.predicted_reports_next_30_days:>5}  {row.trend_direction}"
         )
     counts = forecasts["trend_direction"].value_counts()
     print(

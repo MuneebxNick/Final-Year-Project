@@ -29,9 +29,13 @@ _FORECAST_COLUMNS = (
     "city",
     "area",
     "road_type",
-    "predicted_report_count",
+    "predicted_reports_next_30_days",
     "trend_direction",
 )
+
+HIGH_RISK_WINDOW = "High risk within 1-2 weeks"
+MODERATE_RISK_WINDOW = "Moderate risk within 3-4 weeks"
+LOW_RISK_WINDOW = "Low risk (30+ days)"
 
 _models: dict[str, Any] = {}
 _segments: list[dict] | None = None
@@ -62,9 +66,28 @@ def _trend_direction(last_trend: float, next_trend: float) -> str:
     return "increasing" if delta > 0 else "decreasing"
 
 
-def _budget_estimate_pkr(road_type: str, predicted_report_count: int) -> int:
+def _budget_estimate_pkr(road_type: str, predicted_reports_next_30_days: int) -> int:
     per_report = _COST_PER_REPORT.get(road_type, _COST_PER_REPORT["Simple Road"])
-    return _BUDGET_BASE + per_report * int(predicted_report_count)
+    return _BUDGET_BASE + per_report * int(predicted_reports_next_30_days)
+
+
+def derive_risk_window(trend: str, predicted: int, historical_avg: float) -> str:
+    """Deterministic heuristic from 30-day forecast + trend + historical baseline,
+    not a separately trained time-to-failure model."""
+    if historical_avg == 0:
+        ratio = float("inf") if predicted > 0 else 0.0
+    else:
+        ratio = predicted / historical_avg
+    if trend == "increasing" and ratio >= 1.5:
+        return HIGH_RISK_WINDOW
+    if trend in ("increasing", "stable") and ratio >= 1.0:
+        return MODERATE_RISK_WINDOW
+    return LOW_RISK_WINDOW
+
+
+def _historical_avg_by_segment(frame: Any) -> dict[str, float]:
+    means = frame.groupby("segment_id", sort=False)["report_count"].mean()
+    return {str(sid): float(val) for sid, val in means.items()}
 
 
 def _assign_categories(rows: list[dict]) -> None:
@@ -125,7 +148,7 @@ def _forecast_from_models(frame: Any, models: dict[str, Any]) -> list[dict]:
                 "city": str(meta["city"]),
                 "area": str(meta["area"]),
                 "road_type": str(meta["road_type"]),
-                "predicted_report_count": int(predicted),
+                "predicted_reports_next_30_days": int(predicted),
                 "trend_direction": _trend_direction(last_trend, next_trend),
             }
         )
@@ -150,7 +173,9 @@ def _load_forecasts_csv(path: Path) -> list[dict] | None:
                     "city": str(row.city),
                     "area": str(row.area),
                     "road_type": str(row.road_type),
-                    "predicted_report_count": int(row.predicted_report_count),
+                    "predicted_reports_next_30_days": int(
+                        row.predicted_reports_next_30_days
+                    ),
                     "trend_direction": str(row.trend_direction),
                 }
             )
@@ -205,16 +230,25 @@ def load_maintenance() -> None:
         if forecast_rows is None:
             forecast_rows = _forecast_from_models(frame, _models)
 
+        avgs = _historical_avg_by_segment(frame)
         for row in forecast_rows:
+            predicted = int(row["predicted_reports_next_30_days"])
+            avg = round(avgs.get(str(row["segment_id"]), 0.0), 2)
+            row["historical_avg_reports_per_30_days"] = avg
+            row["risk_window"] = derive_risk_window(
+                str(row["trend_direction"]), predicted, avg
+            )
             row["budget_estimate_pkr"] = _budget_estimate_pkr(
-                row["road_type"], row["predicted_report_count"]
+                row["road_type"], predicted
             )
 
         forecast_rows.sort(
-            key=lambda r: int(r["predicted_report_count"]),
+            key=lambda r: int(r["predicted_reports_next_30_days"]),
             reverse=True,
         )
         _assign_categories(forecast_rows)
+        for row in forecast_rows:
+            row["priority"] = row["category"]
         _segments = forecast_rows
         logger.info(
             "Maintenance models loaded (%d segments) from %s",

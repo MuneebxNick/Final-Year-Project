@@ -1,4 +1,4 @@
-segment_id,city,area,road_type,predicted_report_count,trend_direction
+segment_id,city,area,road_type,predicted_reports_next_30_days,trend_direction
 SEG-012,Karachi,Saddar,Highway,41,increasing
 SEG-026,Faisalabad,D Ground,Highway,40,increasing
 SEG-041,Sialkot,Cantt,Highway,35,stable
