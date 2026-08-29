@@ -4,6 +4,9 @@ import { StyleSheet, Text, View } from 'react-native';
 import { fetchLifetimePrediction, type LifetimePredictResponse } from '../api/predict';
 import {
   formatReportDate,
+  isLowConfidence,
+  overlayBoxesForReport,
+  severityRank,
   trafficDensityFromRoadType,
   trafficDensityLabels,
   type Report,
@@ -19,11 +22,30 @@ function formatDeadline(isoDate: string): string {
   return formatReportDate(new Date(year, month - 1, day));
 }
 
+/** 1-based index matching photo overlay numbers from overlayBoxesForReport. */
+function worstPotholeIndex(report: Report): number {
+  const boxes = overlayBoxesForReport(report);
+  const matched = boxes.findIndex(
+    (box) => box.left === report.boundingBox.left && box.top === report.boundingBox.top,
+  );
+  if (matched >= 0) return matched + 1;
+
+  let worst = 0;
+  boxes.forEach((box, index) => {
+    if (severityRank[box.severity] > severityRank[boxes[worst].severity]) {
+      worst = index;
+    }
+  });
+  return worst + 1;
+}
+
 export function LifetimePredictionCard({ report }: { report: Report }) {
   const [lifetime, setLifetime] = useState<LifetimePredictResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const trafficDensity = trafficDensityFromRoadType(report.roadType);
+  const potholeIndex = worstPotholeIndex(report);
+  const lowConfidence = isLowConfidence(report);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,6 +77,15 @@ export function LifetimePredictionCard({ report }: { report: Report }) {
   return (
     <View style={styles.card}>
       <Text style={styles.title}>Pothole lifetime prediction</Text>
+      <Text style={styles.potholeIndex}>Worst detected pothole (#{potholeIndex})</Text>
+      {lowConfidence ? (
+        <>
+          <Text style={styles.reliability}>Prediction reliability: Low</Text>
+          <Text style={styles.warning}>
+            Review detections on the photo before relying on this prediction.
+          </Text>
+        </>
+      ) : null}
       {loading ? (
         <Text style={styles.note}>Loading prediction…</Text>
       ) : error ? (
@@ -99,6 +130,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.ink,
     marginBottom: 8,
+  },
+  potholeIndex: {
+    fontWeight: '700',
+    color: colors.ink,
+    marginBottom: 6,
+  },
+  reliability: {
+    fontWeight: '700',
+    color: colors.pillRed,
+  },
+  warning: {
+    marginTop: 4,
+    marginBottom: 8,
+    color: colors.muted,
+    lineHeight: 20,
   },
   value: {
     fontSize: 20,

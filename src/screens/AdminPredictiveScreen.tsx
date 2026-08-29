@@ -122,6 +122,9 @@ export function AdminPredictiveScreen(_props: Props) {
                 ) : (
                   items.map((segment) => (
                     <View key={segment.id} style={styles.card}>
+                      <Text style={styles.priority}>
+                        Maintenance priority: {predictiveCategoryLabels[segment.category]}
+                      </Text>
                       <View style={styles.riskRow}>
                         {isHighRisk(segment.riskWindow) ? (
                           <Ionicons name="warning" size={18} color={colors.pillRed} />
@@ -132,7 +135,7 @@ export function AdminPredictiveScreen(_props: Props) {
                             isHighRisk(segment.riskWindow) && styles.riskWindowHigh,
                           ]}
                         >
-                          {segment.riskWindow}
+                          Risk timeframe: {segment.riskWindow}
                         </Text>
                       </View>
                       <Text style={styles.city}>{segment.city}</Text>
@@ -158,7 +161,9 @@ export function AdminPredictiveScreen(_props: Props) {
                       <Text style={styles.historical}>
                         Historical avg: {segment.historicalAvgReportsPer30Days} reports / 30 days
                       </Text>
-                      <Text style={styles.budget}>{formatPkr(segment.budgetPkr)}</Text>
+                      <Text style={styles.budget}>
+                        Estimated budget: {formatPkr(segment.budgetPkr)}
+                      </Text>
                     </View>
                   ))
                 )}
@@ -240,6 +245,11 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 10,
     ...shadows.card,
+  },
+  priority: {
+    fontWeight: '700',
+    color: colors.ink,
+    marginBottom: 8,
   },
   city: {
     fontWeight: '800',

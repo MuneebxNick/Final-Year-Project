@@ -86,7 +86,7 @@ export function AdminMapScreen({ navigation }: Props) {
       <ScreenContainer>
         <Text style={styles.heading}>City map</Text>
         <Text style={styles.lede}>
-          Heat shows concentration and severity by area. Tap a cluster to preview the worst report.
+          Heat shows concentration and severity by area. Tap a hotspot to preview the worst report.
         </Text>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
@@ -110,9 +110,9 @@ export function AdminMapScreen({ navigation }: Props) {
         />
 
         <View style={styles.legend}>
-          <LegendDot color={severityColors.small} label="Low density" />
-          <LegendDot color={severityColors.medium} label="Medium density" />
-          <LegendDot color={severityColors.large} label="High density" />
+          <LegendDot color={severityColors.small} label="Low damage intensity" />
+          <LegendDot color={severityColors.medium} label="Medium damage intensity" />
+          <LegendDot color={severityColors.large} label="High damage intensity" />
         </View>
 
         {selected ? (
@@ -124,7 +124,7 @@ export function AdminMapScreen({ navigation }: Props) {
             }
           />
         ) : (
-          <Text style={styles.hint}>Tap a cluster to preview a report.</Text>
+          <Text style={styles.hint}>Tap a hotspot to preview a report.</Text>
         )}
       </ScreenContainer>
     </ScrollView>
