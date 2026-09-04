@@ -4,7 +4,7 @@ import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import { AdminLeafletHeatmap } from '../components/AdminLeafletHeatmap';
+import { AdminLeafletHeatmap, type LeafletHeatPoint } from '../components/AdminLeafletHeatmap';
 import { FilterChip } from '../components/FilterChip';
 import { SeverityBadge } from '../components/SeverityBadge';
 import { StatusBadge } from '../components/StatusBadge';
@@ -13,8 +13,10 @@ import { ScreenContainer } from '../layout/ScreenContainer';
 import { webCursor, type WebPressableState } from '../layout/webStyles';
 import {
   severityColors,
-  severityRank,
+  toUserStatus,
   uniqueCities,
+  userStatusLabels,
+  userStatuses,
   type Report,
 } from '../models/report';
 import type { AdminTabParamList, RootStackParamList } from '../navigation';
@@ -32,16 +34,7 @@ type HeatCluster = {
   city: string;
   area: string;
   reports: Report[];
-  representative: Report;
 };
-
-function pickRepresentative(list: Report[]): Report {
-  return [...list].sort((a, b) => {
-    const severityDelta = severityRank[b.severity] - severityRank[a.severity];
-    if (severityDelta !== 0) return severityDelta;
-    return b.createdAt.getTime() - a.createdAt.getTime();
-  })[0];
-}
 
 function buildClusters(reports: Report[]): HeatCluster[] {
   const groups = new Map<string, Report[]>();
@@ -60,9 +53,25 @@ function buildClusters(reports: Report[]): HeatCluster[] {
       city: clusterCity,
       area,
       reports: list,
-      representative: pickRepresentative(list),
     };
   });
+}
+
+function sortAreaReports(list: Report[]): Report[] {
+  return [...list].sort((a, b) => {
+    const aResolved = toUserStatus(a.status) === 'resolved' ? 1 : 0;
+    const bResolved = toUserStatus(b.status) === 'resolved' ? 1 : 0;
+    if (aResolved !== bResolved) return aResolved - bResolved;
+    return b.createdAt.getTime() - a.createdAt.getTime();
+  });
+}
+
+function countByUserStatus(reports: Report[]) {
+  const counts = { pending: 0, inProgress: 0, resolved: 0 };
+  reports.forEach((report) => {
+    counts[toUserStatus(report.status)] += 1;
+  });
+  return counts;
 }
 
 export function AdminMapScreen({ navigation }: Props) {
@@ -78,33 +87,60 @@ export function AdminMapScreen({ navigation }: Props) {
         : reports.filter((report) => report.city.trim() === cityFilter),
     [reports, cityFilter],
   );
+  const heatReports = useMemo(
+    () => visible.filter((report) => toUserStatus(report.status) !== 'resolved'),
+    [visible],
+  );
+  const heatPoints: LeafletHeatPoint[] = useMemo(
+    () =>
+      heatReports.flatMap((report) =>
+        report.coords
+          ? [
+              {
+                id: report.id,
+                lat: report.coords.lat,
+                lng: report.coords.lng,
+                severity: report.severity,
+              },
+            ]
+          : [],
+      ),
+    [heatReports],
+  );
   const clusters = useMemo(() => buildClusters(visible), [visible]);
   const selected = clusters.find((cluster) => cluster.id === selectedId) ?? null;
+
+  const setCity = (next: CityFilter) => {
+    setCityFilter(next);
+    setSelectedId(null);
+  };
 
   return (
     <ScrollView style={styles.flex} contentContainerStyle={styles.scroll}>
       <ScreenContainer>
         <Text style={styles.heading}>City map</Text>
         <Text style={styles.lede}>
-          Heat shows concentration and severity by area. Tap a hotspot to preview the worst report.
+          Heat shows active (unresolved) damage by area. Tap a hotspot to see that area's reports
+          and status mix.
         </Text>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-          <FilterChip label="All cities" selected={cityFilter === 'all'} onPress={() => setCityFilter('all')} />
+          <FilterChip label="All cities" selected={cityFilter === 'all'} onPress={() => setCity('all')} />
           {cityOptions.map((city) => (
             <FilterChip
               key={city}
               label={city}
               selected={cityFilter === city}
-              onPress={() => setCityFilter(city)}
+              onPress={() => setCity(city)}
             />
           ))}
         </ScrollView>
 
         <AdminLeafletHeatmap
-          reports={visible}
+          points={heatPoints}
+          interactive
           onSelectReport={(reportId) => {
-            const report = visible.find((r) => r.id === reportId);
+            const report = visible.find((item) => item.id === reportId);
             if (report) setSelectedId(`${report.city}|${report.area}`);
           }}
         />
@@ -116,15 +152,15 @@ export function AdminMapScreen({ navigation }: Props) {
         </View>
 
         {selected ? (
-          <PreviewCard
-            report={selected.representative}
-            extraCount={selected.reports.length}
-            onOpen={() =>
-              navigation.navigate('AdminReportDetail', { reportId: selected.representative.id })
+          <AreaCard
+            key={selected.id}
+            cluster={selected}
+            onOpenReport={(reportId) =>
+              navigation.navigate('AdminReportDetail', { reportId })
             }
           />
         ) : (
-          <Text style={styles.hint}>Tap a hotspot to preview a report.</Text>
+          <Text style={styles.hint}>Tap a hotspot to see reports in that area.</Text>
         )}
       </ScreenContainer>
     </ScrollView>
@@ -140,39 +176,67 @@ function LegendDot({ color, label }: { color: string; label: string }) {
   );
 }
 
-function PreviewCard({
-  report,
-  extraCount,
-  onOpen,
+function AreaCard({
+  cluster,
+  onOpenReport,
 }: {
-  report: Report;
-  extraCount: number;
-  onOpen: () => void;
+  cluster: HeatCluster;
+  onOpenReport: (reportId: string) => void;
 }) {
+  const [listOpen, setListOpen] = useState(cluster.reports.length <= 6);
+  const counts = countByUserStatus(cluster.reports);
+  const sorted = sortAreaReports(cluster.reports);
+
   return (
-    <Pressable
-      onPress={onOpen}
-      style={(state: WebPressableState) => [
-        styles.preview,
-        webCursor,
-        state.hovered && styles.previewHover,
-      ]}
-    >
-      <View style={styles.previewTop}>
-        <Text style={styles.previewCity}>{report.city}</Text>
-        <StatusBadge status={report.status} variant="user" />
+    <View style={styles.preview}>
+      <Text style={styles.previewCity}>{cluster.city}</Text>
+      <Text style={styles.previewArea}>{cluster.area}</Text>
+      <Text style={styles.previewCount}>
+        Total reports in this area: {cluster.reports.length}
+      </Text>
+
+      <View style={styles.counts}>
+        {userStatuses.map((status) => (
+          <View key={status} style={styles.countItem}>
+            <Text style={styles.countValue}>{counts[status]}</Text>
+            <Text style={styles.countLabel}>{userStatusLabels[status]}</Text>
+          </View>
+        ))}
       </View>
-      <Text style={styles.previewArea}>{report.area}</Text>
-      {extraCount > 1 ? (
-        <Text style={styles.previewCount}>
-          {extraCount} reports in this area
+
+      <Pressable
+        onPress={() => setListOpen((open) => !open)}
+        accessibilityRole="button"
+        style={(state: WebPressableState) => [styles.listToggle, webCursor, state.hovered && styles.listToggleHover]}
+      >
+        <Text style={styles.listToggleLabel}>
+          Reports in this area {listOpen ? '▴' : '▾'}
         </Text>
-      ) : null}
-      <View style={styles.previewMeta}>
-        <SeverityBadge severity={report.severity} />
-        <Text style={styles.previewAction}>Open report →</Text>
-      </View>
-    </Pressable>
+      </Pressable>
+
+      {listOpen
+        ? sorted.map((report) => (
+            <Pressable
+              key={report.id}
+              onPress={() => onOpenReport(report.id)}
+              accessibilityRole="button"
+              style={(state: WebPressableState) => [
+                styles.reportRow,
+                webCursor,
+                state.hovered && styles.reportRowHover,
+              ]}
+            >
+              <Text style={styles.reportId} selectable>
+                {report.referenceId}
+              </Text>
+              <View style={styles.reportBadges}>
+                <StatusBadge status={report.status} variant="user" />
+                <SeverityBadge severity={report.severity} />
+              </View>
+            </Pressable>
+          ))
+        : null}
+    </View>
   );
 }
 
@@ -233,16 +297,7 @@ const styles = StyleSheet.create({
     padding: 16,
     ...shadows.card,
   },
-  previewHover: {
-    borderColor: colors.blueMid,
-  },
-  previewTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
   previewCity: {
-    flex: 1,
     fontSize: 17,
     fontWeight: '800',
     color: colors.ink,
@@ -252,19 +307,66 @@ const styles = StyleSheet.create({
     color: colors.muted,
   },
   previewCount: {
-    marginTop: 6,
+    marginTop: 10,
     fontWeight: '700',
     color: colors.ink,
     fontSize: 13,
   },
-  previewMeta: {
-    marginTop: 12,
+  counts: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 8,
+    marginTop: 12,
   },
-  previewAction: {
+  countItem: {
+    flex: 1,
+    backgroundColor: colors.cream,
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+  },
+  countValue: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: colors.ink,
+  },
+  countLabel: {
+    marginTop: 2,
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.muted,
+    textAlign: 'center',
+  },
+  listToggle: {
+    marginTop: 14,
+    paddingVertical: 8,
+  },
+  listToggleHover: {
+    opacity: 0.85,
+  },
+  listToggleLabel: {
     fontWeight: '700',
     color: colors.teal,
+    fontSize: 14,
+  },
+  reportRow: {
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingVertical: 12,
+    gap: 8,
+  },
+  reportRowHover: {
+    backgroundColor: colors.tealLight,
+  },
+  reportId: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.ink,
+  },
+  reportBadges: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 8,
   },
 });

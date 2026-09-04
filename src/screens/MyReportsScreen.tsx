@@ -1,15 +1,15 @@
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { FilterSelect } from '../components/FilterSelect';
 import { ReportCard } from '../components/ReportCard';
 import { useMyReports } from '../data/reportStore';
 import { ScreenContainer } from '../layout/ScreenContainer';
 import { useBreakpoint } from '../layout/useBreakpoint';
-import { webCursor, type WebPressableState } from '../layout/webStyles';
 import {
   severityRank,
   toUserStatus,
@@ -18,7 +18,7 @@ import {
   type UserStatus,
 } from '../models/report';
 import type { RootStackParamList, UserTabParamList } from '../navigation';
-import { colors, radii } from '../theme';
+import { colors } from '../theme';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<UserTabParamList, 'MyReports'>,
@@ -35,6 +35,7 @@ export function MyReportsScreen({ navigation }: Props) {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [dateSort, setDateSort] = useState<DateSort>('newest');
   const [severitySort, setSeveritySort] = useState<SeveritySort>('off');
+  const [openFilter, setOpenFilter] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     let list = reports;
@@ -60,42 +61,43 @@ export function MyReportsScreen({ navigation }: Props) {
         <Text style={styles.title}>My Reports</Text>
         <Text style={styles.lede}>Filter by status or sort by date and severity.</Text>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-          <FilterChip
-            label="All"
-            selected={statusFilter === 'all'}
-            onPress={() => setStatusFilter('all')}
+        <View style={styles.filterRow}>
+          <FilterSelect
+            label="Status"
+            value={statusFilter}
+            options={[
+              { value: 'all', label: 'All' },
+              ...userStatuses.map((status) => ({
+                value: status,
+                label: userStatusLabels[status],
+              })),
+            ]}
+            onChange={setStatusFilter}
+            open={openFilter === 'status'}
+            onOpenChange={(next) => setOpenFilter(next ? 'status' : null)}
           />
-          {userStatuses.map((status) => (
-            <FilterChip
-              key={status}
-              label={userStatusLabels[status]}
-              selected={statusFilter === status}
-              onPress={() => setStatusFilter(status)}
-            />
-          ))}
-        </ScrollView>
-
-        <View style={styles.sortRow}>
-          <FilterChip
-            label={dateSort === 'newest' ? 'Newest first' : 'Oldest first'}
-            selected
-            onPress={() => setDateSort((value) => (value === 'newest' ? 'oldest' : 'newest'))}
+          <FilterSelect
+            label="Date"
+            value={dateSort}
+            options={[
+              { value: 'newest', label: 'Newest first' },
+              { value: 'oldest', label: 'Oldest first' },
+            ]}
+            onChange={setDateSort}
+            open={openFilter === 'date'}
+            onOpenChange={(next) => setOpenFilter(next ? 'date' : null)}
           />
-          <FilterChip
-            label={
-              severitySort === 'off'
-                ? 'Severity: off'
-                : severitySort === 'high'
-                  ? 'Severity: high → low'
-                  : 'Severity: low → high'
-            }
-            selected={severitySort !== 'off'}
-            onPress={() =>
-              setSeveritySort((value) =>
-                value === 'off' ? 'high' : value === 'high' ? 'low' : 'off',
-              )
-            }
+          <FilterSelect
+            label="Severity"
+            value={severitySort}
+            options={[
+              { value: 'off', label: 'Off' },
+              { value: 'high', label: 'High → low' },
+              { value: 'low', label: 'Low → high' },
+            ]}
+            onChange={setSeveritySort}
+            open={openFilter === 'severity'}
+            onOpenChange={(next) => setOpenFilter(next ? 'severity' : null)}
           />
         </View>
 
@@ -116,30 +118,6 @@ export function MyReportsScreen({ navigation }: Props) {
         </ScreenContainer>
       </ScrollView>
     </SafeAreaView>
-  );
-}
-
-function FilterChip({
-  label,
-  selected,
-  onPress,
-}: {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={(state: WebPressableState) => [
-        styles.chip,
-        webCursor,
-        selected && styles.chipOn,
-        state.hovered && styles.chipHover,
-      ]}
-    >
-      <Text style={[styles.chipLabel, selected && styles.chipLabelOn]}>{label}</Text>
-    </Pressable>
   );
 }
 
@@ -171,38 +149,11 @@ const styles = StyleSheet.create({
     marginBottom: 18,
     color: colors.muted,
   },
-  chips: {
-    gap: 8,
-    paddingBottom: 8,
-  },
-  sortRow: {
+  filterRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
     marginBottom: 16,
-  },
-  chip: {
-    backgroundColor: colors.white,
-    borderRadius: radii.chip,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  chipHover: {
-    borderColor: colors.blueMid,
-  },
-  chipOn: {
-    backgroundColor: colors.blueSoft,
-    borderColor: colors.blueMid,
-  },
-  chipLabel: {
-    fontWeight: '600',
-    color: colors.ink,
-    fontSize: 13,
-  },
-  chipLabelOn: {
-    color: colors.blue,
   },
   empty: {
     color: colors.muted,

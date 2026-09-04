@@ -36,6 +36,7 @@ export function ReportCard({ report, onPress, style }: Props) {
         )}
       </View>
       <View style={styles.body}>
+        <Text style={styles.refId}>{report.referenceId}</Text>
         <View style={styles.badges}>
           <SeverityBadge severity={report.severity} />
           <StatusBadge status={report.status} variant="user" />
@@ -89,6 +90,12 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
     justifyContent: 'center',
+  },
+  refId: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.teal,
+    marginBottom: 6,
   },
   badges: {
     flexDirection: 'row',

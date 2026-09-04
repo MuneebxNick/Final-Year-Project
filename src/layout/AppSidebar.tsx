@@ -77,6 +77,7 @@ export const citizenSidebarItems: SidebarItem[] = [
   { key: 'Home', label: 'Home', icon: 'home-outline' },
   { key: 'Report', label: 'Report', icon: 'camera-outline' },
   { key: 'MyReports', label: 'My Reports', icon: 'list-outline' },
+  { key: 'Map', label: 'Map', icon: 'map-outline' },
   { key: 'Profile', label: 'Profile', icon: 'person-outline' },
 ];
 

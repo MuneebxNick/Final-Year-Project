@@ -6,6 +6,7 @@ export type UserTabParamList = {
   Home: undefined;
   Report: undefined;
   MyReports: undefined;
+  Map: undefined;
   Profile: undefined;
 };
 

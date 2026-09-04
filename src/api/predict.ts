@@ -104,6 +104,7 @@ export type LifetimePredictResponse = {
     source: 'open-meteo' | 'fallback';
     latitude: number | null;
     longitude: number | null;
+    condition?: 'Clear' | 'Cloudy' | 'Rainy' | null;
   };
 };
 

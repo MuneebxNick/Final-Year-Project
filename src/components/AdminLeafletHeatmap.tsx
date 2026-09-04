@@ -2,19 +2,29 @@ import { createElement, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 
-import type { Report, Severity } from '../models/report';
+import type { Severity } from '../models/report';
 import { colors, radii } from '../theme';
+
+export type LeafletHeatPoint = {
+  id?: string;
+  lat: number;
+  lng: number;
+  severity: Severity;
+};
 
 type HeatPoint = {
   id: string;
   lat: number;
   lng: number;
   weight: number;
+  severity: Severity;
 };
 
 type Props = {
-  reports: Report[];
-  onSelectReport: (reportId: string) => void;
+  points: LeafletHeatPoint[];
+  interactive?: boolean;
+  onSelectReport?: (reportId: string) => void;
+  fillHeight?: boolean;
 };
 
 /** Severity → leaflet.heat intensity. Small=1, Medium=2, Large=3 */
@@ -24,17 +34,14 @@ const SEVERITY_WEIGHT: Record<Severity, number> = {
   large: 3,
 };
 
-function pointsFromReports(reports: Report[]): HeatPoint[] {
-  return reports
-    .filter((report): report is Report & { coords: NonNullable<Report['coords']> } =>
-      Boolean(report.coords),
-    )
-    .map((report) => ({
-      id: report.id,
-      lat: report.coords.lat,
-      lng: report.coords.lng,
-      weight: SEVERITY_WEIGHT[report.severity],
-    }));
+function toHeatPoints(points: LeafletHeatPoint[]): HeatPoint[] {
+  return points.map((point, index) => ({
+    id: point.id ?? `p-${index}`,
+    lat: point.lat,
+    lng: point.lng,
+    weight: SEVERITY_WEIGHT[point.severity],
+    severity: point.severity,
+  }));
 }
 
 function parseSelectMessage(raw: string): string | null {
@@ -49,7 +56,8 @@ function parseSelectMessage(raw: string): string | null {
   return null;
 }
 
-const MAP_HTML = `<!DOCTYPE html>
+function buildMapHtml(interactive: boolean, showCircles: boolean): string {
+  return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8" />
@@ -82,6 +90,9 @@ const MAP_HTML = `<!DOCTYPE html>
   <div id="empty">No located reports</div>
   <script>
     (function () {
+      var INTERACTIVE = ${interactive ? 'true' : 'false'};
+      var SHOW_CIRCLES = ${showCircles ? 'true' : 'false'};
+
       if (!window.ReactNativeWebView) {
         window.ReactNativeWebView = {
           postMessage: function (data) {
@@ -102,6 +113,7 @@ const MAP_HTML = `<!DOCTYPE html>
       }).addTo(map);
 
       var heat = null;
+      var circleLayer = null;
       var points = [];
       var emptyEl = document.getElementById('empty');
 
@@ -126,12 +138,20 @@ const MAP_HTML = `<!DOCTYPE html>
         return null;
       }
 
-      map.on('click', function (e) {
-        var zoom = map.getZoom();
-        var threshold = Math.max(80, 4000 / Math.pow(2, Math.max(0, zoom - 5)));
-        var hit = nearestPoint(e.latlng, threshold);
-        if (hit) postSelect(hit.id);
-      });
+      function severityColor(severity) {
+        if (severity === 'large') return '#E24B4A';
+        if (severity === 'medium') return '#E08A1E';
+        return '#1B9A5B';
+      }
+
+      if (INTERACTIVE) {
+        map.on('click', function (e) {
+          var zoom = map.getZoom();
+          var threshold = Math.max(80, 4000 / Math.pow(2, Math.max(0, zoom - 5)));
+          var hit = nearestPoint(e.latlng, threshold);
+          if (hit && hit.id) postSelect(hit.id);
+        });
+      }
 
       window.__rahscanSetPoints = function (pointsJson) {
         try {
@@ -144,6 +164,10 @@ const MAP_HTML = `<!DOCTYPE html>
         if (heat) {
           map.removeLayer(heat);
           heat = null;
+        }
+        if (circleLayer) {
+          map.removeLayer(circleLayer);
+          circleLayer = null;
         }
 
         if (points.length === 0) {
@@ -165,6 +189,24 @@ const MAP_HTML = `<!DOCTYPE html>
           minOpacity: 0.35,
         }).addTo(map);
 
+        if (SHOW_CIRCLES) {
+          circleLayer = L.layerGroup();
+          for (var i = 0; i < points.length; i++) {
+            var p = points[i];
+            var color = severityColor(p.severity);
+            L.circleMarker([p.lat, p.lng], {
+              radius: 4 + (p.weight || 1) * 3,
+              color: color,
+              fillColor: color,
+              fillOpacity: 0.65,
+              weight: 1,
+              opacity: 0.9,
+              interactive: false,
+            }).addTo(circleLayer);
+          }
+          circleLayer.addTo(map);
+        }
+
         var bounds = L.latLngBounds(points.map(function (p) {
           return [p.lat, p.lng];
         }));
@@ -176,14 +218,21 @@ const MAP_HTML = `<!DOCTYPE html>
   </script>
 </body>
 </html>`;
+}
 
-function WebLeafletHeatmap({ reports, onSelectReport }: Props) {
+function WebLeafletHeatmap({
+  points: inputPoints,
+  interactive,
+  onSelectReport,
+  fillHeight,
+  html,
+}: Props & { interactive: boolean; html: string }) {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const readyRef = useRef(false);
   const onSelectRef = useRef(onSelectReport);
   onSelectRef.current = onSelectReport;
 
-  const points = useMemo(() => pointsFromReports(reports), [reports]);
+  const points = useMemo(() => toHeatPoints(inputPoints), [inputPoints]);
   const pointsJson = useMemo(() => JSON.stringify(points), [points]);
 
   const pushPoints = useCallback((json: string) => {
@@ -203,6 +252,7 @@ function WebLeafletHeatmap({ reports, onSelectReport }: Props) {
   }, []);
 
   useEffect(() => {
+    if (!interactive) return;
     const onWindowMessage = (event: MessageEvent) => {
       // Only accept messages from our iframe (srcDoc → about:srcdoc / null origin).
       if (iframeRef.current && event.source !== iframeRef.current.contentWindow) {
@@ -211,12 +261,12 @@ function WebLeafletHeatmap({ reports, onSelectReport }: Props) {
       const raw = typeof event.data === 'string' ? event.data : null;
       if (!raw) return;
       const reportId = parseSelectMessage(raw);
-      if (reportId) onSelectRef.current(reportId);
+      if (reportId) onSelectRef.current?.(reportId);
     };
 
     window.addEventListener('message', onWindowMessage);
     return () => window.removeEventListener('message', onWindowMessage);
-  }, []);
+  }, [interactive]);
 
   useEffect(() => {
     if (!readyRef.current) return;
@@ -224,10 +274,10 @@ function WebLeafletHeatmap({ reports, onSelectReport }: Props) {
   }, [pointsJson, pushPoints]);
 
   return (
-    <View style={styles.wrap}>
+    <View style={[styles.wrap, fillHeight && styles.wrapFill]}>
       {createElement('iframe', {
         ref: iframeRef,
-        srcDoc: MAP_HTML,
+        srcDoc: html,
         title: 'RahScan city heatmap',
         style: {
           width: '100%',
@@ -245,10 +295,16 @@ function WebLeafletHeatmap({ reports, onSelectReport }: Props) {
   );
 }
 
-function NativeLeafletHeatmap({ reports, onSelectReport }: Props) {
+function NativeLeafletHeatmap({
+  points: inputPoints,
+  interactive,
+  onSelectReport,
+  fillHeight,
+  html,
+}: Props & { interactive: boolean; html: string }) {
   const webRef = useRef<WebView>(null);
   const readyRef = useRef(false);
-  const points = useMemo(() => pointsFromReports(reports), [reports]);
+  const points = useMemo(() => toHeatPoints(inputPoints), [inputPoints]);
   const pointsJson = useMemo(() => JSON.stringify(points), [points]);
 
   const pushPoints = (json: string) => {
@@ -263,16 +319,17 @@ function NativeLeafletHeatmap({ reports, onSelectReport }: Props) {
   }, [pointsJson]);
 
   const onMessage = (event: WebViewMessageEvent) => {
+    if (!interactive) return;
     const reportId = parseSelectMessage(event.nativeEvent.data);
-    if (reportId) onSelectReport(reportId);
+    if (reportId) onSelectReport?.(reportId);
   };
 
   return (
-    <View style={styles.wrap}>
+    <View style={[styles.wrap, fillHeight && styles.wrapFill]}>
       <WebView
         ref={webRef}
         originWhitelist={['*']}
-        source={{ html: MAP_HTML }}
+        source={{ html }}
         style={styles.webview}
         javaScriptEnabled
         domStorageEnabled
@@ -289,11 +346,22 @@ function NativeLeafletHeatmap({ reports, onSelectReport }: Props) {
   );
 }
 
-export function AdminLeafletHeatmap(props: Props) {
+export function AdminLeafletHeatmap({
+  points,
+  interactive = true,
+  onSelectReport,
+  fillHeight = false,
+}: Props) {
+  const showCircles = !interactive;
+  const html = useMemo(
+    () => buildMapHtml(interactive, showCircles),
+    [interactive, showCircles],
+  );
+  const shared = { points, interactive, onSelectReport, fillHeight, html };
   if (Platform.OS === 'web') {
-    return <WebLeafletHeatmap {...props} />;
+    return <WebLeafletHeatmap {...shared} />;
   }
-  return <NativeLeafletHeatmap {...props} />;
+  return <NativeLeafletHeatmap {...shared} />;
 }
 
 const styles = StyleSheet.create({
@@ -304,6 +372,11 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     overflow: 'hidden',
     backgroundColor: '#D7E4E8',
+  },
+  wrapFill: {
+    height: 560,
+    minHeight: 520,
+    flex: 1,
   },
   webview: {
     flex: 1,

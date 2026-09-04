@@ -83,9 +83,7 @@ export function AdminReportDetailScreen({ navigation, route }: Props) {
     setSaving(true);
     try {
       await reportStore.updateAssignment(report.id, team, uiStatus);
-      Alert.alert('Assignment updated.', undefined, [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
+      navigation.navigate('AdminTabs', { screen: 'Reports' });
     } catch (error) {
       Alert.alert(
         'Could not save assignment',
@@ -118,6 +116,7 @@ export function AdminReportDetailScreen({ navigation, route }: Props) {
             </View>
 
             <View style={isWide ? styles.formCol : undefined}>
+              <DetailRow label="Report ID" value={report.referenceId} selectable />
               <DetailRow label="City" value={report.city} />
               <DetailRow label="Area" value={report.area} />
               <DetailRow label="Road type" value={roadTypeLabels[report.roadType]} />
@@ -178,11 +177,21 @@ export function AdminReportDetailScreen({ navigation, route }: Props) {
   );
 }
 
-function DetailRow({ label, value }: { label: string; value: string }) {
+function DetailRow({
+  label,
+  value,
+  selectable,
+}: {
+  label: string;
+  value: string;
+  selectable?: boolean;
+}) {
   return (
     <View style={styles.row}>
       <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={styles.rowValue}>{value}</Text>
+      <Text style={styles.rowValue} selectable={selectable}>
+        {value}
+      </Text>
     </View>
   );
 }

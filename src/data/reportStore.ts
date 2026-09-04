@@ -33,6 +33,7 @@ function parseReport(raw: ApiReport): Report {
     : (raw as { bounding_boxes?: Report['boundingBoxes'] }).bounding_boxes;
   return {
     ...raw,
+    referenceId: raw.referenceId ?? '',
     createdAt: new Date(raw.createdAt),
     boundingBoxes: boxes && boxes.length > 0 ? boxes : undefined,
   };

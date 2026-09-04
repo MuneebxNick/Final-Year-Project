@@ -53,7 +53,7 @@ export function DetectionResultScreen({ navigation, route }: Props) {
         {(potholes.length > 1 ? 'Potholes detected' : 'Pothole detected')}
       </Text>
       <Text style={styles.lede}>
-        Each numbered outline is one pothole, with its own severity and confidence.
+        Each numbered outline is one pothole, with its own severity.
       </Text>
 
       <View style={isWide ? styles.split : undefined}>
@@ -76,10 +76,6 @@ export function DetectionResultScreen({ navigation, route }: Props) {
             <View style={styles.potholeMeta}>
               <Text style={styles.metaLabel}>Pothole {index + 1}</Text>
               <SeverityBadge severity={pothole.severity} />
-            </View>
-            <View style={styles.potholeScore}>
-              <Text style={styles.metaLabel}>Confidence</Text>
-              <Text style={styles.potholeConfidence}>{pothole.confidence ?? draft.confidence}%</Text>
             </View>
           </View>
         ))}
@@ -178,29 +174,10 @@ const styles = StyleSheet.create({
   potholeMeta: {
     flex: 1,
   },
-  potholeScore: {
-    alignItems: 'flex-end',
-  },
-  potholeConfidence: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.teal,
-  },
-  row: {
-    marginTop: 18,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-  },
   metaLabel: {
     color: colors.muted,
     marginBottom: 6,
     fontSize: 13,
-  },
-  confidence: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.teal,
   },
   card: {
     marginTop: 20,

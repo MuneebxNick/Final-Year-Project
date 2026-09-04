@@ -51,3 +51,40 @@ def ensure_schema() -> None:
     assert engine is not None
     with engine.begin() as conn:
         conn.execute(text("ALTER TABLE reports ADD COLUMN IF NOT EXISTS detections JSONB"))
+        conn.execute(text("ALTER TABLE reports ADD COLUMN IF NOT EXISTS ref_number INTEGER"))
+        conn.execute(
+            text(
+                """
+                UPDATE reports
+                SET ref_number = numbered.rn
+                FROM (
+                    SELECT id, ROW_NUMBER() OVER (ORDER BY created_at, id) AS rn
+                    FROM reports
+                ) AS numbered
+                WHERE reports.id = numbered.id
+                  AND reports.ref_number IS NULL
+                """
+            )
+        )
+        conn.execute(text("CREATE SEQUENCE IF NOT EXISTS reports_ref_number_seq"))
+        conn.execute(
+            text(
+                """
+                SELECT setval(
+                    'reports_ref_number_seq',
+                    COALESCE((SELECT MAX(ref_number) FROM reports), 0)
+                )
+                """
+            )
+        )
+        conn.execute(
+            text(
+                "ALTER TABLE reports ALTER COLUMN ref_number SET DEFAULT nextval('reports_ref_number_seq')"
+            )
+        )
+        conn.execute(text("ALTER TABLE reports ALTER COLUMN ref_number SET NOT NULL"))
+        conn.execute(
+            text(
+                "CREATE UNIQUE INDEX IF NOT EXISTS ix_reports_ref_number ON reports (ref_number)"
+            )
+        )

@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, Uuid, func
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, Uuid, func, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -29,6 +29,12 @@ class Report(Base):
     __tablename__ = "reports"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    ref_number: Mapped[int] = mapped_column(
+        Integer,
+        unique=True,
+        nullable=False,
+        server_default=text("nextval('reports_ref_number_seq')"),
+    )
     photo_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     photo_public_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     city: Mapped[str] = mapped_column(String(80), nullable=False)

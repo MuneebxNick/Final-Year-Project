@@ -145,6 +145,7 @@ export type GeoCoords = {
 
 export type Report = {
   id: string;
+  referenceId: string;
   photoUri: string | null;
   city: string;
   area: string;
@@ -189,6 +190,13 @@ export function overlayBoxesForReport(report: Pick<Report, 'boundingBox' | 'boun
     return [...report.boundingBoxes].sort((a, b) => a.left - b.left);
   }
   return [{ ...report.boundingBox, severity: report.severity, confidence: report.confidence }];
+}
+
+/** Strip RS- prefix, punctuation, and leading zeros so RS-0001 / rs0001 / 0001 / 1 match. */
+export function normalizeReferenceId(value: string): string {
+  const compact = value.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+  const withoutPrefix = compact.startsWith('rs') ? compact.slice(2) : compact;
+  return withoutPrefix.replace(/^0+/, '');
 }
 
 export function formatReportDate(date: Date): string {

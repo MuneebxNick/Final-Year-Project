@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session, joinedload
 from ..auth import require_citizen
 from ..db import get_db
 from ..models import Report, User
-from ..schemas import DetectionBox, ReportCreate, ReportOut, report_to_out
+from ..schemas import DetectionBox, ReportCreate, ReportLocationOut, ReportOut, report_to_out
 
 router = APIRouter()
 
@@ -90,6 +90,30 @@ def my_reports(
 ) -> list[ReportOut]:
     rows = db.scalars(_owned_query(user.id)).unique().all()
     return [report_to_out(row) for row in rows]
+
+
+@router.get("/locations", response_model=list[ReportLocationOut])
+def list_locations(
+    _user: Annotated[User, Depends(require_citizen)],
+    db: Annotated[Session, Depends(get_db)],
+) -> list[ReportLocationOut]:
+    rows = db.scalars(
+        select(Report).where(
+            Report.lat.is_not(None),
+            Report.lng.is_not(None),
+            Report.status != "resolved",
+        )
+    ).all()
+    return [
+        ReportLocationOut(
+            lat=row.lat,
+            lng=row.lng,
+            severity=row.severity,  # type: ignore[arg-type]
+            city=row.city,
+        )
+        for row in rows
+        if row.lat is not None and row.lng is not None
+    ]
 
 
 @router.get("/{report_id}", response_model=ReportOut)

@@ -163,14 +163,34 @@ def get_coordinates(location: str) -> tuple[float, float] | None:
     return None
 
 
+def _parse_meteo_time(value: str) -> datetime | None:
+    try:
+        parsed = datetime.fromisoformat(value)
+    except ValueError:
+        return None
+    if parsed.tzinfo is not None:
+        return parsed.replace(tzinfo=None)
+    return parsed
+
+
+def _condition_from_wmo(code: int) -> str:
+    if 0 <= code <= 1:
+        return "Clear"
+    if code in (2, 3, 45, 48):
+        return "Cloudy"
+    if code >= 51:
+        return "Rainy"
+    return "Cloudy"
+
+
 def _rain_at_current_hour(hourly: dict, current_time: str | None) -> int | None:
     times = hourly.get("time") or []
     probs = hourly.get("precipitation_probability") or []
-    if not isinstance(probs, list) or not probs:
+    if not isinstance(times, list) or not isinstance(probs, list) or not probs:
         return None
 
-    idx = 0
-    if current_time and isinstance(times, list):
+    idx: int | None = None
+    if current_time:
         if current_time in times:
             idx = times.index(current_time)
         else:
@@ -179,15 +199,30 @@ def _rain_at_current_hour(hourly: dict, current_time: str | None) -> int | None:
                 if isinstance(stamp, str) and stamp.startswith(hour_prefix):
                     idx = i
                     break
-    if idx >= len(probs):
-        idx = 0
+        if idx is None:
+            current_dt = _parse_meteo_time(current_time)
+            if current_dt is not None:
+                best_delta: float | None = None
+                for i, stamp in enumerate(times):
+                    if i >= len(probs) or not isinstance(stamp, str):
+                        continue
+                    stamp_dt = _parse_meteo_time(stamp)
+                    if stamp_dt is None:
+                        continue
+                    delta = abs((stamp_dt - current_dt).total_seconds())
+                    if best_delta is None or delta < best_delta:
+                        best_delta = delta
+                        idx = i
+
+    if idx is None or idx >= len(probs):
+        return None
     try:
         return int(round(float(probs[idx])))
     except (TypeError, ValueError):
         return None
 
 
-def _fetch_forecast(lat: float, lon: float) -> tuple[int, float] | None:
+def _fetch_forecast(lat: float, lon: float) -> tuple[int, float, str | None] | None:
     try:
         with httpx.Client(timeout=_TIMEOUT) as client:
             response = client.get(
@@ -195,7 +230,7 @@ def _fetch_forecast(lat: float, lon: float) -> tuple[int, float] | None:
                 params={
                     "latitude": lat,
                     "longitude": lon,
-                    "current": "temperature_2m",
+                    "current": "temperature_2m,weather_code",
                     "hourly": "precipitation_probability",
                     "forecast_days": 1,
                     "timezone": "Asia/Karachi",
@@ -222,7 +257,16 @@ def _fetch_forecast(lat: float, lon: float) -> tuple[int, float] | None:
     rain = _rain_at_current_hour(hourly, current.get("time") if isinstance(current.get("time"), str) else None)
     if rain is None:
         return None
-    return (rain, temperature)
+
+    condition: str | None = None
+    raw_code = current.get("weather_code")
+    if raw_code is not None:
+        try:
+            condition = _condition_from_wmo(int(raw_code))
+        except (TypeError, ValueError):
+            condition = None
+
+    return (rain, temperature, condition)
 
 
 def get_weather(location: str) -> dict:
@@ -234,6 +278,7 @@ def get_weather(location: str) -> dict:
         "rainfall_probability": _FALLBACK_RAIN,
         "temperature_celsius": _FALLBACK_TEMP,
         "season": season,
+        "condition": None,
         "source": "fallback",
     }
     try:
@@ -244,7 +289,7 @@ def get_weather(location: str) -> dict:
         forecast = _fetch_forecast(lat, lon)
         if forecast is None:
             return {**fallback, "latitude": lat, "longitude": lon}
-        rain, temperature = forecast
+        rain, temperature, condition = forecast
         return {
             "location": location,
             "latitude": lat,
@@ -252,6 +297,7 @@ def get_weather(location: str) -> dict:
             "rainfall_probability": max(0, min(100, rain)),
             "temperature_celsius": temperature,
             "season": season,
+            "condition": condition,
             "source": "open-meteo",
         }
     except Exception:

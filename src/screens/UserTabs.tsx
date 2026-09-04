@@ -15,6 +15,7 @@ import { HomeScreen } from './HomeScreen';
 import { MyReportsScreen } from './MyReportsScreen';
 import { ProfileScreen } from './ProfileScreen';
 import { ReportScreen } from './ReportScreen';
+import { UserMapScreen } from './UserMapScreen';
 
 const Tab = createBottomTabNavigator<UserTabParamList>();
 
@@ -89,6 +90,15 @@ export function UserTabs() {
               title: 'My Reports',
               tabBarIcon: ({ color, size }) => (
                 <Ionicons name="list-outline" size={size} color={color} />
+              ),
+            }}
+          />
+          <Tab.Screen
+            name="Map"
+            component={UserMapScreen}
+            options={{
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons name="map-outline" size={size} color={color} />
               ),
             }}
           />

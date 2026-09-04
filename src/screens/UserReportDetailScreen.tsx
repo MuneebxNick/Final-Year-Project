@@ -68,10 +68,6 @@ export function UserReportDetailScreen({ route }: Props) {
               <Text style={styles.metaLabel}>Pothole {index + 1}</Text>
               <SeverityBadge severity={pothole.severity} />
             </View>
-            <View style={styles.potholeScore}>
-              <Text style={styles.metaLabel}>Confidence</Text>
-              <Text style={styles.potholeConfidence}>{pothole.confidence ?? report.confidence}%</Text>
-            </View>
           </View>
         ))}
       </View>
@@ -85,6 +81,7 @@ export function UserReportDetailScreen({ route }: Props) {
       <View style={isWide ? styles.right : undefined}>
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Location</Text>
+        <Detail label="Report ID" value={report.referenceId} selectable />
         <Detail label="City" value={report.city} />
         <Detail label="Area" value={report.area} />
         <Detail label="Road type" value={roadTypeLabels[report.roadType]} />
@@ -118,11 +115,21 @@ export function UserReportDetailScreen({ route }: Props) {
   );
 }
 
-function Detail({ label, value }: { label: string; value: string }) {
+function Detail({
+  label,
+  value,
+  selectable,
+}: {
+  label: string;
+  value: string;
+  selectable?: boolean;
+}) {
   return (
     <View style={styles.detail}>
       <Text style={styles.detailLabel}>{label}</Text>
-      <Text style={styles.detailValue}>{value}</Text>
+      <Text style={styles.detailValue} selectable={selectable}>
+        {value}
+      </Text>
     </View>
   );
 }
@@ -236,24 +243,10 @@ const styles = StyleSheet.create({
   potholeMeta: {
     flex: 1,
   },
-  potholeScore: {
-    alignItems: 'flex-end',
-  },
   metaLabel: {
     color: colors.muted,
     marginBottom: 4,
     fontSize: 12,
-  },
-  potholeConfidence: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.teal,
-  },
-  confidence: {
-    marginTop: 12,
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.teal,
   },
   date: {
     marginTop: 4,

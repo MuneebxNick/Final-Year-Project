@@ -176,5 +176,6 @@ def predict_lifetime(
             "source": weather["source"],
             "latitude": weather.get("latitude"),
             "longitude": weather.get("longitude"),
+            "condition": weather.get("condition"),
         },
     }

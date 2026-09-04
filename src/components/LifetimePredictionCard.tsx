@@ -104,7 +104,7 @@ export function LifetimePredictionCard({ report }: { report: Report }) {
           <View style={styles.row}>
             <Text style={styles.rowLabel}>Weather conditions</Text>
             <Text style={styles.rowValue}>
-              Rain probability: {lifetime.weather.rainfallProbability}%, Temp:{' '}
+              {lifetime.weather.condition ? `${lifetime.weather.condition}, ` : ''}Rain probability: {lifetime.weather.rainfallProbability}%, Temp:{' '}
               {Math.round(lifetime.weather.temperatureCelsius)}°C, {lifetime.weather.season}
             </Text>
           </View>

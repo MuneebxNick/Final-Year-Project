@@ -5,8 +5,9 @@ import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import { FilterChip } from '../components/FilterChip';
+import { FilterSelect } from '../components/FilterSelect';
 import { StatusBadge } from '../components/StatusBadge';
+import { TextField } from '../components/TextField';
 import { useReports } from '../data/reportStore';
 import { ScreenContainer } from '../layout/ScreenContainer';
 import { useBreakpoint } from '../layout/useBreakpoint';
@@ -15,6 +16,7 @@ import {
   assignedTeamLabels,
   isIncompleteLocation,
   isLowConfidence,
+  normalizeReferenceId,
   roadTypeLabels,
   severityLabels,
   severityRank,
@@ -45,11 +47,13 @@ export function AdminReportsScreen({ navigation }: Props) {
   const { isWide } = useBreakpoint();
   const reports = useReports();
   const cityOptions = useMemo(() => uniqueCities(reports), [reports]);
+  const [query, setQuery] = useState('');
   const [city, setCity] = useState<CityFilter>('all');
   const [severity, setSeverity] = useState<SeverityFilter>('all');
   const [status, setStatus] = useState<StatusFilter>('all');
   const [range, setRange] = useState<DateRange>('all');
   const [sort, setSort] = useState<SortMode>('newest');
+  const [openFilter, setOpenFilter] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const cutoff =
@@ -58,7 +62,9 @@ export function AdminReportsScreen({ navigation }: Props) {
         : range === '30d'
           ? Date.now() - 30 * 24 * 60 * 60 * 1000
           : 0;
+    const needle = normalizeReferenceId(query);
     const list = reports.filter((report) => {
+      if (needle && normalizeReferenceId(report.referenceId) !== needle) return false;
       if (city !== 'all' && report.city.trim() !== city) return false;
       if (severity !== 'all' && report.severity !== severity) return false;
       if (status !== 'all' && toUserStatus(report.status) !== status) return false;
@@ -72,7 +78,7 @@ export function AdminReportsScreen({ navigation }: Props) {
       const time = a.createdAt.getTime() - b.createdAt.getTime();
       return sort === 'newest' ? -time : time;
     });
-  }, [reports, city, severity, status, range, sort]);
+  }, [reports, query, city, severity, status, range, sort]);
 
   return (
     <ScrollView style={styles.flex} contentContainerStyle={styles.scroll}>
@@ -82,52 +88,74 @@ export function AdminReportsScreen({ navigation }: Props) {
           {filtered.length} of {reports.length} report{reports.length === 1 ? '' : 's'}
         </Text>
 
-        <Text style={styles.filterLabel}>City</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-          <FilterChip label="All" selected={city === 'all'} onPress={() => setCity('all')} />
-          {cityOptions.map((item) => (
-            <FilterChip key={item} label={item} selected={city === item} onPress={() => setCity(item)} />
-          ))}
-        </ScrollView>
+        <TextField
+          icon="search-outline"
+          label="Search by report ID (e.g. 001)"
+          placeholder="Search by report ID (e.g. 001)"
+          value={query}
+          onChangeText={setQuery}
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
 
-        <Text style={styles.filterLabel}>Severity</Text>
-        <View style={styles.wrap}>
-          <FilterChip label="All" selected={severity === 'all'} onPress={() => setSeverity('all')} />
-          {severities.map((item) => (
-            <FilterChip
-              key={item}
-              label={severityLabels[item]}
-              selected={severity === item}
-              onPress={() => setSeverity(item)}
-            />
-          ))}
-        </View>
-
-        <Text style={styles.filterLabel}>Status</Text>
-        <View style={styles.wrap}>
-          <FilterChip label="All" selected={status === 'all'} onPress={() => setStatus('all')} />
-          {userStatuses.map((item) => (
-            <FilterChip
-              key={item}
-              label={userStatusLabels[item]}
-              selected={status === item}
-              onPress={() => setStatus(item)}
-            />
-          ))}
-        </View>
-
-        <Text style={styles.filterLabel}>Date range</Text>
-        <View style={styles.wrap}>
-          <FilterChip label="All" selected={range === 'all'} onPress={() => setRange('all')} />
-          <FilterChip label="7 days" selected={range === '7d'} onPress={() => setRange('7d')} />
-          <FilterChip label="30 days" selected={range === '30d'} onPress={() => setRange('30d')} />
-        </View>
-
-        <Text style={styles.filterLabel}>Sort</Text>
-        <View style={[styles.wrap, styles.sortPad]}>
-          <FilterChip label="Newest" selected={sort === 'newest'} onPress={() => setSort('newest')} />
-          <FilterChip label="Oldest" selected={sort === 'oldest'} onPress={() => setSort('oldest')} />
-          <FilterChip label="Severity" selected={sort === 'severity'} onPress={() => setSort('severity')} />
+        <View style={styles.filterRow}>
+          <FilterSelect
+            label="City"
+            value={city}
+            options={[
+              { value: 'all', label: 'All' },
+              ...cityOptions.map((item) => ({ value: item, label: item })),
+            ]}
+            onChange={setCity}
+            open={openFilter === 'city'}
+            onOpenChange={(next) => setOpenFilter(next ? 'city' : null)}
+          />
+          <FilterSelect
+            label="Severity"
+            value={severity}
+            options={[
+              { value: 'all', label: 'All' },
+              ...severities.map((item) => ({ value: item, label: severityLabels[item] })),
+            ]}
+            onChange={setSeverity}
+            open={openFilter === 'severity'}
+            onOpenChange={(next) => setOpenFilter(next ? 'severity' : null)}
+          />
+          <FilterSelect
+            label="Status"
+            value={status}
+            options={[
+              { value: 'all', label: 'All' },
+              ...userStatuses.map((item) => ({ value: item, label: userStatusLabels[item] })),
+            ]}
+            onChange={setStatus}
+            open={openFilter === 'status'}
+            onOpenChange={(next) => setOpenFilter(next ? 'status' : null)}
+          />
+          <FilterSelect
+            label="Date range"
+            value={range}
+            options={[
+              { value: 'all', label: 'All' },
+              { value: '7d', label: '7 days' },
+              { value: '30d', label: '30 days' },
+            ]}
+            onChange={setRange}
+            open={openFilter === 'range'}
+            onOpenChange={(next) => setOpenFilter(next ? 'range' : null)}
+          />
+          <FilterSelect
+            label="Sort"
+            value={sort}
+            options={[
+              { value: 'newest', label: 'Newest' },
+              { value: 'oldest', label: 'Oldest' },
+              { value: 'severity', label: 'Severity' },
+            ]}
+            onChange={setSort}
+            open={openFilter === 'sort'}
+            onOpenChange={(next) => setOpenFilter(next ? 'sort' : null)}
+          />
         </View>
 
         {filtered.length === 0 ? (
@@ -167,6 +195,7 @@ function AdminReportCard({ report, onPress }: { report: Report; onPress: () => v
         state.pressed && styles.pressed,
       ]}
     >
+      <Text style={styles.refId}>{report.referenceId}</Text>
       <View style={styles.cardTop}>
         <Text style={styles.city}>{report.city}</Text>
         <StatusBadge status={report.status} variant="user" />
@@ -217,24 +246,17 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     color: colors.muted,
   },
-  filterLabel: {
-    marginBottom: 8,
-    fontWeight: '700',
-    color: colors.ink,
-    fontSize: 13,
-  },
-  chips: {
-    gap: 8,
-    paddingBottom: 12,
-  },
-  wrap: {
+  filterRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginBottom: 12,
-  },
-  sortPad: {
     marginBottom: 16,
+  },
+  refId: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.teal,
+    marginBottom: 6,
   },
   empty: {
     color: colors.muted,

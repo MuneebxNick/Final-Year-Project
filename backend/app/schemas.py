@@ -81,6 +81,7 @@ class YoloDetectResponse(BaseModel):
 
 WeatherSeason = Literal["Monsoon", "Summer", "Winter"]
 WeatherSource = Literal["open-meteo", "fallback"]
+WeatherCondition = Literal["Clear", "Cloudy", "Rainy"]
 
 
 class WeatherOut(BaseModel):
@@ -91,6 +92,7 @@ class WeatherOut(BaseModel):
     temperature_celsius: float
     season: WeatherSeason
     source: WeatherSource
+    condition: WeatherCondition | None = None
 
 
 MaintenanceCategory = Literal["Urgent", "Plan Repair", "Monitor"]
@@ -191,6 +193,7 @@ class LifetimeWeatherOut(CamelModel):
     source: WeatherSource
     latitude: float | None = None
     longitude: float | None = None
+    condition: WeatherCondition | None = None
 
 
 class LifetimePredictResponse(CamelModel):
@@ -225,8 +228,13 @@ class MeResponse(CamelModel):
     role: Role
 
 
+def format_reference_id(n: int) -> str:
+    return f"RS-{n:04d}"
+
+
 class ReportOut(CamelModel):
     id: str
+    reference_id: str
     photo_uri: str | None
     city: str
     area: str
@@ -244,6 +252,13 @@ class ReportOut(CamelModel):
     bounding_boxes: list[DetectionBox] = Field(default_factory=list)
     timeline_stage: TimelineStage
     submitted_by: str
+
+
+class ReportLocationOut(CamelModel):
+    lat: float
+    lng: float
+    severity: Severity
+    city: str
 
 
 class ReportCreate(CamelModel):
@@ -375,6 +390,7 @@ def report_to_out(row: ReportRow) -> ReportOut:
     primary = boxes[0]
     return ReportOut(
         id=str(row.id),
+        reference_id=format_reference_id(row.ref_number),
         photo_uri=row.photo_url,
         city=city,
         area=area,
