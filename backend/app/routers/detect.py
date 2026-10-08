@@ -1,4 +1,4 @@
-from fastapi import APIRouter, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile, status
 
 from ..ai.detect import (
     InferenceError,
@@ -6,13 +6,22 @@ from ..ai.detect import (
     ModelUnavailableError,
     run_detection,
 )
+from ..ai.model import MODEL_KEYS
 from ..schemas import PixelBoundingBox, YoloDetectResponse, YoloDetectionOut
 
 router = APIRouter()
 
 
 @router.post("/detect", response_model=YoloDetectResponse)
-async def detect_potholes(file: UploadFile | None = File(default=None)) -> YoloDetectResponse:
+async def detect_potholes(
+    file: UploadFile | None = File(default=None),
+    model: str = Form(default="oldv8n"),
+) -> YoloDetectResponse:
+    if model not in MODEL_KEYS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"model must be {', '.join(MODEL_KEYS[:-1])}, or {MODEL_KEYS[-1]}.",
+        )
     if file is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -26,7 +35,7 @@ async def detect_potholes(file: UploadFile | None = File(default=None)) -> YoloD
         )
 
     try:
-        result = run_detection(image_bytes)
+        result = run_detection(image_bytes, model)
     except InvalidImageError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     except ModelUnavailableError as exc:
@@ -57,4 +66,5 @@ async def detect_potholes(file: UploadFile | None = File(default=None)) -> YoloD
         ],
         highest_severity=result.highest_severity,  # type: ignore[arg-type]
         message=result.message,
+        model=model,
     )

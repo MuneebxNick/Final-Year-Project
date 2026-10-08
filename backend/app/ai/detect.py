@@ -79,7 +79,7 @@ def _promote_largest_hole(detections: list[BoxDetection]) -> list[BoxDetection]:
     ]
 
 
-def run_detection(image_bytes: bytes) -> DetectionResult:
+def run_detection(image_bytes: bytes, model_key: str = "oldv8n") -> DetectionResult:
     try:
         opened = Image.open(BytesIO(image_bytes))
         # Phones record rotation in EXIF rather than rotating the pixels. Bake it
@@ -91,9 +91,9 @@ def run_detection(image_bytes: bytes) -> DetectionResult:
 
     width, height = image.size
 
-    model = get_model()
+    model = get_model(model_key)
     if model is None:
-        raise ModelUnavailableError("Pothole model is unavailable.")
+        raise ModelUnavailableError(f"{model_key} weights are not loaded.")
 
     try:
         # Larger imgsz so distant/small potholes are less likely to be dropped;

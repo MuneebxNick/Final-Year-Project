@@ -39,6 +39,7 @@ export function HomeScreen({ navigation }: Props) {
         </Text>
 
         <View style={isWide ? styles.wideSplit : undefined}>
+          <View style={isWide ? styles.actionCol : undefined}>
           <Pressable
             accessibilityRole="button"
             onPress={() => navigation.navigate('Report')}
@@ -59,6 +60,24 @@ export function HomeScreen({ navigation }: Props) {
             </View>
             <Ionicons name="chevron-forward" size={22} color={colors.white} />
           </Pressable>
+
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => navigation.navigate('ModelCompare')}
+            style={(state: WebPressableState) => [
+              styles.compare,
+              webCursor,
+              state.pressed && styles.pressed,
+            ]}
+          >
+            <Ionicons name="git-compare-outline" size={20} color={colors.teal} />
+            <View style={styles.ctaCopy}>
+              <Text style={styles.compareTitle}>Compare models</Text>
+              <Text style={styles.compareHint}>Temporary test: oldv8n, newv8s, newv8n, refrencev8s</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.teal} />
+          </Pressable>
+          </View>
 
           <View style={isWide ? styles.recentCol : undefined}>
             <View style={styles.sectionHead}>
@@ -112,9 +131,11 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 28,
   },
-  ctaWide: {
+  actionCol: {
     flex: 1,
-    marginBottom: 0,
+  },
+  ctaWide: {
+    marginBottom: 12,
     minHeight: 148,
     alignSelf: 'stretch',
   },
@@ -185,6 +206,27 @@ const styles = StyleSheet.create({
     marginTop: 4,
     color: 'rgba(255,255,255,0.75)',
     fontSize: 13,
+  },
+  compare: {
+    backgroundColor: colors.white,
+    borderRadius: radii.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 32,
+  },
+  compareTitle: {
+    color: colors.ink,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  compareHint: {
+    marginTop: 2,
+    color: colors.muted,
+    fontSize: 12,
   },
   sectionHead: {
     flexDirection: 'row',

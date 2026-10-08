@@ -1,4 +1,8 @@
-"""Load the pothole YOLOv8 weights once at process start."""
+"""Load pothole YOLO weights once at process start.
+
+oldv8n is the app's current detector. newv8s, newv8n, and refrencev8s are
+temporary comparison checkpoints downloaded from Kaggle notebooks.
+"""
 
 from __future__ import annotations
 
@@ -14,7 +18,16 @@ HF_MODEL_URL = "https://huggingface.co/EngJamesO/pothole-detector/resolve/main/m
 WEIGHTS_DIR = Path(__file__).resolve().parents[2] / "weights"
 LOCAL_WEIGHTS = WEIGHTS_DIR / "yolov8n.pt"
 
-_model: Any | None = None
+# Keys the compare screen can request. oldv8n stays the default for /api/detect.
+MODEL_KEYS = ("oldv8n", "newv8s", "newv8n", "refrencev8s")
+MODEL_FILES = {
+    "oldv8n": LOCAL_WEIGHTS,
+    "newv8s": WEIGHTS_DIR / "newv8s.pt",
+    "newv8n": WEIGHTS_DIR / "newv8n.pt",
+    "refrencev8s": WEIGHTS_DIR / "refrencev8s.pt",
+}
+
+_models: dict[str, Any] = {}
 
 
 def _ensure_weights() -> Path:
@@ -39,23 +52,35 @@ def _ensure_weights() -> Path:
 
 
 def load_model() -> None:
-    """Load the cached weights and keep a process-wide singleton.
+    """Load every comparison checkpoint and keep them for the process.
 
-    Failures are logged and leave the singleton as None so /api/detect can
-    return 503 instead of crashing the app.
+    A failure on one file does not drop the others. /api/detect still uses
+    oldv8n, and returns 503 only when that checkpoint is missing.
     """
-    global _model
+    global _models
+    loaded: dict[str, Any] = {}
     try:
         from ultralytics import YOLO
-
-        weights = _ensure_weights()
-        logger.info("Loading pothole YOLO model from %s…", weights)
-        _model = YOLO(str(weights))
-        logger.info("Pothole YOLO model loaded.")
     except Exception:
-        logger.exception("Failed to load pothole YOLO model; /api/detect will return 503.")
-        _model = None
+        logger.exception("Failed to import ultralytics; /api/detect will return 503.")
+        _models = {}
+        return
+
+    for key in MODEL_KEYS:
+        try:
+            weights = _ensure_weights() if key == "oldv8n" else MODEL_FILES[key]
+            if key != "oldv8n" and not weights.is_file():
+                logger.warning("Comparison weights missing for %s (%s).", key, weights)
+                continue
+            logger.info("Loading %s from %s…", key, weights)
+            loaded[key] = YOLO(str(weights))
+            logger.info("%s loaded.", key)
+        except Exception:
+            logger.exception("Failed to load %s.", key)
+    _models = loaded
+    if "oldv8n" not in _models:
+        logger.error("oldv8n did not load; /api/detect will return 503.")
 
 
-def get_model() -> Any | None:
-    return _model
+def get_model(key: str = "oldv8n") -> Any | None:
+    return _models.get(key)

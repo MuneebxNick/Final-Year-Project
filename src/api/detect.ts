@@ -19,10 +19,13 @@ export type YoloDetection = {
   area_percentage: number;
 };
 
+export type CompareModel = 'oldv8n' | 'newv8s' | 'newv8n' | 'refrencev8s';
+
 export type YoloDetectResponse = {
   detections: YoloDetection[];
   highest_severity: YoloSeverity | null;
   message: string | null;
+  model?: CompareModel | null;
 };
 
 export type MappedDetection = {
@@ -76,9 +79,13 @@ export function pickHighestDetection(
   return pool.reduce((best, item) => (item.area_percentage > best.area_percentage ? item : best));
 }
 
-export async function detectPotholes(photoUri: string): Promise<YoloDetectResponse> {
+export async function detectPotholes(
+  photoUri: string,
+  model?: CompareModel,
+): Promise<YoloDetectResponse> {
   const form = new FormData();
   await appendPhoto(form, photoUri);
+  if (model) form.append('model', model);
   return api<YoloDetectResponse>('/api/detect', {
     method: 'POST',
     body: form,

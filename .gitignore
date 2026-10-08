@@ -34,6 +34,12 @@ yarn-error.*
 .env
 .env*.local
 backend/.env
+
+# Kaggle credentials — token lives in ~/.kaggle/access_token, never in the repo
+.kaggle/
+kaggle.json
+**/access_token
+backend/data/kaggle/
 backend/.venv/
 backend/**/__pycache__/
 **/__pycache__/
