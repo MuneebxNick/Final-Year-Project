@@ -8,6 +8,7 @@ import { SeverityBadge } from '../components/SeverityBadge';
 import { uploadReportPhoto } from '../api/cloudinary';
 import { markFormReset, reportStore } from '../data/reportStore';
 import { ScreenContainer } from '../layout/ScreenContainer';
+import { AuthBackdrop } from '../layout/AuthBackdrop';
 import { useBreakpoint } from '../layout/useBreakpoint';
 import { roadTypeLabels, severityColors } from '../models/report';
 import type { RootStackParamList } from '../navigation';
@@ -46,6 +47,7 @@ export function DetectionResultScreen({ navigation, route }: Props) {
   };
 
   return (
+    <AuthBackdrop>
     <ScrollView style={styles.flex} contentContainerStyle={styles.scroll}>
       <ScreenContainer>
       <Text style={styles.kicker}>AI detection</Text>
@@ -97,6 +99,7 @@ export function DetectionResultScreen({ navigation, route }: Props) {
       </View>
       </ScreenContainer>
     </ScrollView>
+    </AuthBackdrop>
   );
 }
 

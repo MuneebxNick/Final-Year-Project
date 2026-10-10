@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { NavigationContainer } from '@react-navigation/native';
+import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { reportStore } from './src/data/reportStore';
 import { sessionStore } from './src/data/sessionStore';
+import { AuthBackdrop } from './src/layout/AuthBackdrop';
 import { AdminLoginScreen } from './src/screens/AdminLoginScreen';
 import { AdminReportDetailScreen } from './src/screens/AdminReportDetailScreen';
 import { AdminTabs } from './src/screens/AdminTabs';
@@ -21,14 +22,32 @@ import { UserTabs } from './src/screens/UserTabs';
 import type { RootStackParamList } from './src/navigation';
 import { colors } from './src/theme';
 
+const navTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: 'transparent',
+  },
+};
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
+const authScreenOptions = {
+  title: '',
+  headerTransparent: true,
+  headerShadowVisible: false,
+  headerTintColor: colors.teal,
+  headerStyle: { backgroundColor: 'transparent' },
+  contentStyle: { backgroundColor: 'transparent' },
+  statusBarStyle: 'dark' as const,
+};
 
 type BootRoute = 'Landing' | 'UserTabs' | 'AdminTabs';
 
 function BootSplash() {
   return (
     <View style={styles.boot}>
-      <Text style={styles.bootBrand}>RahScan</Text>
+      <Text style={styles.bootBrand}>Scan</Text>
       <ActivityIndicator color={colors.tealMid} />
     </View>
   );
@@ -59,7 +78,9 @@ export default function App() {
       <GestureHandlerRootView style={styles.flex}>
         <SafeAreaProvider>
           <StatusBar style="dark" />
-          <BootSplash />
+          <AuthBackdrop>
+            <BootSplash />
+          </AuthBackdrop>
         </SafeAreaProvider>
       </GestureHandlerRootView>
     );
@@ -68,13 +89,15 @@ export default function App() {
   return (
     <GestureHandlerRootView style={styles.flex}>
       <SafeAreaProvider>
-        <NavigationContainer>
+        <AuthBackdrop>
+        <NavigationContainer theme={navTheme}>
           <StatusBar style="dark" />
           <Stack.Navigator
             initialRouteName={initialRoute}
             screenOptions={{
               headerShadowVisible: false,
               animation: 'slide_from_right',
+              contentStyle: { backgroundColor: 'transparent' },
             }}
           >
             <Stack.Screen
@@ -82,28 +105,8 @@ export default function App() {
               component={LandingScreen}
               options={{ headerShown: false, statusBarStyle: 'dark' }}
             />
-            <Stack.Screen
-              name="Login"
-              component={LoginScreen}
-              options={{
-                title: '',
-                headerTintColor: colors.teal,
-                headerStyle: { backgroundColor: colors.cream },
-                contentStyle: { backgroundColor: colors.cream },
-                statusBarStyle: 'dark',
-              }}
-            />
-            <Stack.Screen
-              name="Signup"
-              component={SignupScreen}
-              options={{
-                title: '',
-                headerTintColor: colors.teal,
-                headerStyle: { backgroundColor: colors.cream },
-                contentStyle: { backgroundColor: colors.cream },
-                statusBarStyle: 'dark',
-              }}
-            />
+            <Stack.Screen name="Login" component={LoginScreen} options={authScreenOptions} />
+            <Stack.Screen name="Signup" component={SignupScreen} options={authScreenOptions} />
             <Stack.Screen
               name="UserTabs"
               component={UserTabs}
@@ -145,17 +148,7 @@ export default function App() {
                 statusBarStyle: 'light',
               }}
             />
-            <Stack.Screen
-              name="AdminLogin"
-              component={AdminLoginScreen}
-              options={{
-                title: '',
-                headerTintColor: colors.teal,
-                headerStyle: { backgroundColor: colors.cream },
-                contentStyle: { backgroundColor: colors.cream },
-                statusBarStyle: 'dark',
-              }}
-            />
+            <Stack.Screen name="AdminLogin" component={AdminLoginScreen} options={authScreenOptions} />
             <Stack.Screen
               name="AdminTabs"
               component={AdminTabs}
@@ -175,6 +168,7 @@ export default function App() {
             />
           </Stack.Navigator>
         </NavigationContainer>
+        </AuthBackdrop>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
@@ -186,7 +180,7 @@ const styles = StyleSheet.create({
   },
   boot: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 16,

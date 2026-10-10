@@ -2,8 +2,8 @@ import { StyleSheet, Text, Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
+import { BrandMark } from '../components/BrandMark';
 import { OutlineButton, PrimaryButton } from '../components/Buttons';
-import { RoadGraphic } from '../components/RoadGraphic';
 import { useBreakpoint } from '../layout/useBreakpoint';
 import { webCursor, type WebPressableState } from '../layout/webStyles';
 import type { RootStackParamList } from '../navigation';
@@ -18,34 +18,38 @@ export function LandingScreen({ navigation }: Props) {
     <SafeAreaView style={styles.flex}>
       <View style={[styles.content, isWide && styles.contentWide]}>
         <View style={styles.hero}>
-          <Text style={styles.brand}>RahScan</Text>
-          <RoadGraphic />
+          <View style={styles.lockup}>
+            <BrandMark height={88} />
+            <View>
+              <Text style={styles.brand}>Scan</Text>
+              <Text style={styles.brandTag}>Safer Roads, Stronger Cities</Text>
+            </View>
+          </View>
           <Text style={[styles.title, isWide && styles.titleWide]}>
             Report Potholes.{'\n'}Fix Your City.
           </Text>
           <Text style={styles.tagline}>
             Snap a photo, pin the location, and help municipal teams keep roads safe.
           </Text>
-        </View>
-
-        <View style={styles.actions}>
-          <PrimaryButton title="Get Started" onPress={() => navigation.navigate('Login')} />
-          <OutlineButton
-            title="Sign up"
-            style={styles.signup}
-            onPress={() => navigation.navigate('Signup')}
-          />
-          <Pressable
-            onPress={() => navigation.navigate('AdminLogin')}
-            accessibilityRole="button"
-            style={(state: WebPressableState) => [
-              styles.adminLink,
-              webCursor,
-              state.hovered && styles.adminHover,
-            ]}
-          >
-            <Text style={styles.adminText}>Municipal Authority</Text>
-          </Pressable>
+          <View style={styles.actions}>
+            <PrimaryButton title="Get Started" onPress={() => navigation.navigate('Login')} />
+            <OutlineButton
+              title="Sign up"
+              style={styles.signup}
+              onPress={() => navigation.navigate('Signup')}
+            />
+            <Pressable
+              onPress={() => navigation.navigate('AdminLogin')}
+              accessibilityRole="button"
+              style={(state: WebPressableState) => [
+                styles.adminLink,
+                webCursor,
+                state.hovered && styles.adminHover,
+              ]}
+            >
+              <Text style={styles.adminText}>Municipal Authority</Text>
+            </Pressable>
+          </View>
         </View>
       </View>
     </SafeAreaView>
@@ -55,34 +59,43 @@ export function LandingScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: 'transparent',
   },
   content: {
     flex: 1,
     paddingHorizontal: 32,
-    justifyContent: 'space-between',
+    paddingVertical: 28,
+    justifyContent: 'center',
   },
   contentWide: {
     maxWidth: 560,
     width: '100%',
     alignSelf: 'center',
-    paddingVertical: 40,
+    paddingVertical: 48,
   },
   hero: {
-    flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 20,
+    gap: 16,
+  },
+  lockup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 8,
   },
   brand: {
-    color: colors.tealMid,
-    fontWeight: '700',
-    letterSpacing: 1.4,
+    color: colors.teal,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+    fontSize: 28,
+  },
+  brandTag: {
+    marginTop: 2,
+    color: colors.muted,
     fontSize: 13,
-    textTransform: 'uppercase',
+    fontWeight: '500',
   },
   title: {
-    marginTop: 8,
     color: colors.ink,
     fontSize: 34,
     fontWeight: '700',
@@ -103,24 +116,23 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   actions: {
-    paddingBottom: 20,
-    paddingTop: 12,
+    alignSelf: 'stretch',
+    marginTop: 12,
   },
   signup: {
     marginTop: 12,
   },
   adminLink: {
-    marginTop: 24,
+    marginTop: 20,
     alignItems: 'center',
     paddingVertical: 8,
   },
   adminHover: {
-    opacity: 0.75,
+    opacity: 0.7,
   },
   adminText: {
-    color: colors.muted,
-    fontSize: 13,
-    fontWeight: '500',
-    letterSpacing: 0.3,
+    color: colors.teal,
+    fontSize: 15,
+    fontWeight: '600',
   },
 });

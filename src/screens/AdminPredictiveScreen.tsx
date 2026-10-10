@@ -13,6 +13,7 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { fetchPredictiveMaintenance } from '../api/predict';
 import { formatPkr } from '../data/adminInsights';
 import { ScreenContainer } from '../layout/ScreenContainer';
+import { AuthBackdrop } from '../layout/AuthBackdrop';
 import {
   predictiveCategories,
   predictiveCategoryLabels,
@@ -91,6 +92,7 @@ export function AdminPredictiveScreen(_props: Props) {
   }, [retryKey]);
 
   return (
+    <AuthBackdrop>
     <ScrollView style={styles.flex} contentContainerStyle={styles.scroll}>
       <ScreenContainer>
         <Text style={styles.heading}>Predictive maintenance</Text>
@@ -173,13 +175,14 @@ export function AdminPredictiveScreen(_props: Props) {
         )}
       </ScreenContainer>
     </ScrollView>
+    </AuthBackdrop>
   );
 }
 
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: 'transparent',
   },
   scroll: {
     flexGrow: 1,

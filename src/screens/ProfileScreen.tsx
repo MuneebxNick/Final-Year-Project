@@ -9,6 +9,7 @@ import { OutlineButton } from '../components/Buttons';
 import { reportStore, useMyReports } from '../data/reportStore';
 import { sessionStore, useSession } from '../data/sessionStore';
 import { ScreenContainer } from '../layout/ScreenContainer';
+import { AuthBackdrop } from '../layout/AuthBackdrop';
 import { useBreakpoint } from '../layout/useBreakpoint';
 import { webCursor, type WebPressableState } from '../layout/webStyles';
 import type { RootStackParamList, UserTabParamList } from '../navigation';
@@ -34,6 +35,7 @@ export function ProfileScreen({ navigation }: Props) {
   };
 
   return (
+    <AuthBackdrop>
     <SafeAreaView style={styles.flex} edges={['top']}>
       <ScreenContainer style={styles.container}>
         <Text style={styles.title}>Profile</Text>
@@ -64,13 +66,14 @@ export function ProfileScreen({ navigation }: Props) {
         <OutlineButton title="Sign out" onPress={signOut} style={[styles.signOut, isWide && styles.signOutWide]} />
       </ScreenContainer>
     </SafeAreaView>
+    </AuthBackdrop>
   );
 }
 
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: 'transparent',
   },
   container: {
     flex: 1,

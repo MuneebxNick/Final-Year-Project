@@ -48,6 +48,7 @@ export function UserTabs() {
           tabBar={(props) => (isWide ? null : <BottomTabBar {...props} />)}
           screenOptions={{
             headerShown: false,
+            sceneStyle: { backgroundColor: colors.cream },
             tabBarActiveTintColor: colors.teal,
             tabBarInactiveTintColor: colors.muted,
             tabBarStyle: isWide

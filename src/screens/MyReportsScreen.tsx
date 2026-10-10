@@ -9,6 +9,7 @@ import { FilterSelect } from '../components/FilterSelect';
 import { ReportCard } from '../components/ReportCard';
 import { useMyReports } from '../data/reportStore';
 import { ScreenContainer } from '../layout/ScreenContainer';
+import { AuthBackdrop } from '../layout/AuthBackdrop';
 import { useBreakpoint } from '../layout/useBreakpoint';
 import {
   severityRank,
@@ -55,6 +56,7 @@ export function MyReportsScreen({ navigation }: Props) {
   }, [reports, statusFilter, dateSort, severitySort]);
 
   return (
+    <AuthBackdrop>
     <SafeAreaView style={styles.flex} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <ScreenContainer>
@@ -118,13 +120,14 @@ export function MyReportsScreen({ navigation }: Props) {
         </ScreenContainer>
       </ScrollView>
     </SafeAreaView>
+    </AuthBackdrop>
   );
 }
 
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: 'transparent',
   },
   scroll: {
     flexGrow: 1,

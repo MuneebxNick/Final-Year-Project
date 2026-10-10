@@ -13,6 +13,7 @@ import {
 } from '../data/adminInsights';
 import { useReports } from '../data/reportStore';
 import { ScreenContainer } from '../layout/ScreenContainer';
+import { AuthBackdrop } from '../layout/AuthBackdrop';
 import { useBreakpoint } from '../layout/useBreakpoint';
 import { userStatusLabels, type UserStatus } from '../models/report';
 import type { AdminTabParamList } from '../navigation';
@@ -38,6 +39,7 @@ export function AdminDashboardScreen(_props: Props) {
   ];
 
   return (
+    <AuthBackdrop>
     <ScrollView style={styles.flex} contentContainerStyle={styles.scroll}>
       <ScreenContainer>
         <Text style={styles.heading}>Dashboard</Text>
@@ -117,13 +119,14 @@ export function AdminDashboardScreen(_props: Props) {
         </View>
       </ScreenContainer>
     </ScrollView>
+    </AuthBackdrop>
   );
 }
 
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: 'transparent',
   },
   scroll: {
     flexGrow: 1,

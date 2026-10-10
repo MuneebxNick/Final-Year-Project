@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { BrandMark } from '../components/BrandMark';
 import { colors } from '../theme';
 import { SIDEBAR_WIDTH } from './useBreakpoint';
 import { webCursor, type WebPressableState } from './webStyles';
@@ -22,7 +23,7 @@ type Props = {
 };
 
 export function AppSidebar({
-  title = 'RahScan',
+  title = 'Scan',
   subtitle = 'Citizen portal',
   items,
   activeKey,
@@ -32,9 +33,7 @@ export function AppSidebar({
   return (
     <View style={styles.sidebar}>
       <View style={styles.brand}>
-        <View style={styles.mark}>
-          <Ionicons name="warning-outline" size={18} color={colors.white} />
-        </View>
+        <BrandMark height={44} />
         <View>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.subtitle}>{subtitle}</Text>
@@ -103,14 +102,6 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingHorizontal: 8,
     marginBottom: 28,
-  },
-  mark: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: colors.blueMid,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   title: {
     color: colors.white,

@@ -31,6 +31,7 @@ import {
     type RoadType,
 } from '../models/report';
 import { ScreenContainer } from '../layout/ScreenContainer';
+import { AuthBackdrop } from '../layout/AuthBackdrop';
 import { useBreakpoint } from '../layout/useBreakpoint';
 import { webCursor, type WebPressableState } from '../layout/webStyles';
 import type { RootStackParamList, UserTabParamList } from '../navigation';
@@ -116,6 +117,14 @@ export function ReportScreen({ navigation }: Props) {
         } catch {
             Alert.alert('Could not open the camera or gallery.');
         }
+    };
+
+    const openPhotoSource = () => {
+        if (Platform.OS === 'web' && isWide) {
+            void pick('gallery');
+            return;
+        }
+        setSheetOpen(true);
     };
 
     const failLocation = (message: string) => {
@@ -224,6 +233,7 @@ export function ReportScreen({ navigation }: Props) {
     };
 
     return (
+        <AuthBackdrop>
         <SafeAreaView style={styles.flex} edges={['top']}>
             <KeyboardAvoidingView
                 style={styles.flex}
@@ -247,7 +257,7 @@ export function ReportScreen({ navigation }: Props) {
                                     <>
                                         <Image source={{ uri: photoUri }} style={styles.photo} />
                                         <View style={styles.photoActions}>
-                                            <Pressable style={[styles.photoBtn, webCursor]} onPress={() => setSheetOpen(true)}>
+                                            <Pressable style={[styles.photoBtn, webCursor]} onPress={openPhotoSource}>
                                                 <Text style={styles.photoBtnText}>Retake</Text>
                                             </Pressable>
                                             <Pressable
@@ -260,13 +270,21 @@ export function ReportScreen({ navigation }: Props) {
                                     </>
                                 ) : (
                                     <Pressable
-                                        onPress={() => setSheetOpen(true)}
+                                        onPress={openPhotoSource}
                                         style={[styles.photoEmpty, webCursor]}
                                         accessibilityRole="button"
                                     >
                                         <Ionicons name="camera-outline" size={40} color={colors.tealMid} />
-                                        <Text style={styles.photoTitle}>Take photo or choose from gallery</Text>
-                                        <Text style={styles.photoHint}>Tap to add a photo</Text>
+                                        <Text style={styles.photoTitle}>
+                                            {Platform.OS === 'web' && isWide
+                                                ? 'Choose a photo from your gallery'
+                                                : 'Take photo or choose from gallery'}
+                                        </Text>
+                                        <Text style={styles.photoHint}>
+                                            {Platform.OS === 'web' && isWide
+                                                ? 'Click to add a photo'
+                                                : 'Tap to add a photo'}
+                                        </Text>
                                     </Pressable>
                                 )}
                             </View>
@@ -382,7 +400,7 @@ export function ReportScreen({ navigation }: Props) {
 
                 <Modal
                     visible={sheetOpen}
-                    animationType={Platform.OS === 'web' ? 'none' : 'slide'}
+                    animationType="slide"
                     transparent
                     onRequestClose={() => setSheetOpen(false)}
                 >
@@ -402,14 +420,15 @@ export function ReportScreen({ navigation }: Props) {
                 </Modal>
             </KeyboardAvoidingView>
         </SafeAreaView>
+        </AuthBackdrop>
     );
 }
 
 const styles = StyleSheet.create({
-    flex: {
-        flex: 1,
-        backgroundColor: colors.cream,
-    },
+  flex: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
     scroll: {
         flexGrow: 1,
     },

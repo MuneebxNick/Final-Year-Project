@@ -6,6 +6,7 @@ import { SeverityBadge } from '../components/SeverityBadge';
 import { StatusBadge } from '../components/StatusBadge';
 import { useReports, useReportsHydrated } from '../data/reportStore';
 import { ScreenContainer } from '../layout/ScreenContainer';
+import { AuthBackdrop } from '../layout/AuthBackdrop';
 import { useBreakpoint } from '../layout/useBreakpoint';
 import {
   formatReportDate,
@@ -47,6 +48,7 @@ export function UserReportDetailScreen({ route }: Props) {
   const potholes = overlayBoxesForReport(report);
 
   return (
+    <AuthBackdrop>
     <ScrollView style={styles.flex} contentContainerStyle={styles.scroll}>
       <ScreenContainer>
       <View style={isWide ? styles.split : undefined}>
@@ -112,6 +114,7 @@ export function UserReportDetailScreen({ route }: Props) {
       </View>
       </ScreenContainer>
     </ScrollView>
+    </AuthBackdrop>
   );
 }
 

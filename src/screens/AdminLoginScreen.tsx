@@ -11,10 +11,12 @@ import { MaterialIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { TealButton } from '../components/Buttons';
+import { BrandMark } from '../components/BrandMark';
 import { TextField } from '../components/TextField';
 import { api } from '../api/client';
 import { reportStore } from '../data/reportStore';
 import { sessionStore, type Session } from '../data/sessionStore';
+import { AuthBackdrop, useAuthTopInset } from '../layout/AuthBackdrop';
 import { AuthCard } from '../layout/AuthCard';
 import { useBreakpoint } from '../layout/useBreakpoint';
 import type { RootStackParamList } from '../navigation';
@@ -24,6 +26,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'AdminLogin'>;
 
 export function AdminLoginScreen({ navigation }: Props) {
   const { isWide } = useBreakpoint();
+  const topInset = useAuthTopInset();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -61,66 +64,89 @@ export function AdminLoginScreen({ navigation }: Props) {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView
-        contentContainerStyle={[styles.content, isWide && styles.contentWide]}
-        keyboardShouldPersistTaps="handled"
+    <AuthBackdrop>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <AuthCard>
-        <View style={styles.iconWrap}>
-          <MaterialIcons name="account-balance" size={28} color={colors.teal} />
-        </View>
-        <Text style={styles.title}>Municipal Authority</Text>
-        <Text style={styles.subtitle}>
-          Sign in to review citizen reports and assign field teams.
-        </Text>
-        <Text style={styles.demoHint}>Demo admin: admin@rahscan.local / Admin1234!</Text>
-        <View style={styles.form}>
-          <TextField
-            label="Work email"
-            value={email}
-            onChangeText={setEmail}
-            error={errors.email}
-            icon="briefcase-outline"
-            keyboardType="email-address"
-            returnKeyType="next"
-          />
-          <TextField
-            label="Password"
-            value={password}
-            onChangeText={setPassword}
-            error={errors.password}
-            icon="lock-closed-outline"
-            secureTextEntry
-            returnKeyType="done"
-            onSubmitEditing={submit}
-          />
-          <TealButton title="Enter portal" onPress={submit} loading={loading} />
-        </View>
-        </AuthCard>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        <ScrollView
+          style={styles.flex}
+          contentContainerStyle={[styles.content, { paddingTop: topInset + 8 }, isWide && styles.contentWide]}
+          keyboardShouldPersistTaps="handled"
+        >
+          <AuthCard>
+            {!isWide ? (
+              <View style={styles.lockup}>
+                <BrandMark height={92} />
+                <Text style={styles.brandName}>Scan</Text>
+              </View>
+            ) : null}
+            <View style={styles.iconWrap}>
+              <MaterialIcons name="account-balance" size={28} color={colors.teal} />
+            </View>
+            <Text style={styles.title}>Municipal Authority</Text>
+            <Text style={styles.subtitle}>
+              Sign in to review citizen reports and assign field teams.
+            </Text>
+            <Text style={styles.demoHint}>Demo admin: admin@rahscan.local / Admin1234!</Text>
+            <View style={styles.form}>
+              <TextField
+                label="Work email"
+                value={email}
+                onChangeText={setEmail}
+                error={errors.email}
+                icon="briefcase-outline"
+                keyboardType="email-address"
+                returnKeyType="next"
+              />
+              <TextField
+                label="Password"
+                value={password}
+                onChangeText={setPassword}
+                error={errors.password}
+                icon="lock-closed-outline"
+                secureTextEntry
+                returnKeyType="done"
+                onSubmitEditing={submit}
+              />
+              <TealButton title="Enter portal" onPress={submit} loading={loading} />
+            </View>
+          </AuthCard>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </AuthBackdrop>
   );
 }
 
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: 'transparent',
   },
   content: {
+    flexGrow: 1,
+    justifyContent: 'center',
     paddingHorizontal: 24,
     paddingTop: 8,
-    paddingBottom: 32,
-    flexGrow: 1,
+    paddingBottom: 168,
+    width: '100%',
   },
   contentWide: {
     paddingHorizontal: 0,
     paddingTop: 0,
+    paddingBottom: 0,
     justifyContent: 'center',
+  },
+  lockup: {
+    alignItems: 'center',
+    gap: 2,
+    marginBottom: 28,
+  },
+  brandName: {
+    color: colors.teal,
+    fontSize: 22,
+    fontWeight: '800',
+    letterSpacing: -0.3,
   },
   iconWrap: {
     width: 56,

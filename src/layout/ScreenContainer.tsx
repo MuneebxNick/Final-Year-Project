@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { colors } from '../theme';
 import { CONTENT_MAX_WIDTH, useBreakpoint } from './useBreakpoint';
 
 type Props = {
@@ -29,6 +28,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
     paddingTop: 32,
     paddingBottom: 48,
-    backgroundColor: colors.cream,
   },
 });

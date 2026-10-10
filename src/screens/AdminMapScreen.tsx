@@ -10,6 +10,7 @@ import { SeverityBadge } from '../components/SeverityBadge';
 import { StatusBadge } from '../components/StatusBadge';
 import { useReports } from '../data/reportStore';
 import { ScreenContainer } from '../layout/ScreenContainer';
+import { AuthBackdrop } from '../layout/AuthBackdrop';
 import { webCursor, type WebPressableState } from '../layout/webStyles';
 import {
   severityColors,
@@ -96,13 +97,13 @@ export function AdminMapScreen({ navigation }: Props) {
       heatReports.flatMap((report) =>
         report.coords
           ? [
-              {
-                id: report.id,
-                lat: report.coords.lat,
-                lng: report.coords.lng,
-                severity: report.severity,
-              },
-            ]
+            {
+              id: report.id,
+              lat: report.coords.lat,
+              lng: report.coords.lng,
+              severity: report.severity,
+            },
+          ]
           : [],
       ),
     [heatReports],
@@ -116,6 +117,7 @@ export function AdminMapScreen({ navigation }: Props) {
   };
 
   return (
+    <AuthBackdrop>
     <ScrollView style={styles.flex} contentContainerStyle={styles.scroll}>
       <ScreenContainer>
         <Text style={styles.heading}>City map</Text>
@@ -164,6 +166,7 @@ export function AdminMapScreen({ navigation }: Props) {
         )}
       </ScreenContainer>
     </ScrollView>
+    </AuthBackdrop>
   );
 }
 
@@ -216,25 +219,25 @@ function AreaCard({
 
       {listOpen
         ? sorted.map((report) => (
-            <Pressable
-              key={report.id}
-              onPress={() => onOpenReport(report.id)}
-              accessibilityRole="button"
-              style={(state: WebPressableState) => [
-                styles.reportRow,
-                webCursor,
-                state.hovered && styles.reportRowHover,
-              ]}
-            >
-              <Text style={styles.reportId} selectable>
-                {report.referenceId}
-              </Text>
-              <View style={styles.reportBadges}>
-                <StatusBadge status={report.status} variant="user" />
-                <SeverityBadge severity={report.severity} />
-              </View>
-            </Pressable>
-          ))
+          <Pressable
+            key={report.id}
+            onPress={() => onOpenReport(report.id)}
+            accessibilityRole="button"
+            style={(state: WebPressableState) => [
+              styles.reportRow,
+              webCursor,
+              state.hovered && styles.reportRowHover,
+            ]}
+          >
+            <Text style={styles.reportId} selectable>
+              {report.referenceId}
+            </Text>
+            <View style={styles.reportBadges}>
+              <StatusBadge status={report.status} variant="user" />
+              <SeverityBadge severity={report.severity} />
+            </View>
+          </Pressable>
+        ))
         : null}
     </View>
   );
@@ -243,7 +246,7 @@ function AreaCard({
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: 'transparent',
   },
   scroll: {
     flexGrow: 1,

@@ -9,6 +9,7 @@ import { ReportCard } from '../components/ReportCard';
 import { useMyReports } from '../data/reportStore';
 import { useSession } from '../data/sessionStore';
 import { ScreenContainer } from '../layout/ScreenContainer';
+import { AuthBackdrop } from '../layout/AuthBackdrop';
 import { useBreakpoint } from '../layout/useBreakpoint';
 import { webCursor, type WebPressableState } from '../layout/webStyles';
 import type { RootStackParamList, UserTabParamList } from '../navigation';
@@ -27,10 +28,11 @@ export function HomeScreen({ navigation }: Props) {
   const firstName = session?.name.split(' ')[0] ?? 'there';
 
   return (
+    <AuthBackdrop>
     <SafeAreaView style={styles.flex} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <ScreenContainer>
-        <Text style={styles.kicker}>RahScan</Text>
+        <Text style={styles.kicker}>Scan</Text>
         <Text style={[styles.welcome, isWide && styles.welcomeWide]}>
           Welcome back, {firstName}
         </Text>
@@ -112,13 +114,14 @@ export function HomeScreen({ navigation }: Props) {
         </ScreenContainer>
       </ScrollView>
     </SafeAreaView>
+    </AuthBackdrop>
   );
 }
 
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: 'transparent',
   },
   scroll: {
     flexGrow: 1,

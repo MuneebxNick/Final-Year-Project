@@ -15,7 +15,8 @@ import { TextField } from '../components/TextField';
 import { api } from '../api/client';
 import { reportStore } from '../data/reportStore';
 import { sessionStore, type Session } from '../data/sessionStore';
-import { AuthCard } from '../layout/AuthCard';
+import { AuthBackdrop, useAuthTopInset } from '../layout/AuthBackdrop';
+import { AuthSplit } from '../layout/AuthSplit';
 import { useBreakpoint } from '../layout/useBreakpoint';
 import { webCursor } from '../layout/webStyles';
 import type { RootStackParamList } from '../navigation';
@@ -25,6 +26,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
 export function LoginScreen({ navigation }: Props) {
   const { isWide } = useBreakpoint();
+  const topInset = useAuthTopInset();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -68,72 +70,82 @@ export function LoginScreen({ navigation }: Props) {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView
-        contentContainerStyle={[styles.content, isWide && styles.contentWide]}
-        keyboardShouldPersistTaps="handled"
+    <AuthBackdrop>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <AuthCard>
-        <Text style={styles.title}>Welcome back</Text>
-        <Text style={styles.subtitle}>Sign in to report a pothole in your area.</Text>
-        <Text style={styles.demoHint}>Demo citizen: demo@rahscan.local / Demo1234!</Text>
-        <View style={styles.form}>
-          <TextField
-            label="Email"
-            value={email}
-            onChangeText={setEmail}
-            error={errors.email}
-            icon="mail-outline"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            returnKeyType="next"
-          />
-          <TextField
-            label="Password"
-            value={password}
-            onChangeText={setPassword}
-            error={errors.password}
-            icon="lock-closed-outline"
-            secureTextEntry
-            returnKeyType="done"
-            onSubmitEditing={submit}
-          />
-          <PrimaryButton title="Continue" onPress={submit} loading={loading} />
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.muted}>New to RahScan?</Text>
-          <Pressable
-            onPress={() => navigation.replace('Signup')}
-            hitSlop={8}
-            style={webCursor}
+        <ScrollView
+          style={styles.flex}
+          contentContainerStyle={[styles.content, { paddingTop: topInset + 8 }, isWide && styles.contentWide]}
+          keyboardShouldPersistTaps="handled"
+        >
+          <AuthSplit
+            headline="Welcome back!"
+            accentBefore="Let's "
+            accent="make roads safer."
+            subtitle="Sign in to report potholes, track updates, and help improve your city."
           >
-            <Text style={styles.link}> Sign up</Text>
-          </Pressable>
-        </View>
-        </AuthCard>
-      </ScrollView>
-    </KeyboardAvoidingView>
+            <Text style={styles.title}>Welcome back</Text>
+            <Text style={styles.subtitle}>Sign in to your RahScan account.</Text>
+            <Text style={styles.demoHint}>Demo citizen: demo@rahscan.local / Demo1234!</Text>
+            <View style={styles.form}>
+              <TextField
+                label="Email"
+                value={email}
+                onChangeText={setEmail}
+                error={errors.email}
+                icon="mail-outline"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                returnKeyType="next"
+              />
+              <TextField
+                label="Password"
+                value={password}
+                onChangeText={setPassword}
+                error={errors.password}
+                icon="lock-closed-outline"
+                secureTextEntry
+                returnKeyType="done"
+                onSubmitEditing={submit}
+              />
+              <PrimaryButton title="Continue" onPress={submit} loading={loading} />
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.muted}>New to RahScan?</Text>
+              <Pressable
+                onPress={() => navigation.replace('Signup')}
+                hitSlop={8}
+                style={webCursor}
+              >
+                <Text style={styles.link}> Sign up</Text>
+              </Pressable>
+            </View>
+          </AuthSplit>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </AuthBackdrop>
   );
 }
 
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: 'transparent',
   },
   content: {
+    flexGrow: 1,
+    justifyContent: 'center',
     paddingHorizontal: 24,
     paddingTop: 8,
-    paddingBottom: 32,
-    flexGrow: 1,
+    paddingBottom: 168,
+    width: '100%',
   },
   contentWide: {
     paddingHorizontal: 0,
     paddingTop: 0,
-    justifyContent: 'center',
+    paddingBottom: 0,
   },
   title: {
     fontSize: 30,
@@ -147,10 +159,15 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   demoHint: {
-    marginTop: 8,
-    color: colors.tealSoft,
+    marginTop: 16,
+    backgroundColor: colors.tealLight,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    color: colors.tealMid,
     fontSize: 13,
     lineHeight: 18,
+    overflow: 'hidden',
   },
   form: {
     marginTop: 32,

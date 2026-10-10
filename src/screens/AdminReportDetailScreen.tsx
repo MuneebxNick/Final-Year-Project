@@ -16,6 +16,7 @@ import { PhotoWithBoundingBox } from '../components/PhotoWithBoundingBox';
 import { reportStore, useReports, useReportsHydrated } from '../data/reportStore';
 import { AdminShell } from '../layout/AdminShell';
 import { ScreenContainer } from '../layout/ScreenContainer';
+import { AuthBackdrop } from '../layout/AuthBackdrop';
 import { useBreakpoint } from '../layout/useBreakpoint';
 import {
   adminUiStatusLabels,
@@ -96,6 +97,7 @@ export function AdminReportDetailScreen({ navigation, route }: Props) {
 
   return (
     <AdminShell navigation={navigation} activeKey="Reports">
+      <AuthBackdrop>
       <ScrollView style={styles.flex} contentContainerStyle={styles.scroll}>
         <ScreenContainer>
           <View style={isWide ? styles.split : undefined}>
@@ -173,6 +175,7 @@ export function AdminReportDetailScreen({ navigation, route }: Props) {
           </View>
         </ScreenContainer>
       </ScrollView>
+      </AuthBackdrop>
     </AdminShell>
   );
 }

@@ -8,6 +8,7 @@ import { api } from '../api/client';
 import { AdminLeafletHeatmap, type LeafletHeatPoint } from '../components/AdminLeafletHeatmap';
 import { FilterChip } from '../components/FilterChip';
 import { ScreenContainer } from '../layout/ScreenContainer';
+import { AuthBackdrop } from '../layout/AuthBackdrop';
 import { severityColors, uniqueCities, type Severity } from '../models/report';
 import type { UserTabParamList } from '../navigation';
 import { colors } from '../theme';
@@ -71,6 +72,7 @@ export function UserMapScreen(_props: Props) {
   );
 
   return (
+    <AuthBackdrop>
     <SafeAreaView style={styles.flex} edges={['top']}>
       <ScrollView style={styles.flex} contentContainerStyle={styles.scroll}>
         <ScreenContainer>
@@ -115,6 +117,7 @@ export function UserMapScreen(_props: Props) {
         </ScreenContainer>
       </ScrollView>
     </SafeAreaView>
+    </AuthBackdrop>
   );
 }
 
@@ -130,7 +133,7 @@ function LegendDot({ color, label }: { color: string; label: string }) {
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: 'transparent',
   },
   scroll: {
     flexGrow: 1,

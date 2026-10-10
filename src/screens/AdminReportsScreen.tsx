@@ -10,6 +10,7 @@ import { StatusBadge } from '../components/StatusBadge';
 import { TextField } from '../components/TextField';
 import { useReports } from '../data/reportStore';
 import { ScreenContainer } from '../layout/ScreenContainer';
+import { AuthBackdrop } from '../layout/AuthBackdrop';
 import { useBreakpoint } from '../layout/useBreakpoint';
 import { webCursor, type WebPressableState } from '../layout/webStyles';
 import {
@@ -81,6 +82,7 @@ export function AdminReportsScreen({ navigation }: Props) {
   }, [reports, query, city, severity, status, range, sort]);
 
   return (
+    <AuthBackdrop>
     <ScrollView style={styles.flex} contentContainerStyle={styles.scroll}>
       <ScreenContainer>
         <Text style={styles.heading}>Municipal queue</Text>
@@ -176,6 +178,7 @@ export function AdminReportsScreen({ navigation }: Props) {
         )}
       </ScreenContainer>
     </ScrollView>
+    </AuthBackdrop>
   );
 }
 
@@ -221,7 +224,7 @@ function AdminReportCard({ report, onPress }: { report: Report; onPress: () => v
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: 'transparent',
   },
   scroll: {
     flexGrow: 1,

@@ -40,7 +40,7 @@ export function AdminTabs() {
     <View style={[styles.root, isWide && styles.row]}>
       {isWide ? (
         <AppSidebar
-          title="RahScan"
+          title="Scan"
           subtitle="Municipal portal"
           items={adminSidebarItems}
           activeKey={current}
@@ -84,6 +84,7 @@ export function AdminTabs() {
           tabBar={(props) => (isWide ? null : <BottomTabBar {...props} />)}
           screenOptions={{
             headerShown: false,
+            sceneStyle: { backgroundColor: colors.cream },
             tabBarActiveTintColor: colors.teal,
             tabBarInactiveTintColor: colors.muted,
             tabBarStyle: isWide

@@ -24,7 +24,7 @@ export function AdminShell({ navigation, activeKey = 'Reports', children }: Prop
   return (
     <View style={styles.row}>
       <AppSidebar
-        title="RahScan"
+        title="Scan"
         subtitle="Municipal portal"
         items={adminSidebarItems}
         activeKey={activeKey}

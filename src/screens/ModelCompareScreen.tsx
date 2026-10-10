@@ -7,6 +7,7 @@ import { PrimaryButton } from '../components/Buttons';
 import { PhotoWithBoundingBox } from '../components/PhotoWithBoundingBox';
 import { SeverityBadge } from '../components/SeverityBadge';
 import { ScreenContainer } from '../layout/ScreenContainer';
+import { AuthBackdrop } from '../layout/AuthBackdrop';
 import { useBreakpoint } from '../layout/useBreakpoint';
 import { webCursor, type WebPressableState } from '../layout/webStyles';
 import { severityColors, type OverlayBox } from '../models/report';
@@ -92,6 +93,7 @@ export function ModelCompareScreen() {
   const ordered = [...boxes].sort((a, b) => a.left - b.left);
 
   return (
+    <AuthBackdrop>
     <ScrollView style={styles.flex} contentContainerStyle={styles.scroll}>
       <ScreenContainer>
         <Text style={styles.kicker}>Temporary comparison</Text>
@@ -190,6 +192,7 @@ export function ModelCompareScreen() {
         ) : null}
       </ScreenContainer>
     </ScrollView>
+    </AuthBackdrop>
   );
 }
 

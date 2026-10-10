@@ -15,7 +15,8 @@ import { TextField } from '../components/TextField';
 import { api } from '../api/client';
 import { reportStore } from '../data/reportStore';
 import { sessionStore, type Session } from '../data/sessionStore';
-import { AuthCard } from '../layout/AuthCard';
+import { AuthBackdrop, useAuthTopInset } from '../layout/AuthBackdrop';
+import { AuthSplit } from '../layout/AuthSplit';
 import { useBreakpoint } from '../layout/useBreakpoint';
 import { webCursor } from '../layout/webStyles';
 import type { RootStackParamList } from '../navigation';
@@ -25,6 +26,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Signup'>;
 
 export function SignupScreen({ navigation }: Props) {
   const { isWide } = useBreakpoint();
+  const topInset = useAuthTopInset();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -66,17 +68,24 @@ export function SignupScreen({ navigation }: Props) {
   };
 
   return (
+    <AuthBackdrop>
     <KeyboardAvoidingView
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
-        contentContainerStyle={[styles.content, isWide && styles.contentWide]}
+        style={styles.flex}
+        contentContainerStyle={[styles.content, { paddingTop: topInset + 8 }, isWide && styles.contentWide]}
         keyboardShouldPersistTaps="handled"
       >
-        <AuthCard>
+        <AuthSplit
+          headline="Create your account"
+          accentBefore="Help "
+          accent="make roads safer."
+          subtitle="Join RahScan to photograph potholes and track repairs in Lahore."
+        >
         <Text style={styles.title}>Create account</Text>
-        <Text style={styles.subtitle}>Join RahScan to submit road-condition reports.</Text>
+        <Text style={styles.subtitle}>Join as a citizen in Lahore.</Text>
         <View style={styles.form}>
           <TextField
             label="Full name"
@@ -125,30 +134,33 @@ export function SignupScreen({ navigation }: Props) {
             hitSlop={8}
             style={webCursor}
           >
-            <Text style={styles.link}> Login</Text>
+            <Text style={styles.link}> Sign in</Text>
           </Pressable>
         </View>
-        </AuthCard>
+        </AuthSplit>
       </ScrollView>
     </KeyboardAvoidingView>
+    </AuthBackdrop>
   );
 }
 
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: 'transparent',
   },
   content: {
+    flexGrow: 1,
+    justifyContent: 'center',
     paddingHorizontal: 24,
     paddingTop: 8,
-    paddingBottom: 32,
-    flexGrow: 1,
+    paddingBottom: 168,
+    width: '100%',
   },
   contentWide: {
     paddingHorizontal: 0,
     paddingTop: 0,
-    justifyContent: 'center',
+    paddingBottom: 0,
   },
   title: {
     fontSize: 30,
