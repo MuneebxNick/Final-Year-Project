@@ -207,7 +207,7 @@ export function formatReportDate(date: Date): string {
   });
 }
 
-export const LOW_CONFIDENCE_THRESHOLD = 75;
+export const LOW_CONFIDENCE_THRESHOLD = 50;
 
 export function isIncompleteLocation(report: Pick<Report, 'coords' | 'address'>): boolean {
   return !report.coords || !report.address.trim();

@@ -23,7 +23,6 @@ export type RootStackParamList = {
   Signup: undefined;
   UserTabs: NavigatorScreenParams<UserTabParamList> | undefined;
   DetectionResult: { draft: DetectionDraft };
-  ModelCompare: undefined;
   UserReportDetail: { reportId: string };
   AdminLogin: undefined;
   AdminTabs: NavigatorScreenParams<AdminTabParamList> | undefined;

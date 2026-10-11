@@ -77,7 +77,6 @@ class YoloDetectResponse(BaseModel):
     detections: list[YoloDetectionOut]
     highest_severity: YoloSeverity | None = None
     message: str | None = None
-    model: str | None = None
 
 
 WeatherSeason = Literal["Monsoon", "Summer", "Winter"]

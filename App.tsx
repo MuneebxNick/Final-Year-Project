@@ -13,7 +13,6 @@ import { AdminLoginScreen } from './src/screens/AdminLoginScreen';
 import { AdminReportDetailScreen } from './src/screens/AdminReportDetailScreen';
 import { AdminTabs } from './src/screens/AdminTabs';
 import { DetectionResultScreen } from './src/screens/DetectionResultScreen';
-import { ModelCompareScreen } from './src/screens/ModelCompareScreen';
 import { LandingScreen } from './src/screens/LandingScreen';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { SignupScreen } from './src/screens/SignupScreen';
@@ -117,18 +116,6 @@ export default function App() {
               component={DetectionResultScreen}
               options={{
                 title: 'Detection result',
-                headerTintColor: colors.white,
-                headerStyle: { backgroundColor: colors.teal },
-                headerTitleStyle: { fontWeight: '600', fontSize: 18 },
-                contentStyle: { backgroundColor: colors.cream },
-                statusBarStyle: 'light',
-              }}
-            />
-            <Stack.Screen
-              name="ModelCompare"
-              component={ModelCompareScreen}
-              options={{
-                title: 'Compare models',
                 headerTintColor: colors.white,
                 headerStyle: { backgroundColor: colors.teal },
                 headerTitleStyle: { fontWeight: '600', fontSize: 18 },
