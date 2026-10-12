@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -11,9 +11,11 @@ import { Ionicons } from '@expo/vector-icons';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
 import { fetchPredictiveMaintenance } from '../api/predict';
+import { FilterSelect } from '../components/FilterSelect';
 import { formatPkr } from '../data/adminInsights';
 import { ScreenContainer } from '../layout/ScreenContainer';
 import { AuthBackdrop } from '../layout/AuthBackdrop';
+import { webCursor, type WebPressableState } from '../layout/webStyles';
 import {
   predictiveCategories,
   predictiveCategoryLabels,
@@ -25,6 +27,25 @@ import type { AdminTabParamList } from '../navigation';
 import { colors, radii, shadows } from '../theme';
 
 type Props = BottomTabScreenProps<AdminTabParamList, 'Predictive'>;
+
+const PAGE_SIZE = 10;
+
+const PROVINCE_CODES = ['Punjab', 'Sindh', 'KPK', 'Balochistan'] as const;
+const TERRITORY_CODES = ['ICT', 'GB', 'AJK'] as const;
+
+const REGION_LABELS: Record<string, string> = {
+  Punjab: 'Punjab',
+  Sindh: 'Sindh',
+  KPK: 'Khyber Pakhtunkhwa',
+  Balochistan: 'Balochistan',
+  ICT: 'Islamabad Capital Territory',
+  GB: 'Gilgit-Baltistan',
+  AJK: 'Azad Jammu & Kashmir',
+};
+
+const PREFERRED_PROVINCES = [...PROVINCE_CODES, ...TERRITORY_CODES] as const;
+
+const PREFERRED_PROVINCE_SET: ReadonlySet<string> = new Set(PREFERRED_PROVINCES);
 
 const CATEGORY_COLOR: Record<PredictiveCategory, string> = {
   urgent: colors.pillRed,
@@ -54,11 +75,119 @@ function isHighRisk(riskWindow: string): boolean {
   return riskWindow.startsWith('High');
 }
 
+function provincesFromSegments(segments: readonly PredictiveSegment[]): string[] {
+  const present = new Set<string>();
+  for (const segment of segments) {
+    const name = segment.province.trim();
+    if (name) present.add(name);
+  }
+  const preferred = PREFERRED_PROVINCES.filter((name) => present.has(name));
+  const extra = [...present]
+    .filter((name) => !PREFERRED_PROVINCE_SET.has(name))
+    .sort((left, right) => left.localeCompare(right));
+  return [...preferred, ...extra];
+}
+
+function regionSelectItems(names: readonly string[]) {
+  const present = new Set(names);
+  const items: Array<{ value: string; label: string } | { section: string }> = [
+    { value: 'all', label: 'All Pakistan' },
+  ];
+  const provinces = PROVINCE_CODES.filter((code) => present.has(code));
+  const territories = TERRITORY_CODES.filter((code) => present.has(code));
+  const known = new Set<string>([...PROVINCE_CODES, ...TERRITORY_CODES]);
+
+  if (provinces.length > 0) {
+    items.push({ section: 'Provinces' });
+    for (const code of provinces) {
+      items.push({ value: code, label: REGION_LABELS[code] ?? code });
+    }
+  }
+  if (territories.length > 0) {
+    items.push({ section: 'Territories' });
+    for (const code of territories) {
+      items.push({ value: code, label: REGION_LABELS[code] ?? code });
+    }
+  }
+  for (const code of names) {
+    if (known.has(code)) continue;
+    items.push({ value: code, label: code });
+  }
+  return items;
+}
+
+function citiesInProvince(segments: readonly PredictiveSegment[], province: string): string[] {
+  if (province === 'all') return [];
+  const present = new Set<string>();
+  for (const segment of segments) {
+    if (segment.province.trim() !== province) continue;
+    const name = segment.city.trim();
+    if (name) present.add(name);
+  }
+  return [...present].sort((left, right) => left.localeCompare(right));
+}
+
+function freshVisibleCounts(): Record<PredictiveCategory, number> {
+  return {
+    urgent: PAGE_SIZE,
+    planRepair: PAGE_SIZE,
+    monitor: PAGE_SIZE,
+  };
+}
+
+function MaintenanceCard({
+  segment,
+  showProvince,
+}: {
+  segment: PredictiveSegment;
+  showProvince: boolean;
+}) {
+  const highRisk = isHighRisk(segment.riskWindow);
+  return (
+    <View style={styles.card}>
+      <Text style={styles.priority}>
+        Maintenance priority: {predictiveCategoryLabels[segment.category]}
+      </Text>
+      <View style={styles.riskRow}>
+        {highRisk ? <Ionicons name="warning" size={18} color={colors.pillRed} /> : null}
+        <Text style={[styles.riskWindow, highRisk ? styles.riskWindowHigh : null]}>
+          Risk timeframe: {segment.riskWindow}
+        </Text>
+      </View>
+      <Text style={styles.city}>
+        {segment.area}, {segment.city}
+      </Text>
+      {showProvince ? <Text style={styles.area}>{segment.province}</Text> : null}
+      <Text style={styles.count}>
+        ~{segment.predictedReportsNext30Days} reports expected in next 30 days
+      </Text>
+      <View style={styles.trendRow}>
+        <Ionicons
+          name={TREND_ICON[segment.trendDirection]}
+          size={16}
+          color={TREND_COLOR[segment.trendDirection]}
+        />
+        <Text style={[styles.trend, { color: TREND_COLOR[segment.trendDirection] }]}>
+          {TREND_LABEL[segment.trendDirection]}
+        </Text>
+      </View>
+      <Text style={styles.historical}>
+        Historical avg: {segment.historicalAvgReportsPer30Days} reports / 30 days
+      </Text>
+      <Text style={styles.budget}>Estimated budget: {formatPkr(segment.budgetPkr)}</Text>
+    </View>
+  );
+}
+
 export function AdminPredictiveScreen(_props: Props) {
   const [segments, setSegments] = useState<PredictiveSegment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState(0);
+  const [province, setProvince] = useState('all');
+  const [city, setCity] = useState('all');
+  const [openFilter, setOpenFilter] = useState<string | null>(null);
+  const [visibleCounts, setVisibleCounts] = useState(freshVisibleCounts);
 
   const retry = useCallback(() => {
     setRetryKey((key) => key + 1);
@@ -91,90 +220,146 @@ export function AdminPredictiveScreen(_props: Props) {
     };
   }, [retryKey]);
 
+  const provinceNames = useMemo(() => provincesFromSegments(segments), [segments]);
+  const provinceOptions = useMemo(() => regionSelectItems(provinceNames), [provinceNames]);
+  const cityNames = useMemo(
+    () => citiesInProvince(segments, province),
+    [segments, province],
+  );
+  const filtered = useMemo(() => {
+    if (province === 'all') return segments;
+    return segments.filter((segment) => {
+      if (segment.province.trim() !== province) return false;
+      if (city !== 'all' && segment.city.trim() !== city) return false;
+      return true;
+    });
+  }, [segments, province, city]);
+  const grouped = useMemo(() => {
+    const buckets: Record<PredictiveCategory, PredictiveSegment[]> = {
+      urgent: [],
+      planRepair: [],
+      monitor: [],
+    };
+    for (const segment of filtered) {
+      buckets[segment.category].push(segment);
+    }
+    return buckets;
+  }, [filtered]);
+
+  const selectProvince = (next: string) => {
+    setProvince(next);
+    setCity('all');
+    setVisibleCounts(freshVisibleCounts());
+    setOpenFilter(null);
+  };
+
+  const selectCity = (next: string) => {
+    setCity(next);
+    setVisibleCounts(freshVisibleCounts());
+    setOpenFilter(null);
+  };
+
+  const showMore = (category: PredictiveCategory) => {
+    setVisibleCounts((current) => ({
+      ...current,
+      [category]: current[category] + PAGE_SIZE,
+    }));
+  };
+
+  const showProvince = province === 'all';
+
   return (
     <AuthBackdrop>
-    <ScrollView style={styles.flex} contentContainerStyle={styles.scroll}>
-      <ScreenContainer>
-        <Text style={styles.heading}>Predictive maintenance</Text>
-        <Text style={styles.lede}>
-          Forecasts from the maintenance model, grouped by urgency. Budgets are illustrative only.
-        </Text>
+      <ScrollView style={styles.flex} contentContainerStyle={styles.scroll}>
+        <ScreenContainer>
+          <Text style={styles.heading}>Predictive maintenance</Text>
+          <Text style={styles.lede}>
+            Forecasts from the maintenance model, grouped by urgency. Budgets are illustrative only.
+          </Text>
 
-        {loading ? (
-          <View style={styles.statusBlock}>
-            <ActivityIndicator color={colors.teal} />
-          </View>
-        ) : error ? (
-          <Pressable onPress={retry} style={styles.statusBlock} accessibilityRole="button">
-            <Text style={styles.errorText}>{error}</Text>
-            <Text style={styles.retryText}>Tap to retry</Text>
-          </Pressable>
-        ) : (
-          predictiveCategories.map((category) => {
-            const items = segments.filter((segment) => segment.category === category);
-            return (
-              <View key={category} style={styles.group}>
-                <View style={styles.groupHead}>
-                  <View style={[styles.dot, { backgroundColor: CATEGORY_COLOR[category] }]} />
-                  <Text style={styles.groupTitle}>{predictiveCategoryLabels[category]}</Text>
-                  <Text style={styles.groupCount}>{items.length}</Text>
-                </View>
-                {items.length === 0 ? (
-                  <Text style={styles.empty}>No segments in this band.</Text>
-                ) : (
-                  items.map((segment) => (
-                    <View key={segment.id} style={styles.card}>
-                      <Text style={styles.priority}>
-                        Maintenance priority: {predictiveCategoryLabels[segment.category]}
-                      </Text>
-                      <View style={styles.riskRow}>
-                        {isHighRisk(segment.riskWindow) ? (
-                          <Ionicons name="warning" size={18} color={colors.pillRed} />
-                        ) : null}
-                        <Text
-                          style={[
-                            styles.riskWindow,
-                            isHighRisk(segment.riskWindow) && styles.riskWindowHigh,
-                          ]}
-                        >
-                          Risk timeframe: {segment.riskWindow}
-                        </Text>
-                      </View>
-                      <Text style={styles.city}>{segment.city}</Text>
-                      <Text style={styles.area}>{segment.area}</Text>
-                      <Text style={styles.count}>
-                        ~{segment.predictedReportsNext30Days} reports expected in next 30 days
-                      </Text>
-                      <View style={styles.trendRow}>
-                        <Ionicons
-                          name={TREND_ICON[segment.trendDirection]}
-                          size={16}
-                          color={TREND_COLOR[segment.trendDirection]}
-                        />
-                        <Text
-                          style={[
-                            styles.trend,
-                            { color: TREND_COLOR[segment.trendDirection] },
-                          ]}
-                        >
-                          {TREND_LABEL[segment.trendDirection]}
-                        </Text>
-                      </View>
-                      <Text style={styles.historical}>
-                        Historical avg: {segment.historicalAvgReportsPer30Days} reports / 30 days
-                      </Text>
-                      <Text style={styles.budget}>
-                        Estimated budget: {formatPkr(segment.budgetPkr)}
-                      </Text>
-                    </View>
-                  ))
-                )}
+          {loading ? (
+            <View style={styles.statusBlock}>
+              <ActivityIndicator color={colors.teal} />
+            </View>
+          ) : error ? (
+            <Pressable onPress={retry} style={styles.statusBlock} accessibilityRole="button">
+              <Text style={styles.errorText}>{error}</Text>
+              <Text style={styles.retryText}>Tap to retry</Text>
+            </Pressable>
+          ) : (
+            <View>
+              <View style={styles.filterRow}>
+                <FilterSelect
+                  label="Province / Territory"
+                  value={province}
+                  options={provinceOptions}
+                  onChange={selectProvince}
+                  open={openFilter === 'province'}
+                  onOpenChange={(next) => setOpenFilter(next ? 'province' : null)}
+                />
+                <FilterSelect
+                  label="City"
+                  value={city}
+                  disabled={province === 'all'}
+                  options={[
+                    { value: 'all', label: 'All cities' },
+                    ...cityNames.map((name) => ({ value: name, label: name })),
+                  ]}
+                  onChange={selectCity}
+                  open={openFilter === 'city'}
+                  onOpenChange={(next) => setOpenFilter(next ? 'city' : null)}
+                />
               </View>
-            );
-          })
-        )}
-      </ScreenContainer>
-    </ScrollView>
+
+              {filtered.length === 0 ? (
+                <Text style={styles.emptyFilter}>No areas match this filter</Text>
+              ) : (
+                predictiveCategories.map((category) => {
+                  const items = grouped[category];
+                  const visibleItems = items.slice(0, visibleCounts[category]);
+                  const label = predictiveCategoryLabels[category];
+                  return (
+                    <View key={category} style={styles.group}>
+                      <View style={styles.groupHead}>
+                        <View style={[styles.dot, { backgroundColor: CATEGORY_COLOR[category] }]} />
+                        <Text style={styles.groupTitle}>{label}</Text>
+                        <Text style={styles.groupCount}>{items.length}</Text>
+                      </View>
+                      {items.length === 0 ? (
+                        <Text style={styles.empty}>No segments in this band.</Text>
+                      ) : (
+                        <View>
+                          {visibleItems.map((segment) => (
+                            <MaintenanceCard
+                              key={segment.id}
+                              segment={segment}
+                              showProvince={showProvince}
+                            />
+                          ))}
+                          {items.length > visibleItems.length ? (
+                            <Pressable
+                              onPress={() => showMore(category)}
+                              accessibilityRole="button"
+                              accessibilityLabel={`Show more ${label}`}
+                              style={(state: WebPressableState) => [
+                                styles.showMore,
+                                webCursor,
+                                state.hovered ? styles.showMoreHover : null,
+                              ]}
+                            >
+                              <Text style={styles.showMoreText}>Show more</Text>
+                            </Pressable>
+                          ) : null}
+                        </View>
+                      )}
+                    </View>
+                  );
+                })
+              )}
+            </View>
+          )}
+        </ScreenContainer>
+      </ScrollView>
     </AuthBackdrop>
   );
 }
@@ -196,6 +381,12 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 16,
     color: colors.muted,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
   },
   statusBlock: {
     alignItems: 'center',
@@ -239,6 +430,23 @@ const styles = StyleSheet.create({
   empty: {
     color: colors.muted,
     marginBottom: 8,
+  },
+  emptyFilter: {
+    color: colors.muted,
+    marginTop: 8,
+  },
+  showMore: {
+    alignSelf: 'flex-start',
+    paddingVertical: 8,
+    paddingHorizontal: 2,
+    marginBottom: 4,
+  },
+  showMoreHover: {
+    opacity: 0.7,
+  },
+  showMoreText: {
+    color: colors.teal,
+    fontWeight: '700',
   },
   card: {
     backgroundColor: colors.white,

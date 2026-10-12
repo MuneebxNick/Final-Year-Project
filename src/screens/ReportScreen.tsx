@@ -52,6 +52,7 @@ export function ReportScreen({ navigation }: Props) {
     const [address, setAddress] = useState('');
     const [coords, setCoords] = useState<GeoCoords | undefined>();
     const [locating, setLocating] = useState(false);
+    const [locationError, setLocationError] = useState<string | null>(null);
     const [description, setDescription] = useState('');
     const [landmark, setLandmark] = useState('');
     const [sheetOpen, setSheetOpen] = useState(false);
@@ -71,6 +72,7 @@ export function ReportScreen({ navigation }: Props) {
         setUseGps(false);
         setAddress('');
         setCoords(undefined);
+        setLocationError(null);
         setDescription('');
         setLandmark('');
         setErrors({});
@@ -134,6 +136,7 @@ export function ReportScreen({ navigation }: Props) {
 
     const requestLocation = () => {
         setLocating(true);
+        setLocationError(null);
         const geo = typeof navigator !== 'undefined' ? navigator.geolocation : undefined;
         if (!geo) {
             failLocation('This device cannot provide GPS. Enter city, area, and address manually.');
@@ -148,22 +151,20 @@ export function ReportScreen({ navigation }: Props) {
                     const place = await reverseGeocode(lat, lng);
                     setUseGps(true);
                     setCoords(gps);
-                    if (place.city) {
-                        setCity(place.city);
-                        setErrors((prev) => ({ ...prev, city: undefined }));
-                    } else {
-                        Alert.alert(
-                            'City not found',
-                            'Your GPS coordinates were saved. Enter the city, area, and address yourself.',
-                        );
+                    if (place.city) setCity(place.city);
+                    if (place.area) setArea(place.area);
+                    setErrors((prev) => ({
+                        ...prev,
+                        city: place.city ? undefined : prev.city,
+                        area: place.area ? undefined : prev.area,
+                    }));
+                    if (!place.city) {
+                        setLocationError('Coordinates saved, but the city was not found. Enter the city yourself.');
                     }
                 } catch {
                     setUseGps(true);
                     setCoords(gps);
-                    Alert.alert(
-                        'Place not found',
-                        'Your GPS coordinates were saved. Enter the city, area, and address yourself.',
-                    );
+                    setLocationError('Coordinates saved, but the city could not be looked up. Enter the city yourself.');
                 } finally {
                     setLocating(false);
                 }
@@ -234,201 +235,202 @@ export function ReportScreen({ navigation }: Props) {
 
     return (
         <AuthBackdrop>
-        <SafeAreaView style={styles.flex} edges={['top']}>
-            <KeyboardAvoidingView
-                style={styles.flex}
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            >
-                <ScrollView
+            <SafeAreaView style={styles.flex} edges={['top']}>
+                <KeyboardAvoidingView
                     style={styles.flex}
-                    contentContainerStyle={styles.scroll}
-                    keyboardShouldPersistTaps="always"
+                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                 >
-                    <ScreenContainer>
-                        <Text style={styles.heading}>Report a pothole</Text>
-                        <Text style={styles.lede}>
-                            Add a photo and location. Stand a few steps back, shoot along the road rather than
-                            straight down, and keep shadows off the hole.
-                        </Text>
+                    <ScrollView
+                        style={styles.flex}
+                        contentContainerStyle={styles.scroll}
+                        keyboardShouldPersistTaps="always"
+                    >
+                        <ScreenContainer>
+                            <Text style={styles.heading}>Report a pothole</Text>
+                            <Text style={styles.lede}>
+                                Add a photo and location. Stand a few steps back, shoot along the road rather than
+                                straight down, and keep shadows off the hole.
+                            </Text>
 
-                        <View style={isWide ? styles.split : undefined}>
-                            <View style={[styles.photoBox, isWide && styles.photoBoxWide]}>
-                                {photoUri ? (
-                                    <>
-                                        <Image source={{ uri: photoUri }} style={styles.photo} />
-                                        <View style={styles.photoActions}>
-                                            <Pressable style={[styles.photoBtn, webCursor]} onPress={openPhotoSource}>
-                                                <Text style={styles.photoBtnText}>Retake</Text>
-                                            </Pressable>
-                                            <Pressable
-                                                style={[styles.photoBtn, styles.photoBtnGhost, webCursor]}
-                                                onPress={() => setPhotoUri(null)}
-                                            >
-                                                <Text style={styles.photoBtnGhostText}>Remove</Text>
-                                            </Pressable>
-                                        </View>
-                                    </>
-                                ) : (
-                                    <Pressable
-                                        onPress={openPhotoSource}
-                                        style={[styles.photoEmpty, webCursor]}
-                                        accessibilityRole="button"
-                                    >
-                                        <Ionicons name="camera-outline" size={40} color={colors.tealMid} />
-                                        <Text style={styles.photoTitle}>
-                                            {Platform.OS === 'web' && isWide
-                                                ? 'Choose a photo from your gallery'
-                                                : 'Take photo or choose from gallery'}
-                                        </Text>
-                                        <Text style={styles.photoHint}>
-                                            {Platform.OS === 'web' && isWide
-                                                ? 'Click to add a photo'
-                                                : 'Tap to add a photo'}
-                                        </Text>
-                                    </Pressable>
-                                )}
-                            </View>
-
-                            <View style={isWide ? styles.formCol : undefined}>
-                                <TextField
-                                    label="City"
-                                    placeholder="City or town"
-                                    value={city}
-                                    onChangeText={(text) => {
-                                        setCity(text);
-                                        setErrors((prev) => ({ ...prev, city: undefined }));
-                                    }}
-                                    error={errors.city}
-                                    icon="business-outline"
-                                    autoCapitalize="words"
-                                    autoCorrect
-                                />
-
-                                <TextField
-                                    label="Area"
-                                    placeholder="Neighbourhood, block, or sector"
-                                    value={area}
-                                    onChangeText={setArea}
-                                    error={errors.area}
-                                    icon="map-outline"
-                                    autoCapitalize="sentences"
-                                    autoCorrect
-                                />
-
-                                <Text style={styles.section}>Road type</Text>
-                                <View style={styles.chips}>
-                                    {roadTypes.map((type) => {
-                                        const selected = roadType === type;
-                                        return (
-                                            <Pressable
-                                                key={type}
-                                                onPress={() => setRoadType(type)}
-                                                style={[styles.chip, webCursor, selected && styles.chipSelected]}
-                                            >
-                                                <Text style={[styles.chipLabel, selected && styles.chipLabelSelected]}>
-                                                    {roadTypeLabels[type]}
-                                                </Text>
-                                            </Pressable>
-                                        );
-                                    })}
+                            <View style={isWide ? styles.split : undefined}>
+                                <View style={[styles.photoBox, isWide && styles.photoBoxWide]}>
+                                    {photoUri ? (
+                                        <>
+                                            <Image source={{ uri: photoUri }} style={styles.photo} />
+                                            <View style={styles.photoActions}>
+                                                <Pressable style={[styles.photoBtn, webCursor]} onPress={openPhotoSource}>
+                                                    <Text style={styles.photoBtnText}>Retake</Text>
+                                                </Pressable>
+                                                <Pressable
+                                                    style={[styles.photoBtn, styles.photoBtnGhost, webCursor]}
+                                                    onPress={() => setPhotoUri(null)}
+                                                >
+                                                    <Text style={styles.photoBtnGhostText}>Remove</Text>
+                                                </Pressable>
+                                            </View>
+                                        </>
+                                    ) : (
+                                        <Pressable
+                                            onPress={openPhotoSource}
+                                            style={[styles.photoEmpty, webCursor]}
+                                            accessibilityRole="button"
+                                        >
+                                            <Ionicons name="camera-outline" size={40} color={colors.tealMid} />
+                                            <Text style={styles.photoTitle}>
+                                                {Platform.OS === 'web' && isWide
+                                                    ? 'Choose a photo from your gallery'
+                                                    : 'Take photo or choose from gallery'}
+                                            </Text>
+                                            <Text style={styles.photoHint}>
+                                                {Platform.OS === 'web' && isWide
+                                                    ? 'Click to add a photo'
+                                                    : 'Tap to add a photo'}
+                                            </Text>
+                                        </Pressable>
+                                    )}
                                 </View>
 
-                                <Text style={styles.section}>Location</Text>
-                                <Pressable
-                                    onPress={requestLocation}
-                                    style={(state: WebPressableState) => [
-                                        styles.gpsRow,
-                                        webCursor,
-                                        useGps && styles.gpsRowOn,
-                                        state.hovered && styles.gpsHover,
-                                    ]}
-                                >
-                                    <Ionicons
-                                        name="navigate-outline"
-                                        size={20}
-                                        color={useGps ? colors.blue : colors.teal}
+                                <View style={isWide ? styles.formCol : undefined}>
+                                    <TextField
+                                        label="City"
+                                        placeholder="City or town"
+                                        value={city}
+                                        onChangeText={(text) => {
+                                            setCity(text);
+                                            setErrors((prev) => ({ ...prev, city: undefined }));
+                                        }}
+                                        error={errors.city}
+                                        icon="business-outline"
+                                        autoCapitalize="words"
+                                        autoCorrect
                                     />
-                                    <Text style={styles.gpsLabel}>
-                                        {locating ? 'Finding location…' : 'Use Current Location'}
-                                    </Text>
-                                </Pressable>
-                                {coords ? (
-                                    <Text style={styles.gpsCoords}>
-                                        GPS: {coords.lat.toFixed(6)}, {coords.lng.toFixed(6)}
-                                    </Text>
-                                ) : null}
 
-                                <TextField
-                                    label="Address"
-                                    placeholder="Street, house number, or nearby road"
-                                    value={address}
-                                    onChangeText={(text) => {
-                                        setAddress(text);
-                                        setUseGps(false);
-                                    }}
-                                    error={errors.address}
-                                    icon="location-outline"
-                                    autoCapitalize="sentences"
-                                    autoCorrect
-                                />
-                                <TextField
-                                    label="Landmark (optional)"
-                                    placeholder="Nearby shop, mosque, or junction"
-                                    value={landmark}
-                                    onChangeText={setLandmark}
-                                    icon="flag-outline"
-                                    autoCapitalize="sentences"
-                                />
-                                <TextField
-                                    label="Description (optional)"
-                                    placeholder="How bad is the damage? Which lane?"
-                                    value={description}
-                                    onChangeText={setDescription}
-                                    icon="create-outline"
-                                    autoCapitalize="sentences"
-                                    multiline
-                                    numberOfLines={4}
-                                />
+                                    <TextField
+                                        label="Area"
+                                        placeholder="Neighbourhood, block, or sector"
+                                        value={area}
+                                        onChangeText={setArea}
+                                        error={errors.area}
+                                        icon="map-outline"
+                                        autoCapitalize="sentences"
+                                        autoCorrect
+                                    />
 
-                                {analyzeError ? <Text style={styles.analyzeError}>{analyzeError}</Text> : null}
-                                <PrimaryButton title="Analyze photo" onPress={analyze} style={styles.submit} loading={analyzing} />
-                                <OutlineButton title="Clear form" onPress={resetForm} style={styles.clear} />
+                                    <Text style={styles.section}>Road type</Text>
+                                    <View style={styles.chips}>
+                                        {roadTypes.map((type) => {
+                                            const selected = roadType === type;
+                                            return (
+                                                <Pressable
+                                                    key={type}
+                                                    onPress={() => setRoadType(type)}
+                                                    style={[styles.chip, webCursor, selected && styles.chipSelected]}
+                                                >
+                                                    <Text style={[styles.chipLabel, selected && styles.chipLabelSelected]}>
+                                                        {roadTypeLabels[type]}
+                                                    </Text>
+                                                </Pressable>
+                                            );
+                                        })}
+                                    </View>
+
+                                    <Text style={styles.section}>Location</Text>
+                                    <Pressable
+                                        onPress={requestLocation}
+                                        style={(state: WebPressableState) => [
+                                            styles.gpsRow,
+                                            webCursor,
+                                            useGps && styles.gpsRowOn,
+                                            state.hovered && styles.gpsHover,
+                                        ]}
+                                    >
+                                        <Ionicons
+                                            name="navigate-outline"
+                                            size={20}
+                                            color={useGps ? colors.blue : colors.teal}
+                                        />
+                                        <Text style={styles.gpsLabel}>
+                                            {locating ? 'Finding location…' : 'Use Current Location'}
+                                        </Text>
+                                    </Pressable>
+                                    {coords ? (
+                                        <Text style={styles.gpsCoords}>
+                                            GPS: {coords.lat.toFixed(6)}, {coords.lng.toFixed(6)}
+                                        </Text>
+                                    ) : null}
+                                    {locationError ? <Text style={styles.locationError}>{locationError}</Text> : null}
+
+                                    <TextField
+                                        label="Address"
+                                        placeholder="Street, house number, or nearby road"
+                                        value={address}
+                                        onChangeText={(text) => {
+                                            setAddress(text);
+                                            setUseGps(false);
+                                        }}
+                                        error={errors.address}
+                                        icon="location-outline"
+                                        autoCapitalize="sentences"
+                                        autoCorrect
+                                    />
+                                    <TextField
+                                        label="Landmark (optional)"
+                                        placeholder="Nearby shop, mosque, or junction"
+                                        value={landmark}
+                                        onChangeText={setLandmark}
+                                        icon="flag-outline"
+                                        autoCapitalize="sentences"
+                                    />
+                                    <TextField
+                                        label="Description (optional)"
+                                        placeholder="How bad is the damage? Which lane?"
+                                        value={description}
+                                        onChangeText={setDescription}
+                                        icon="create-outline"
+                                        autoCapitalize="sentences"
+                                        multiline
+                                        numberOfLines={4}
+                                    />
+
+                                    {analyzeError ? <Text style={styles.analyzeError}>{analyzeError}</Text> : null}
+                                    <PrimaryButton title="Analyze photo" onPress={analyze} style={styles.submit} loading={analyzing} />
+                                    <OutlineButton title="Clear form" onPress={resetForm} style={styles.clear} />
+                                </View>
                             </View>
-                        </View>
-                    </ScreenContainer>
-                </ScrollView>
+                        </ScreenContainer>
+                    </ScrollView>
 
-                <Modal
-                    visible={sheetOpen}
-                    animationType="slide"
-                    transparent
-                    onRequestClose={() => setSheetOpen(false)}
-                >
-                    <Pressable style={styles.sheetBackdrop} onPress={() => setSheetOpen(false)}>
-                        <Pressable style={styles.sheet} onPress={() => { }}>
-                            <View style={styles.handle} />
-                            <Pressable style={styles.sheetRow} onPress={() => pick('camera')}>
-                                <MaterialIcons name="photo-camera" size={22} color={colors.teal} />
-                                <Text style={styles.sheetLabel}>Take photo</Text>
-                            </Pressable>
-                            <Pressable style={styles.sheetRow} onPress={() => pick('gallery')}>
-                                <MaterialIcons name="photo-library" size={22} color={colors.teal} />
-                                <Text style={styles.sheetLabel}>Choose from gallery</Text>
+                    <Modal
+                        visible={sheetOpen}
+                        animationType="slide"
+                        transparent
+                        onRequestClose={() => setSheetOpen(false)}
+                    >
+                        <Pressable style={styles.sheetBackdrop} onPress={() => setSheetOpen(false)}>
+                            <Pressable style={styles.sheet} onPress={() => { }}>
+                                <View style={styles.handle} />
+                                <Pressable style={styles.sheetRow} onPress={() => pick('camera')}>
+                                    <MaterialIcons name="photo-camera" size={22} color={colors.teal} />
+                                    <Text style={styles.sheetLabel}>Take photo</Text>
+                                </Pressable>
+                                <Pressable style={styles.sheetRow} onPress={() => pick('gallery')}>
+                                    <MaterialIcons name="photo-library" size={22} color={colors.teal} />
+                                    <Text style={styles.sheetLabel}>Choose from gallery</Text>
+                                </Pressable>
                             </Pressable>
                         </Pressable>
-                    </Pressable>
-                </Modal>
-            </KeyboardAvoidingView>
-        </SafeAreaView>
+                    </Modal>
+                </KeyboardAvoidingView>
+            </SafeAreaView>
         </AuthBackdrop>
     );
 }
 
 const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-    backgroundColor: 'transparent',
-  },
+    flex: {
+        flex: 1,
+        backgroundColor: 'transparent',
+    },
     scroll: {
         flexGrow: 1,
     },
@@ -567,6 +569,13 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         color: colors.muted,
         fontSize: 13,
+    },
+    locationError: {
+        marginTop: -4,
+        marginBottom: 12,
+        color: colors.severityLarge,
+        fontSize: 13,
+        lineHeight: 18,
     },
     analyzeError: {
         marginTop: 8,

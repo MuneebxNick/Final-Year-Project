@@ -18,13 +18,24 @@ export type FilterSelectOption<T extends string> = {
   label: string;
 };
 
+export type FilterSelectSection = {
+  section: string;
+};
+
+export type FilterSelectItem<T extends string> = FilterSelectOption<T> | FilterSelectSection;
+
+function isSection<T extends string>(item: FilterSelectItem<T>): item is FilterSelectSection {
+  return 'section' in item;
+}
+
 type Props<T extends string> = {
   label: string;
   value: T;
-  options: FilterSelectOption<T>[];
+  options: readonly FilterSelectItem<T>[];
   onChange: (value: T) => void;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  disabled?: boolean;
 };
 
 export function FilterSelect<T extends string>({
@@ -34,14 +45,20 @@ export function FilterSelect<T extends string>({
   onChange,
   open,
   onOpenChange,
+  disabled = false,
 }: Props<T>) {
   const anchorRef = useRef<View>(null);
   const { height: windowHeight } = useWindowDimensions();
   const [menu, setMenu] = useState({ x: 0, y: 0, width: 150 });
 
-  const selectedLabel = options.find((item) => item.value === value)?.label ?? '';
+  const selectedLabel =
+    options.find(
+      (item): item is FilterSelectOption<T> => !isSection(item) && item.value === value,
+    )?.label ?? '';
+  const menuCap = options.some(isSection) ? 440 : 280;
 
   const toggle = () => {
+    if (disabled) return;
     if (open) {
       onOpenChange(false);
       return;
@@ -58,14 +75,16 @@ export function FilterSelect<T extends string>({
     <View ref={anchorRef} collapsable={false} style={styles.wrap}>
       <Pressable
         onPress={toggle}
+        disabled={disabled}
         accessibilityRole="button"
         accessibilityLabel={label}
-        accessibilityState={{ expanded: open }}
+        accessibilityState={{ expanded: open && !disabled, disabled }}
         style={(state: WebPressableState) => [
           styles.control,
-          webCursor,
-          open && styles.controlOpen,
-          state.hovered && styles.controlHover,
+          !disabled && webCursor,
+          open && !disabled && styles.controlOpen,
+          !disabled && state.hovered && styles.controlHover,
+          disabled && styles.controlDisabled,
         ]}
       >
         <View style={styles.texts}>
@@ -81,7 +100,7 @@ export function FilterSelect<T extends string>({
         />
       </Pressable>
 
-      <Modal visible={open} transparent animationType="none" onRequestClose={close}>
+      <Modal visible={open && !disabled} transparent animationType="none" onRequestClose={close}>
         <View style={styles.modalRoot} pointerEvents="box-none">
           <Pressable style={styles.backdrop} onPress={close} accessibilityRole="button" />
           <View
@@ -91,12 +110,19 @@ export function FilterSelect<T extends string>({
                 top: menu.y,
                 left: menu.x,
                 width: Math.max(menu.width, 150),
-                maxHeight: Math.min(280, Math.max(120, windowHeight - menu.y - 16)),
+                maxHeight: Math.min(menuCap, Math.max(120, windowHeight - menu.y - 16)),
               },
             ]}
           >
             <ScrollView keyboardShouldPersistTaps="handled" bounces={false}>
               {options.map((item) => {
+                if (isSection(item)) {
+                  return (
+                    <View key={`section-${item.section}`} accessibilityRole="header" style={styles.section}>
+                      <Text style={styles.sectionLabel}>{item.section}</Text>
+                    </View>
+                  );
+                }
                 const selected = item.value === value;
                 return (
                   <Pressable
@@ -152,6 +178,9 @@ const styles = StyleSheet.create({
     borderColor: colors.blueMid,
     borderWidth: 1.4,
   },
+  controlDisabled: {
+    opacity: 0.5,
+  },
   texts: {
     flex: 1,
     minWidth: 0,
@@ -185,6 +214,18 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     overflow: 'hidden',
     ...shadows.card,
+  },
+  section: {
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 2,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+  },
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.muted,
   },
   option: {
     paddingHorizontal: 16,

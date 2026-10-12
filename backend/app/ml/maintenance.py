@@ -1,21 +1,20 @@
-"""Startup-cached Prophet models and ranked predictive-maintenance segments."""
+"""Startup-cached area forecasts for predictive maintenance.
+
+Prophet is fit offline by train_maintenance_model.py. Startup only reads
+maintenance_forecasts_v2.csv and derives risk, priority, and budget.
+Priority percentiles are assigned once on the full nationwide table.
+"""
 
 from __future__ import annotations
 
 import logging
 import math
-import warnings
 from pathlib import Path
-from typing import Any
 
 logger = logging.getLogger(__name__)
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
-HISTORY_PATH = DATA_DIR / "synthetic_maintenance_data.csv"
-FORECASTS_PATH = DATA_DIR / "maintenance_forecasts.csv"
-
-REL_STABLE = 0.05
-ABS_EPS = 0.25
+FORECASTS_PATH = DATA_DIR / "maintenance_forecasts_v2.csv"
 
 _BUDGET_BASE = 100_000
 _COST_PER_REPORT = {
@@ -26,10 +25,12 @@ _COST_PER_REPORT = {
 
 _FORECAST_COLUMNS = (
     "segment_id",
+    "province",
     "city",
     "area",
     "road_type",
     "predicted_reports_next_30_days",
+    "historical_avg_reports_per_30_days",
     "trend_direction",
 )
 
@@ -37,33 +38,7 @@ HIGH_RISK_WINDOW = "High risk within 1-2 weeks"
 MODERATE_RISK_WINDOW = "Moderate risk within 3-4 weeks"
 LOW_RISK_WINDOW = "Low risk (30+ days)"
 
-_models: dict[str, Any] = {}
 _segments: list[dict] | None = None
-
-
-def _silence_prophet() -> None:
-    """Keep Stan/cmdstan chatter out of startup logs."""
-    logging.getLogger("matplotlib").setLevel(logging.CRITICAL)
-    logging.getLogger("matplotlib.font_manager").setLevel(logging.CRITICAL)
-    warnings.filterwarnings("ignore", message="Importing plotly failed.*")
-    for name in ("prophet", "cmdstanpy", "stan"):
-        log = logging.getLogger(name)
-        log.setLevel(logging.CRITICAL)
-        log.propagate = False
-    try:
-        import cmdstanpy
-
-        cmdstanpy.utils.get_logger().setLevel(logging.CRITICAL)
-    except Exception:
-        pass
-
-
-def _trend_direction(last_trend: float, next_trend: float) -> str:
-    delta = next_trend - last_trend
-    rel = delta / max(abs(last_trend), ABS_EPS)
-    if abs(delta) <= ABS_EPS or abs(rel) <= REL_STABLE:
-        return "stable"
-    return "increasing" if delta > 0 else "decreasing"
 
 
 def _budget_estimate_pkr(road_type: str, predicted_reports_next_30_days: int) -> int:
@@ -85,11 +60,6 @@ def derive_risk_window(trend: str, predicted: int, historical_avg: float) -> str
     return LOW_RISK_WINDOW
 
 
-def _historical_avg_by_segment(frame: Any) -> dict[str, float]:
-    means = frame.groupby("segment_id", sort=False)["report_count"].mean()
-    return {str(sid): float(val) for sid, val in means.items()}
-
-
 def _assign_categories(rows: list[dict]) -> None:
     """Mutate rows in place with percentile categories (already sorted desc)."""
     n = len(rows)
@@ -106,55 +76,6 @@ def _assign_categories(rows: list[dict]) -> None:
             row["category"] = "Monitor"
 
 
-def _fit_models(frame: Any) -> dict[str, Any]:
-    import pandas as pd
-    from prophet import Prophet
-
-    models: dict[str, Any] = {}
-    for segment_id, group in frame.groupby("segment_id", sort=True):
-        history = (
-            group.rename(columns={"month": "ds", "report_count": "y"})[["ds", "y"]]
-            .copy()
-            .sort_values("ds")
-        )
-        history["ds"] = pd.to_datetime(history["ds"])
-        model = Prophet(
-            yearly_seasonality=False,
-            weekly_seasonality=False,
-            daily_seasonality=False,
-            n_changepoints=3,
-            changepoint_prior_scale=0.05,
-        )
-        model.fit(history)
-        models[str(segment_id)] = model
-    return models
-
-
-def _forecast_from_models(frame: Any, models: dict[str, Any]) -> list[dict]:
-    rows: list[dict] = []
-    for segment_id, group in frame.groupby("segment_id", sort=True):
-        model = models.get(str(segment_id))
-        if model is None:
-            continue
-        meta = group.iloc[0]
-        future = model.make_future_dataframe(periods=1, freq="MS")
-        forecast = model.predict(future)
-        predicted = max(0, round(float(forecast["yhat"].iloc[-1])))
-        last_trend = float(forecast["trend"].iloc[-2])
-        next_trend = float(forecast["trend"].iloc[-1])
-        rows.append(
-            {
-                "segment_id": str(meta["segment_id"]),
-                "city": str(meta["city"]),
-                "area": str(meta["area"]),
-                "road_type": str(meta["road_type"]),
-                "predicted_reports_next_30_days": int(predicted),
-                "trend_direction": _trend_direction(last_trend, next_trend),
-            }
-        )
-    return rows
-
-
 def _load_forecasts_csv(path: Path) -> list[dict] | None:
     try:
         import pandas as pd
@@ -164,19 +85,36 @@ def _load_forecasts_csv(path: Path) -> list[dict] | None:
         frame = pd.read_csv(path)
         missing = [col for col in _FORECAST_COLUMNS if col not in frame.columns]
         if missing or frame.empty:
+            logger.warning(
+                "Maintenance forecasts CSV missing columns %s or empty (%s).",
+                missing,
+                path,
+            )
+            return None
+        if frame.loc[:, list(_FORECAST_COLUMNS)].isna().any().any():
+            logger.warning(
+                "Maintenance forecasts CSV has nulls in required columns (%s).",
+                path,
+            )
             return None
         rows: list[dict] = []
         for row in frame.itertuples(index=False):
+            predicted = int(row.predicted_reports_next_30_days)
+            avg = round(float(row.historical_avg_reports_per_30_days), 2)
+            trend = str(row.trend_direction)
+            road_type = str(row.road_type)
             rows.append(
                 {
                     "segment_id": str(row.segment_id),
+                    "province": str(row.province),
                     "city": str(row.city),
                     "area": str(row.area),
-                    "road_type": str(row.road_type),
-                    "predicted_reports_next_30_days": int(
-                        row.predicted_reports_next_30_days
-                    ),
-                    "trend_direction": str(row.trend_direction),
+                    "road_type": road_type,
+                    "predicted_reports_next_30_days": predicted,
+                    "historical_avg_reports_per_30_days": avg,
+                    "trend_direction": trend,
+                    "risk_window": derive_risk_window(trend, predicted, avg),
+                    "budget_estimate_pkr": _budget_estimate_pkr(road_type, predicted),
                 }
             )
         return rows
@@ -186,61 +124,30 @@ def _load_forecasts_csv(path: Path) -> list[dict] | None:
 
 
 def load_maintenance() -> None:
-    """Fit Prophet models and cache enriched segment forecasts.
+    """Read cached area forecasts and derive risk, priority, and budget.
 
     Failures are logged and leave the cache empty so
     /api/predictive-maintenance can return 503 instead of crashing the app.
     """
-    global _models, _segments
-    _models = {}
+    global _segments
     _segments = None
     try:
-        import pandas as pd
-
-        _silence_prophet()
-
-        if not HISTORY_PATH.is_file():
+        if not FORECASTS_PATH.is_file():
             logger.warning(
-                "Maintenance history CSV missing (%s); "
+                "Maintenance forecasts CSV missing (%s); "
                 "/api/predictive-maintenance will return 503.",
-                HISTORY_PATH,
+                FORECASTS_PATH,
             )
             return
-
-        frame = pd.read_csv(HISTORY_PATH)
-        required = ("segment_id", "city", "area", "road_type", "month", "report_count")
-        missing = [col for col in required if col not in frame.columns]
-        if missing:
-            logger.warning(
-                "Maintenance history CSV missing columns %s; "
-                "/api/predictive-maintenance will return 503.",
-                missing,
-            )
-            return
-        if frame.empty:
-            logger.warning(
-                "Maintenance history CSV is empty; "
-                "/api/predictive-maintenance will return 503."
-            )
-            return
-
-        _models = _fit_models(frame)
 
         forecast_rows = _load_forecasts_csv(FORECASTS_PATH)
         if forecast_rows is None:
-            forecast_rows = _forecast_from_models(frame, _models)
-
-        avgs = _historical_avg_by_segment(frame)
-        for row in forecast_rows:
-            predicted = int(row["predicted_reports_next_30_days"])
-            avg = round(avgs.get(str(row["segment_id"]), 0.0), 2)
-            row["historical_avg_reports_per_30_days"] = avg
-            row["risk_window"] = derive_risk_window(
-                str(row["trend_direction"]), predicted, avg
+            logger.warning(
+                "Maintenance forecasts CSV unusable (%s); "
+                "/api/predictive-maintenance will return 503.",
+                FORECASTS_PATH,
             )
-            row["budget_estimate_pkr"] = _budget_estimate_pkr(
-                row["road_type"], predicted
-            )
+            return
 
         forecast_rows.sort(
             key=lambda r: int(r["predicted_reports_next_30_days"]),
@@ -251,27 +158,33 @@ def load_maintenance() -> None:
             row["priority"] = row["category"]
         _segments = forecast_rows
         logger.info(
-            "Maintenance models loaded (%d segments) from %s",
+            "Maintenance forecasts loaded (%d segments) from %s",
             len(_segments),
-            HISTORY_PATH,
+            FORECASTS_PATH,
         )
     except Exception:
         logger.exception(
-            "Failed to load maintenance models; "
+            "Failed to load maintenance forecasts; "
             "/api/predictive-maintenance will return 503."
         )
-        _models = {}
         _segments = None
 
 
 def list_segments(
+    province: str | None = None,
     city: str | None = None,
     category: str | None = None,
 ) -> list[dict] | None:
-    """Return cached segments, optionally filtered. None if cache unavailable."""
+    """Return cached segments, optionally filtered. None if cache unavailable.
+
+    Filters combine with AND. Priority is not recomputed on the subset.
+    """
     if _segments is None:
         return None
     rows = _segments
+    if province is not None:
+        needle = province.strip().lower()
+        rows = [r for r in rows if str(r["province"]).lower() == needle]
     if city is not None:
         needle = city.strip().lower()
         rows = [r for r in rows if str(r["city"]).lower() == needle]

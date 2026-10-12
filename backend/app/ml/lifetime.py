@@ -1,4 +1,10 @@
-"""Load the lifetime Random Forest once and run encoded predictions."""
+"""Load the lifetime Random Forest once and run encoded predictions.
+
+Output is a risk-based recommended repair SLA window (days), not a claim of
+physical pavement failure from a single 2D photo. Features: image severity,
+capped bbox area%, road class as traffic/axle-load tier, and live weather
+(rain, temperature, season).
+"""
 
 from __future__ import annotations
 
@@ -14,6 +20,10 @@ from ..services.weather_service import get_weather
 logger = logging.getLogger(__name__)
 
 _KARACHI = ZoneInfo("Asia/Karachi")
+
+# Close-up photos inflate area%; cap before scoring so severity + road + weather dominate.
+BBOX_CAP_PCT = 20.0
+
 FEATURE_ORDER = [
     "severity",
     "bounding_box_percentage",
@@ -35,6 +45,23 @@ _ROAD_ALIASES = {
     "localroad": "Simple Road",
 }
 _TRAFFIC_ALIASES = {"low": "Low", "medium": "Medium", "high": "High"}
+_SEASON_ALIASES = {
+    "winter": "Winter",
+    "spring": "Spring",
+    "summer": "Summer",
+    "monsoon": "Monsoon",
+    "autumn": "Autumn",
+    "fall": "Autumn",
+    "postmonsoon": "Autumn",
+    "post-monsoon": "Autumn",
+}
+
+# Highway > Service Road > Local (Simple Road) as axle-load / traffic tier.
+_TRAFFIC_FROM_ROAD = {
+    "Highway": "High",
+    "Service Road": "Medium",
+    "Simple Road": "Low",
+}
 
 _model: Any | None = None
 _encoders: dict[str, Any] | None = None
@@ -63,6 +90,21 @@ def canonicalize_traffic_density(value: str) -> str:
     if key not in _TRAFFIC_ALIASES:
         raise ValueError("traffic_density must be Low, Medium, or High")
     return _TRAFFIC_ALIASES[key]
+
+
+def traffic_density_from_road_type(road_type: str) -> str:
+    """Derive traffic density from road class — sole traffic/axle-load proxy."""
+    road_label = canonicalize_road_type(road_type)
+    return _TRAFFIC_FROM_ROAD[road_label]
+
+
+def canonicalize_season(value: str) -> str:
+    key = _compact(value)
+    if key not in _SEASON_ALIASES:
+        raise ValueError(
+            "season must be Spring, Summer, Monsoon, Autumn, or Winter"
+        )
+    return _SEASON_ALIASES[key]
 
 
 def load_lifetime_model() -> None:
@@ -115,12 +157,31 @@ def _label_to_int(encoders: dict[str, Any], feature: str, label: str) -> int:
     return int(mapping[label])
 
 
-def _urgency_note(days: int) -> str:
+def _priority_band(days: int) -> str:
+    """SLA urgency band for the recommended repair window."""
     if days < 7:
         return "Critical"
+    if days <= 14:
+        return "High"
     if days <= 30:
         return "Moderate"
-    return "Low urgency"
+    return "Routine"
+
+
+def _contributing_factors(
+    *,
+    severity: str,
+    road_type: str,
+    rainfall_probability: float,
+    temperature_celsius: float,
+    season: str,
+) -> str:
+    rain = int(round(float(rainfall_probability)))
+    temp = int(round(float(temperature_celsius)))
+    return (
+        f"Severity: {severity} · Road class: {road_type} · "
+        f"Rain: {rain}% · Temp: {temp}°C · Season: {season}"
+    )
 
 
 def predict_lifetime(
@@ -128,7 +189,7 @@ def predict_lifetime(
     severity: str,
     bounding_box_percentage: float,
     road_type: str,
-    traffic_density: str,
+    traffic_density: str | None = None,
     location: str,
     model: Any | None = None,
     encoders: dict[str, Any] | None = None,
@@ -140,31 +201,48 @@ def predict_lifetime(
 
     severity_label = canonicalize_severity(severity)
     road_label = canonicalize_road_type(road_type)
-    traffic_label = canonicalize_traffic_density(traffic_density)
+    # Ignore client traffic_density — road class is the sole load tier.
+    traffic_label = traffic_density_from_road_type(road_label)
+    _ = traffic_density  # accepted for API compat; not used independently
     weather = get_weather(location)
 
-    season_label = str(weather.get("season") or "")
+    season_label = canonicalize_season(str(weather.get("season") or ""))
+    rain = float(weather["rainfall_probability"])
+    temp = float(weather["temperature_celsius"])
+    bbox_raw = float(bounding_box_percentage)
+    bbox_for_model = min(max(0.0, bbox_raw), BBOX_CAP_PCT)
+
     features = {
         "severity": _label_to_int(maps, "severity", severity_label),
-        "bounding_box_percentage": float(bounding_box_percentage),
+        "bounding_box_percentage": bbox_for_model,
         "road_type": _label_to_int(maps, "road_type", road_label),
         "traffic_density": _label_to_int(maps, "traffic_density", traffic_label),
-        "rainfall_probability": float(weather["rainfall_probability"]),
-        "temperature_celsius": float(weather["temperature_celsius"]),
+        "rainfall_probability": rain,
+        "temperature_celsius": temp,
         "season": _label_to_int(maps, "season", season_label),
     }
     vector = [features[name] for name in FEATURE_ORDER]
 
     raw = fitted.predict([vector])[0]
     days = max(2, min(60, int(round(float(raw)))))
+    band = _priority_band(days)
     deadline = (datetime.now(_KARACHI).date() + timedelta(days=days)).isoformat()
+    factors = _contributing_factors(
+        severity=severity_label,
+        road_type=road_label,
+        rainfall_probability=rain,
+        temperature_celsius=temp,
+        season=season_label,
+    )
     return {
         "days_until_critical": days,
         "recommended_repair_deadline": deadline,
-        "urgency_note": _urgency_note(days),
+        "urgency_note": band,
+        "priority_band": band,
+        "contributing_factors": factors,
         "inputs": {
             "severity": severity_label,
-            "bounding_box_percentage": bounding_box_percentage,
+            "bounding_box_percentage": bbox_raw,
             "road_type": road_label,
             "traffic_density": traffic_label,
             "location": location,

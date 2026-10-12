@@ -9,7 +9,14 @@ from sqlalchemy.orm import Session, joinedload
 from ..auth import require_citizen
 from ..db import get_db
 from ..models import Report, User
-from ..schemas import DetectionBox, ReportCreate, ReportLocationOut, ReportOut, report_to_out
+from ..schemas import (
+    DetectionBox,
+    ReportCreate,
+    ReportLocationOut,
+    ReportOut,
+    _overlay_city_area,
+    report_to_out,
+)
 
 router = APIRouter()
 
@@ -104,16 +111,22 @@ def list_locations(
             Report.status != "resolved",
         )
     ).all()
-    return [
-        ReportLocationOut(
-            lat=row.lat,
-            lng=row.lng,
-            severity=row.severity,  # type: ignore[arg-type]
-            city=row.city,
+    located: list[ReportLocationOut] = []
+    for row in rows:
+        if row.lat is None or row.lng is None:
+            continue
+        # Stored city and area are kept. Geocoding fills only a blank field.
+        city, area = _overlay_city_area(row)
+        located.append(
+            ReportLocationOut(
+                lat=row.lat,
+                lng=row.lng,
+                severity=row.severity,  # type: ignore[arg-type]
+                city=city,
+                area=area,
+            )
         )
-        for row in rows
-        if row.lat is not None and row.lng is not None
-    ]
+    return located
 
 
 @router.get("/{report_id}", response_model=ReportOut)

@@ -79,7 +79,7 @@ class YoloDetectResponse(BaseModel):
     message: str | None = None
 
 
-WeatherSeason = Literal["Monsoon", "Summer", "Winter"]
+WeatherSeason = Literal["Spring", "Summer", "Monsoon", "Autumn", "Winter"]
 WeatherSource = Literal["open-meteo", "fallback"]
 WeatherCondition = Literal["Clear", "Cloudy", "Rainy"]
 
@@ -108,6 +108,7 @@ MaintenanceRiskWindow = Literal[
 
 class PredictiveMaintenanceSegment(BaseModel):
     segment_id: str
+    province: str
     city: str
     area: str
     road_type: str
@@ -126,7 +127,7 @@ class ReverseGeocodeOut(BaseModel):
     address: str = ""
 
 
-LifetimeUrgency = Literal["Critical", "Moderate", "Low urgency"]
+LifetimeUrgency = Literal["Critical", "High", "Moderate", "Routine"]
 
 _SEVERITY_CANONICAL = {"small": "Small", "medium": "Medium", "large": "Large"}
 _ROAD_CANONICAL = {
@@ -200,6 +201,8 @@ class LifetimePredictResponse(CamelModel):
     days_until_critical: int
     recommended_repair_deadline: str
     urgency_note: LifetimeUrgency
+    priority_band: LifetimeUrgency
+    contributing_factors: str
     inputs: LifetimePredictInputs
     weather: LifetimeWeatherOut
 
@@ -259,6 +262,7 @@ class ReportLocationOut(CamelModel):
     lng: float
     severity: Severity
     city: str
+    area: str = ""
 
 
 class ReportCreate(CamelModel):
@@ -365,20 +369,20 @@ def _cached_reverse_geocode(lat: float, lng: float) -> dict[str, str] | None:
 
 
 def _overlay_city_area(row: ReportRow) -> tuple[str, str]:
-    city = row.city or ""
-    area = row.area or ""
+    city = (row.city or "").strip()
+    area = (row.area or "").strip()
+    if city and area:
+        return city, area
     if row.lat is None or row.lng is None:
         return city, area
     geo = _cached_reverse_geocode(row.lat, row.lng)
     if not geo:
         return city, area
-    geo_city = geo.get("city") or ""
-    geo_area = geo.get("area") or ""
-    if not geo_city and not geo_area:
-        return city, area
-    if geo_city:
-        return geo_city, geo_area
-    return city, geo_area or area
+    if not city:
+        city = (geo.get("city") or "").strip()
+    if not area:
+        area = (geo.get("area") or "").strip()
+    return city, area
 
 
 def report_to_out(row: ReportRow) -> ReportOut:

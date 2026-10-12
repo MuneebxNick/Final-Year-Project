@@ -13,9 +13,10 @@ import { ScreenContainer } from '../layout/ScreenContainer';
 import { AuthBackdrop } from '../layout/AuthBackdrop';
 import { webCursor, type WebPressableState } from '../layout/webStyles';
 import {
+  areaLabel,
   severityColors,
   toUserStatus,
-  uniqueCities,
+  uniqueAreaLabels,
   userStatusLabels,
   userStatuses,
   type Report,
@@ -28,7 +29,7 @@ type Props = CompositeScreenProps<
   NativeStackScreenProps<RootStackParamList>
 >;
 
-type CityFilter = 'all' | string;
+type AreaFilter = 'all' | string;
 
 type HeatCluster = {
   id: string;
@@ -77,16 +78,23 @@ function countByUserStatus(reports: Report[]) {
 
 export function AdminMapScreen({ navigation }: Props) {
   const reports = useReports();
-  const [cityFilter, setCityFilter] = useState<CityFilter>('all');
+  const [areaFilter, setAreaFilter] = useState<AreaFilter>('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const cityOptions = useMemo(() => uniqueCities(reports), [reports]);
+  const openLocated = useMemo(
+    () =>
+      reports.filter(
+        (report) => toUserStatus(report.status) !== 'resolved' && report.coords != null,
+      ),
+    [reports],
+  );
+  const areaOptions = useMemo(() => uniqueAreaLabels(openLocated), [openLocated]);
 
   const visible = useMemo(
     () =>
-      cityFilter === 'all'
+      areaFilter === 'all'
         ? reports
-        : reports.filter((report) => report.city.trim() === cityFilter),
-    [reports, cityFilter],
+        : reports.filter((report) => areaLabel(report) === areaFilter),
+    [reports, areaFilter],
   );
   const heatReports = useMemo(
     () => visible.filter((report) => toUserStatus(report.status) !== 'resolved'),
@@ -111,8 +119,8 @@ export function AdminMapScreen({ navigation }: Props) {
   const clusters = useMemo(() => buildClusters(visible), [visible]);
   const selected = clusters.find((cluster) => cluster.id === selectedId) ?? null;
 
-  const setCity = (next: CityFilter) => {
-    setCityFilter(next);
+  const setArea = (next: AreaFilter) => {
+    setAreaFilter(next);
     setSelectedId(null);
   };
 
@@ -127,13 +135,13 @@ export function AdminMapScreen({ navigation }: Props) {
         </Text>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-          <FilterChip label="All cities" selected={cityFilter === 'all'} onPress={() => setCity('all')} />
-          {cityOptions.map((city) => (
+          <FilterChip label="All areas" selected={areaFilter === 'all'} onPress={() => setArea('all')} />
+          {areaOptions.map((area) => (
             <FilterChip
-              key={city}
-              label={city}
-              selected={cityFilter === city}
-              onPress={() => setCity(city)}
+              key={area}
+              label={area}
+              selected={areaFilter === area}
+              onPress={() => setArea(area)}
             />
           ))}
         </ScrollView>

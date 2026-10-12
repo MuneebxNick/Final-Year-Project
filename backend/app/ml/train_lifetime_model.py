@@ -1,4 +1,4 @@
-"""Train RandomForestRegressor for pothole days-until-critical.
+"""Train RandomForestRegressor for recommended repair-window days (SLA).
 
 Run from backend/:
   python -m app.ml.train_lifetime_model
@@ -15,6 +15,9 @@ import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
+
+# Must match lifetime.BBOX_CAP_PCT / generate_training_data.BBOX_CAP_PCT.
+BBOX_CAP_PCT = 20.0
 
 FEATURES = [
     "severity",
@@ -38,12 +41,26 @@ FEATURE_ENCODERS = {
     "severity": {"Small": 0, "Medium": 1, "Large": 2},
     "road_type": {"Simple Road": 0, "Service Road": 1, "Highway": 2},
     "traffic_density": {"Low": 0, "Medium": 1, "High": 2},
-    "season": {"Winter": 0, "Summer": 1, "Monsoon": 2},
+    "season": {
+        "Winter": 0,
+        "Spring": 1,
+        "Summer": 2,
+        "Monsoon": 3,
+        "Autumn": 4,
+        # Alias used in some climate write-ups; maps to Autumn.
+        "Post-Monsoon": 4,
+    },
     "reverse": {
         "severity": {"0": "Small", "1": "Medium", "2": "Large"},
         "road_type": {"0": "Simple Road", "1": "Service Road", "2": "Highway"},
         "traffic_density": {"0": "Low", "1": "Medium", "2": "High"},
-        "season": {"0": "Winter", "1": "Summer", "2": "Monsoon"},
+        "season": {
+            "0": "Winter",
+            "1": "Spring",
+            "2": "Summer",
+            "3": "Monsoon",
+            "4": "Autumn",
+        },
     },
 }
 
@@ -53,6 +70,11 @@ def load_dataset(path: Path = DATA_PATH) -> tuple[pd.DataFrame, pd.Series]:
     missing = [col for col in (*FEATURES, TARGET) if col not in frame.columns]
     if missing:
         raise ValueError(f"CSV missing columns: {missing}")
+    # Cap bbox so close-ups match predict-time scoring.
+    frame = frame.copy()
+    frame["bounding_box_percentage"] = frame["bounding_box_percentage"].clip(
+        upper=BBOX_CAP_PCT
+    )
     return frame[FEATURES], frame[TARGET]
 
 

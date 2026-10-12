@@ -12,6 +12,7 @@ import { api } from './client';
 
 export type PredictiveMaintenanceApiSegment = {
   segment_id: string;
+  province: string;
   city: string;
   area: string;
   road_type: string;
@@ -60,6 +61,7 @@ export function mapPredictiveMaintenanceSegment(
 ): PredictiveSegment {
   return {
     id: segment.segment_id,
+    province: segment.province,
     city: segment.city,
     area: segment.area,
     category: CATEGORY_MAP[segment.category] ?? 'monitor',
@@ -86,10 +88,14 @@ export type LifetimePredictRequest = {
   location: string;
 };
 
+export type LifetimePriorityBand = 'Critical' | 'High' | 'Moderate' | 'Routine';
+
 export type LifetimePredictResponse = {
   daysUntilCritical: number;
   recommendedRepairDeadline: string;
-  urgencyNote: 'Critical' | 'Moderate' | 'Low urgency';
+  urgencyNote: LifetimePriorityBand;
+  priorityBand: LifetimePriorityBand;
+  contributingFactors: string;
   inputs: {
     severity: string;
     boundingBoxPercentage: number;
@@ -100,7 +106,7 @@ export type LifetimePredictResponse = {
   weather: {
     rainfallProbability: number;
     temperatureCelsius: number;
-    season: 'Monsoon' | 'Summer' | 'Winter';
+    season: 'Spring' | 'Summer' | 'Monsoon' | 'Autumn' | 'Winter';
     source: 'open-meteo' | 'fallback';
     latitude: number | null;
     longitude: number | null;

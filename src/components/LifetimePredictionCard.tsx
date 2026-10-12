@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { fetchLifetimePrediction, type LifetimePredictResponse } from '../api/predict';
+import {
+  fetchLifetimePrediction,
+  type LifetimePriorityBand,
+  type LifetimePredictResponse,
+} from '../api/predict';
 import {
   formatReportDate,
   isLowConfidence,
@@ -39,6 +43,17 @@ function worstPotholeIndex(report: Report): number {
   return worst + 1;
 }
 
+const bandColors: Record<LifetimePriorityBand, { bg: string; fg: string }> = {
+  Critical: { bg: '#FDECEC', fg: colors.pillRed },
+  High: { bg: '#FFF3E6', fg: colors.pillOrange },
+  Moderate: { bg: '#EEF6F8', fg: colors.tealMid },
+  Routine: { bg: '#EAF7F0', fg: colors.pillGreen },
+};
+
+function priorityBand(lifetime: LifetimePredictResponse): LifetimePriorityBand {
+  return lifetime.priorityBand ?? lifetime.urgencyNote;
+}
+
 export function LifetimePredictionCard({ report }: { report: Report }) {
   const [lifetime, setLifetime] = useState<LifetimePredictResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -74,37 +89,56 @@ export function LifetimePredictionCard({ report }: { report: Report }) {
     };
   }, [report.id]);
 
+  const band = lifetime ? priorityBand(lifetime) : null;
+  const badge = band ? bandColors[band] : null;
+
   return (
     <View style={styles.card}>
-      <Text style={styles.title}>Pothole lifetime prediction</Text>
+      <Text style={styles.title}>Risk-based repair priority</Text>
+      <Text style={styles.subtitle}>
+        Recommended maintenance SLA window from severity, road class, and live weather — not a
+        physical failure date from the photo alone.
+      </Text>
       <Text style={styles.potholeIndex}>Worst detected pothole (#{potholeIndex})</Text>
       {lowConfidence ? (
         <>
           <Text style={styles.reliability}>Prediction reliability: Low</Text>
           <Text style={styles.warning}>
-            Review detections on the photo before relying on this prediction.
+            Review detections on the photo before relying on this priority window.
           </Text>
         </>
       ) : null}
       {loading ? (
-        <Text style={styles.note}>Loading prediction…</Text>
+        <Text style={styles.note}>Loading repair window…</Text>
       ) : error ? (
         <Text style={styles.note}>{error}</Text>
-      ) : lifetime ? (
+      ) : lifetime && band && badge ? (
         <>
-          <Text style={styles.value}>{lifetime.daysUntilCritical} days until critical</Text>
+          <View style={styles.bandRow}>
+            <View style={[styles.badge, { backgroundColor: badge.bg }]}>
+              <Text style={[styles.badgeText, { color: badge.fg }]}>{band}</Text>
+            </View>
+            <Text style={styles.windowLabel}>Recommended repair window</Text>
+          </View>
+          <Text style={styles.value}>{lifetime.daysUntilCritical} days</Text>
           <Text style={styles.meta}>
-            Recommended repair deadline: {formatDeadline(lifetime.recommendedRepairDeadline)}
+            Target by {formatDeadline(lifetime.recommendedRepairDeadline)}
           </Text>
-          <Text style={styles.note}>{lifetime.urgencyNote}</Text>
+          <Text style={styles.factors}>
+            {lifetime.contributingFactors ||
+              `Severity · Road class · Rain & Temp (${Math.round(lifetime.weather.temperatureCelsius)}°C)`}
+          </Text>
           <View style={styles.row}>
-            <Text style={styles.rowLabel}>Traffic density</Text>
-            <Text style={styles.rowValue}>{trafficDensityLabels[trafficDensity]}</Text>
+            <Text style={styles.rowLabel}>Road / traffic tier</Text>
+            <Text style={styles.rowValue}>
+              {lifetime.inputs.roadType} ({trafficDensityLabels[trafficDensity]})
+            </Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.rowLabel}>Weather conditions</Text>
             <Text style={styles.rowValue}>
-              {lifetime.weather.condition ? `${lifetime.weather.condition}, ` : ''}Rain probability: {lifetime.weather.rainfallProbability}%, Temp:{' '}
+              {lifetime.weather.condition ? `${lifetime.weather.condition}, ` : ''}
+              Rain {lifetime.weather.rainfallProbability}%, Temp{' '}
               {Math.round(lifetime.weather.temperatureCelsius)}°C, {lifetime.weather.season}
             </Text>
           </View>
@@ -129,7 +163,12 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     fontSize: 16,
     color: colors.ink,
-    marginBottom: 8,
+    marginBottom: 6,
+  },
+  subtitle: {
+    color: colors.muted,
+    lineHeight: 20,
+    marginBottom: 10,
   },
   potholeIndex: {
     fontWeight: '700',
@@ -146,8 +185,30 @@ const styles = StyleSheet.create({
     color: colors.muted,
     lineHeight: 20,
   },
+  bandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 4,
+    marginBottom: 6,
+  },
+  badge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: radii.chip,
+  },
+  badgeText: {
+    fontWeight: '800',
+    fontSize: 12,
+    letterSpacing: 0.2,
+  },
+  windowLabel: {
+    flex: 1,
+    fontWeight: '600',
+    color: colors.muted,
+  },
   value: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '800',
     color: colors.teal,
   },
@@ -155,6 +216,12 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontWeight: '600',
     color: colors.ink,
+  },
+  factors: {
+    marginTop: 8,
+    marginBottom: 8,
+    color: colors.muted,
+    lineHeight: 20,
   },
   note: {
     marginTop: 8,

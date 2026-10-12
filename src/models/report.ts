@@ -13,6 +13,27 @@ export function uniqueCities(reports: { city: string }[]): string[] {
   return list.sort((a, b) => a.localeCompare(b));
 }
 
+/** Area chip label: trimmed area, or trimmed city when area is blank. */
+export function areaLabel(item: { area?: string | null; city?: string | null }): string {
+  const area = item.area?.trim() ?? '';
+  if (area) return area;
+  return item.city?.trim() ?? '';
+}
+
+export function uniqueAreaLabels(
+  items: { area?: string | null; city?: string | null }[],
+): string[] {
+  const seen = new Set<string>();
+  const list: string[] = [];
+  items.forEach((item) => {
+    const name = areaLabel(item);
+    if (!name || seen.has(name)) return;
+    seen.add(name);
+    list.push(name);
+  });
+  return list.sort((a, b) => a.localeCompare(b));
+}
+
 export const roadTypes = ['highway', 'serviceRoad', 'localRoad'] as const;
 export type RoadType = (typeof roadTypes)[number];
 
@@ -259,11 +280,11 @@ export const trafficDensityLabels: Record<TrafficDensity, string> = {
   high: 'High',
 };
 
-/** Traffic is a property of the road class, not of city/area. */
+/** Road class is the traffic/axle-load tier: Highway > Service Road > Local. */
 export function trafficDensityFromRoadType(roadType: RoadType): TrafficDensity {
   if (roadType === 'highway') return 'high';
-  if (roadType === 'serviceRoad') return 'low';
-  return 'medium';
+  if (roadType === 'serviceRoad') return 'medium';
+  return 'low';
 }
 
 export function seedHash(city: string, area: string): number {
@@ -292,19 +313,20 @@ export function predictLifetime(report: Report): LifetimePrediction {
   const daysUntilCritical = Math.max(2, base - roadPenalty - confidencePenalty);
   const deadline = new Date(Date.now() + daysUntilCritical * 24 * 60 * 60 * 1000);
   const urgency =
-    daysUntilCritical <= 5
-      ? 'Urgent: schedule repair this week to avoid a critical failure.'
+    daysUntilCritical < 7
+      ? 'Critical'
       : daysUntilCritical <= 14
-        ? 'Plan repair soon; monsoon wear may accelerate damage.'
-        : 'Monitor the segment; current depth is still within a safe window.';
-  const hash = seedHash(report.city, report.area);
+        ? 'High'
+        : daysUntilCritical <= 30
+          ? 'Moderate'
+          : 'Routine';
   return {
     daysUntilCritical,
     deadline,
     urgency,
-    trafficDensity: trafficDensities[hash % trafficDensities.length],
-    rainProbability: 20 + (hash % 61),
-    temperatureC: 24 + ((hash >>> 8) % 15),
+    trafficDensity: trafficDensityFromRoadType(report.roadType),
+    rainProbability: 20 + (seedHash(report.city, report.area) % 61),
+    temperatureC: 24 + ((seedHash(report.city, report.area) >>> 8) % 15),
   };
 }
 
@@ -321,6 +343,7 @@ export type PredictiveTrend = 'increasing' | 'decreasing' | 'stable';
 
 export type PredictiveSegment = {
   id: string;
+  province: string;
   city: string;
   area: string;
   category: PredictiveCategory;
@@ -360,6 +383,7 @@ export function predictiveSegments(reports: Report[]): PredictiveSegment[] {
           : 'Isolated or resolved damage; keep on the watch list.';
     return {
       id: key,
+      province: '',
       city,
       area,
       category,
@@ -367,7 +391,7 @@ export function predictiveSegments(reports: Report[]): PredictiveSegment[] {
       historicalAvgReportsPer30Days: list.length,
       trendDirection: 'stable' as PredictiveTrend,
       riskWindow: 'Low risk (30+ days)',
-      priority: predictiveCategoryLabels[category],
+      priority: predictiveCategoryLabels[category] as PredictiveSegment['priority'],
       budgetPkr,
       reason,
     };

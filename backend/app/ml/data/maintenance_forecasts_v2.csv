@@ -1,0 +1,489 @@
+segment_id,province,city,area,road_type,predicted_reports_next_30_days,historical_avg_reports_per_30_days,trend_direction
+SEG-0030,Punjab,Lahore,Canal Road,Highway,65,48.25,stable
+SEG-0029,Punjab,Lahore,Multan Road,Highway,61,46.42,stable
+SEG-0016,Punjab,Lahore,Ravi Road,Highway,59,44.67,stable
+SEG-0268,KPK,Peshawar,Ring Road,Highway,49,35.25,stable
+SEG-0073,Punjab,Gujranwala,GT Road,Highway,46,34.92,stable
+SEG-0271,KPK,Peshawar,Kohat Road,Highway,44,34.0,stable
+SEG-0269,KPK,Peshawar,Charsadda Road,Highway,43,33.33,stable
+SEG-0206,Sindh,Karachi,Super Highway,Highway,43,38.17,stable
+SEG-0205,Sindh,Karachi,Shahrah-e-Faisal,Highway,43,36.92,stable
+SEG-0074,Punjab,Gujranwala,Sialkot Road,Highway,42,31.92,stable
+SEG-0027,Punjab,Lahore,Raiwind Road,Highway,40,35.5,stable
+SEG-0057,Punjab,Faisalabad,Samundri Road,Highway,38,31.42,stable
+SEG-0464,AJK,Mirpur,Mangla Road,Highway,36,27.25,stable
+SEG-0287,KPK,Abbottabad,Kakul Road,Highway,35,27.08,stable
+SEG-0026,Punjab,Lahore,Kot Lakhpat,Service Road,35,25.75,stable
+SEG-0408,ICT,Islamabad,Tarnol,Highway,34,28.92,stable
+SEG-0089,Punjab,Gujrat,Jalalpur Road,Highway,34,27.0,stable
+SEG-0117,Punjab,Sheikhupura,Faisalabad Road,Highway,34,28.75,stable
+SEG-0133,Punjab,Kasur,Khudian Road,Highway,34,26.5,stable
+SEG-0083,Punjab,Sialkot,Kashmir Road,Highway,34,26.75,stable
+SEG-0316,KPK,Nowshera,GT Road,Highway,33,26.25,stable
+SEG-0278,KPK,Mardan,Katlang Road,Highway,33,25.33,stable
+SEG-0457,AJK,Muzaffarabad,Neelum Road,Highway,33,25.08,stable
+SEG-0038,Punjab,Rawalpindi,Adiala Road,Highway,33,28.33,stable
+SEG-0053,Punjab,Faisalabad,Sargodha Road,Highway,33,27.92,stable
+SEG-0061,Punjab,Multan,Bosan Road,Highway,33,29.33,stable
+SEG-0144,Punjab,Wah Cantonment,GT Road,Highway,33,26.17,stable
+SEG-0323,KPK,Mansehra,Balakot Road,Highway,33,25.67,stable
+SEG-0028,Punjab,Lahore,Ferozepur Road,Highway,32,31.5,stable
+SEG-0306,KPK,Dera Ismail Khan,University Road,Highway,32,26.17,stable
+SEG-0480,AJK,Bagh,Dhirkot Road,Highway,32,24.67,stable
+SEG-0270,KPK,Peshawar,Dalazak Road,Highway,32,28.83,stable
+SEG-0024,Punjab,Lahore,Ichhra,Service Road,32,24.92,stable
+SEG-0285,KPK,Abbottabad,Mansehra Road,Highway,32,25.25,stable
+SEG-0319,KPK,Nowshera,Akora Khattak Road,Highway,32,26.0,stable
+SEG-0325,KPK,Mansehra,Baffa Road,Highway,32,26.58,stable
+SEG-0335,Balochistan,Quetta,Jinnah Road,Highway,32,28.25,stable
+SEG-0137,Punjab,Okara,Depalpur Road,Highway,31,25.67,stable
+SEG-0119,Punjab,Sheikhupura,Farooqabad Road,Highway,31,24.0,stable
+SEG-0064,Punjab,Multan,Abdali Road,Highway,31,27.83,stable
+SEG-0317,KPK,Nowshera,Risalpur Road,Highway,31,25.08,stable
+SEG-0250,Sindh,Jacobabad,Thul Road,Highway,31,25.92,stable
+SEG-0297,KPK,Kohat,Hangu Road,Highway,31,25.58,stable
+SEG-0095,Punjab,Sargodha,University Road,Highway,31,26.5,stable
+SEG-0176,Punjab,Taxila,GT Road,Highway,30,23.42,stable
+SEG-0488,AJK,Bhimber,Barnala Road,Highway,30,23.0,stable
+SEG-0482,AJK,Bagh,Birpani Road,Highway,30,23.33,stable
+SEG-0465,AJK,Mirpur,Islamgarh Road,Highway,30,24.67,stable
+SEG-0481,AJK,Bagh,Sudhan Gali Road,Highway,30,24.17,stable
+SEG-0158,Punjab,Dera Ghazi Khan,Sakhi Sarwar Road,Highway,30,24.83,stable
+SEG-0212,Sindh,Hyderabad,Autobhan Road,Highway,30,27.17,stable
+SEG-0219,Sindh,Sukkur,Airport Road,Highway,30,24.92,stable
+SEG-0161,Punjab,Chakwal,Talagang Road,Highway,30,23.83,stable
+SEG-0225,Sindh,Larkana,Moenjo Daro Road,Highway,30,25.42,stable
+SEG-0072,Punjab,Gujranwala,Rahwali,Service Road,30,21.92,stable
+SEG-0292,KPK,Mingora,Airport Road,Highway,30,25.08,stable
+SEG-0247,Sindh,Jacobabad,Quetta Road,Highway,30,25.17,stable
+SEG-0363,Balochistan,Hub,Sakran Road,Highway,30,25.42,stable
+SEG-0159,Punjab,Dera Ghazi Khan,Taunsa Road,Highway,30,25.75,stable
+SEG-0040,Punjab,Rawalpindi,Murree Road,Highway,30,27.17,stable
+SEG-0165,Punjab,Chakwal,Choa Saidan Shah Road,Highway,29,23.25,stable
+SEG-0232,Sindh,Nawabshah,Qazi Ahmed Road,Highway,29,23.33,stable
+SEG-0299,KPK,Kohat,Lachi Road,Highway,29,25.0,stable
+SEG-0063,Punjab,Multan,Vehari Road,Highway,29,25.83,stable
+SEG-0213,Sindh,Hyderabad,Thandi Sarak,Highway,29,25.58,stable
+SEG-0339,Balochistan,Quetta,Zarghoon Road,Highway,29,26.83,stable
+SEG-0217,Sindh,Sukkur,Barrage Road,Highway,29,25.25,stable
+SEG-0164,Punjab,Chakwal,Jhelum Road,Highway,28,22.17,stable
+SEG-0243,Sindh,Khairpur,Kot Diji Road,Highway,28,25.33,stable
+SEG-0476,AJK,Rawalakot,Thorar Road,Highway,28,22.0,stable
+SEG-0162,Punjab,Chakwal,Bhoun Road,Highway,28,22.75,stable
+SEG-0196,Sindh,Karachi,SITE,Service Road,28,24.5,stable
+SEG-0330,KPK,Swabi,Jehangira Road,Highway,28,22.17,stable
+SEG-0163,Punjab,Chakwal,Rawalpindi Road,Highway,27,21.5,stable
+SEG-0152,Punjab,Jhelum,GT Road,Highway,27,23.42,stable
+SEG-0132,Punjab,Kasur,Raiwind Road,Highway,27,24.33,stable
+SEG-0312,KPK,Bannu,Miranshah Road,Highway,27,22.0,stable
+SEG-0190,Sindh,Karachi,Lyari,Service Road,27,22.33,stable
+SEG-0118,Punjab,Sheikhupura,Jandiala Road,Highway,27,23.5,stable
+SEG-0238,Sindh,Mirpur Khas,Digri Road,Highway,27,23.5,stable
+SEG-0124,Punjab,Rahim Yar Khan,Abu Dhabi Road,Highway,27,24.33,stable
+SEG-0311,KPK,Bannu,Kohat Road,Highway,27,23.33,stable
+SEG-0475,AJK,Rawalakot,Banjosa Road,Highway,26,21.17,stable
+SEG-0193,Sindh,Karachi,PECHS,Service Road,26,23.0,stable
+SEG-0204,Sindh,Karachi,Malir Cantt,Service Road,26,22.58,stable
+SEG-0105,Punjab,Bahawalpur,Yazman Road,Highway,26,23.0,stable
+SEG-0310,KPK,Bannu,Lakki Road,Highway,26,22.08,stable
+SEG-0331,KPK,Swabi,Topi Road,Highway,26,20.75,stable
+SEG-0180,Sindh,Karachi,Clifton,Service Road,26,22.92,stable
+SEG-0021,Punjab,Lahore,Harbanspura,Simple Road,26,19.33,stable
+SEG-0393,ICT,Islamabad,G-6,Service Road,26,18.42,stable
+SEG-0003,Punjab,Lahore,Johar Town,Simple Road,25,19.08,stable
+SEG-0401,ICT,Islamabad,I-10,Service Road,25,18.67,stable
+SEG-0097,Punjab,Sargodha,Lahore Road,Highway,25,22.42,stable
+SEG-0318,KPK,Nowshera,Jehangira Road,Highway,25,23.17,stable
+SEG-0286,KPK,Abbottabad,Murree Road,Highway,25,20.92,stable
+SEG-0279,KPK,Mardan,Swat Road,Highway,25,22.58,stable
+SEG-0298,KPK,Kohat,Peshawar Road,Highway,25,22.08,stable
+SEG-0332,KPK,Swabi,Yar Hussain Road,Highway,25,21.58,stable
+SEG-0361,Balochistan,Hub,Gadani Road,Highway,25,22.25,stable
+SEG-0336,Balochistan,Quetta,Sariab Road,Highway,25,23.5,stable
+SEG-0230,Sindh,Nawabshah,Sanghar Road,Highway,25,21.5,stable
+SEG-0018,Punjab,Lahore,Walton,Service Road,25,21.5,stable
+SEG-0022,Punjab,Lahore,Valencia,Simple Road,25,20.25,stable
+SEG-0116,Punjab,Sheikhupura,Lahore Road,Highway,25,21.83,stable
+SEG-0187,Sindh,Karachi,Landhi,Service Road,25,20.92,stable
+SEG-0010,Punjab,Lahore,Iqbal Town,Simple Road,25,19.17,stable
+SEG-0242,Sindh,Khairpur,Gambat Road,Highway,25,21.33,stable
+SEG-0031,Punjab,Rawalpindi,Saddar,Service Road,24,18.08,stable
+SEG-0467,AJK,Kotli,Mirpur Road,Highway,24,19.0,stable
+SEG-0194,Sindh,Karachi,Bahadurabad,Service Road,24,20.33,stable
+SEG-0231,Sindh,Nawabshah,Airport Road,Highway,24,22.0,stable
+SEG-0224,Sindh,Larkana,Naudero Road,Highway,24,21.42,stable
+SEG-0126,Punjab,Rahim Yar Khan,Khanpur Road,Highway,24,22.92,stable
+SEG-0417,GB,Gilgit,Karakoram Highway,Highway,24,20.92,stable
+SEG-0418,GB,Gilgit,Airport Road,Highway,24,19.5,stable
+SEG-0447,GB,Astore,Rama Road,Highway,24,21.17,stable
+SEG-0380,Balochistan,Zhob,Sherani Road,Highway,24,20.17,stable
+SEG-0127,Punjab,Rahim Yar Khan,Sadiqabad Road,Highway,24,21.5,stable
+SEG-0220,Sindh,Sukkur,Rohri Road,Highway,24,22.25,stable
+SEG-0195,Sindh,Karachi,Tariq Road,Service Road,24,19.42,stable
+SEG-0304,KPK,Dera Ismail Khan,Tank Road,Highway,24,20.08,stable
+SEG-0253,Sindh,Thatta,Karachi Road,Highway,24,20.67,stable
+SEG-0321,KPK,Mansehra,Karakoram Highway,Highway,24,21.92,stable
+SEG-0266,KPK,Peshawar,Saddar,Service Road,24,17.92,stable
+SEG-0136,Punjab,Okara,GT Road,Highway,24,21.0,stable
+SEG-0006,Punjab,Lahore,Cantt,Service Road,23,20.67,stable
+SEG-0444,GB,Khaplu,Machulu Road,Highway,23,21.0,stable
+SEG-0436,GB,Chilas,Airport Road,Highway,23,19.75,stable
+SEG-0025,Punjab,Lahore,Mozang,Service Road,23,20.42,stable
+SEG-0008,Punjab,Lahore,Shalimar,Simple Road,23,17.67,stable
+SEG-0125,Punjab,Rahim Yar Khan,Airport Road,Highway,23,21.25,stable
+SEG-0229,Sindh,Nawabshah,Sakrand Road,Highway,23,21.83,stable
+SEG-0337,Balochistan,Quetta,Brewery Road,Highway,23,23.5,stable
+SEG-0374,Balochistan,Sibi,Dhadar Road,Highway,23,19.08,stable
+SEG-0244,Sindh,Khairpur,Thari Mirwah Road,Highway,23,22.25,stable
+SEG-0362,Balochistan,Hub,Winder Road,Highway,23,21.83,stable
+SEG-0226,Sindh,Larkana,Ratodero Road,Highway,23,22.17,stable
+SEG-0248,Sindh,Jacobabad,Sukkur Road,Highway,23,19.67,stable
+SEG-0262,Sindh,Dadu,Johi Road,Highway,23,18.83,stable
+SEG-0252,Sindh,Thatta,Makli Road,Highway,23,19.83,stable
+SEG-0170,Punjab,Mianwali,Kalabagh Road,Highway,23,20.67,stable
+SEG-0474,AJK,Rawalakot,Airport Road,Highway,23,20.33,stable
+SEG-0171,Punjab,Mianwali,Isa Khel Road,Highway,23,19.67,stable
+SEG-0448,GB,Astore,Gorikot Road,Highway,22,21.0,stable
+SEG-0426,GB,Skardu,Kachura Road,Highway,22,18.08,stable
+SEG-0054,Punjab,Faisalabad,Canal Road,Highway,22,22.25,stable
+SEG-0065,Punjab,Multan,LMQ Road,Highway,22,21.92,stable
+SEG-0357,Balochistan,Khuzdar,Naal Road,Highway,22,19.08,stable
+SEG-0103,Punjab,Bahawalpur,Ahmadpur Road,Highway,22,19.75,stable
+SEG-0254,Sindh,Thatta,Hyderabad Road,Highway,22,19.08,stable
+SEG-0471,AJK,Kotli,Sehnsa Road,Highway,22,20.5,stable
+SEG-0477,AJK,Rawalakot,Abbaspur Road,Highway,22,19.67,stable
+SEG-0015,Punjab,Lahore,Shadman,Service Road,22,19.92,stable
+SEG-0469,AJK,Kotli,Nakyal Road,Highway,22,18.67,stable
+SEG-0001,Punjab,Lahore,Gulberg,Service Road,22,18.75,stable
+SEG-0004,Punjab,Lahore,Model Town,Simple Road,22,16.42,stable
+SEG-0487,AJK,Bhimber,Samahni Road,Highway,21,18.58,stable
+SEG-0443,GB,Khaplu,Keris Road,Highway,21,19.25,stable
+SEG-0405,ICT,Islamabad,Blue Area,Service Road,21,16.83,stable
+SEG-0377,Balochistan,Zhob,Quetta Road,Highway,21,19.67,stable
+SEG-0385,Balochistan,Loralai,Mekhtar Road,Highway,21,19.17,stable
+SEG-0384,Balochistan,Loralai,Duki Road,Highway,21,19.0,stable
+SEG-0399,ICT,Islamabad,I-8,Service Road,21,17.5,stable
+SEG-0355,Balochistan,Khuzdar,Karachi Road,Highway,21,17.83,stable
+SEG-0275,KPK,Mardan,Shamsi Road,Service Road,21,16.25,stable
+SEG-0071,Punjab,Gujranwala,Civil Lines,Service Road,21,16.33,stable
+SEG-0062,Punjab,Multan,Nusrat Road,Highway,21,21.5,stable
+SEG-0342,Balochistan,Gwadar,Marine Drive,Highway,21,18.58,stable
+SEG-0035,Punjab,Rawalpindi,Committee Chowk,Service Road,21,17.17,stable
+SEG-0255,Sindh,Thatta,Sujawal Road,Highway,21,19.0,stable
+SEG-0011,Punjab,Lahore,Wapda Town,Simple Road,21,16.75,stable
+SEG-0034,Punjab,Rawalpindi,Chaklala,Service Road,21,17.58,stable
+SEG-0345,Balochistan,Gwadar,Pishukan Road,Highway,21,20.42,stable
+SEG-0349,Balochistan,Turbat,Mirani Road,Highway,21,19.58,stable
+SEG-0350,Balochistan,Turbat,Mand Road,Highway,21,19.67,stable
+SEG-0051,Punjab,Faisalabad,Susan Road,Service Road,20,16.17,stable
+SEG-0177,Punjab,Taxila,Wah Road,Highway,20,18.75,stable
+SEG-0039,Punjab,Rawalpindi,Peshawar Road,Highway,20,20.25,stable
+SEG-0045,Punjab,Faisalabad,D Ground,Service Road,20,16.33,stable
+SEG-0435,GB,Chilas,Karakoram Highway,Highway,20,18.92,stable
+SEG-0129,Punjab,Kasur,Civil Lines,Service Road,20,16.25,stable
+SEG-0455,AJK,Muzaffarabad,Domel,Service Road,20,15.5,stable
+SEG-0020,Punjab,Lahore,Baghbanpura,Simple Road,20,15.67,stable
+SEG-0237,Sindh,Mirpur Khas,Umerkot Road,Highway,20,19.42,stable
+SEG-0322,KPK,Mansehra,Abbottabad Road,Highway,20,19.83,stable
+SEG-0108,Punjab,Sahiwal,High Street,Service Road,20,16.17,stable
+SEG-0256,Sindh,Thatta,Keenjhar Road,Highway,20,18.92,stable
+SEG-0276,KPK,Mardan,Cantt,Service Road,20,16.17,stable
+SEG-0338,Balochistan,Quetta,Airport Road,Highway,20,20.0,stable
+SEG-0324,KPK,Mansehra,Shinkiari Road,Highway,20,19.58,stable
+SEG-0042,Punjab,Rawalpindi,Lalkurti,Service Road,20,15.33,stable
+SEG-0438,GB,Chilas,Tangir Road,Highway,20,18.0,stable
+SEG-0075,Punjab,Gujranwala,Sheikhupura Road,Highway,20,20.25,stable
+SEG-0343,Balochistan,Gwadar,Airport Road,Highway,20,18.58,stable
+SEG-0442,GB,Khaplu,Skardu Road,Highway,19,16.75,stable
+SEG-0005,Punjab,Lahore,Garden Town,Simple Road,19,15.17,stable
+SEG-0366,Balochistan,Chaman,Quetta Road,Highway,19,18.83,stable
+SEG-0368,Balochistan,Chaman,Bypass Road,Highway,19,17.08,stable
+SEG-0371,Balochistan,Sibi,Quetta Road,Highway,19,17.5,stable
+SEG-0388,ICT,Islamabad,F-7,Simple Road,19,14.08,stable
+SEG-0406,ICT,Islamabad,Bahria Town,Simple Road,19,14.83,stable
+SEG-0425,GB,Skardu,Manthal Road,Highway,19,17.0,stable
+SEG-0397,ICT,Islamabad,G-10,Simple Road,19,13.83,stable
+SEG-0052,Punjab,Faisalabad,Jaranwala Road,Highway,19,19.67,stable
+SEG-0303,KPK,Dera Ismail Khan,Bannu Road,Highway,19,18.75,stable
+SEG-0082,Punjab,Sialkot,Paris Road,Service Road,19,14.75,stable
+SEG-0326,KPK,Mansehra,Oghi Road,Highway,19,19.33,stable
+SEG-0145,Punjab,Wah Cantonment,Taxila Road,Highway,19,18.58,stable
+SEG-0111,Punjab,Sahiwal,GT Road,Highway,19,19.08,stable
+SEG-0291,KPK,Mingora,Saidu Road,Highway,19,19.33,stable
+SEG-0284,KPK,Abbottabad,Cantt,Service Road,19,15.92,stable
+SEG-0236,Sindh,Mirpur Khas,Hyderabad Road,Highway,19,18.25,stable
+SEG-0012,Punjab,Lahore,Bahria Town,Simple Road,18,15.25,stable
+SEG-0157,Punjab,Dera Ghazi Khan,Multan Road,Highway,18,17.5,stable
+SEG-0168,Punjab,Mianwali,Chashma Road,Highway,18,18.17,stable
+SEG-0218,Sindh,Sukkur,Shikarpur Road,Highway,18,18.0,stable
+SEG-0033,Punjab,Rawalpindi,Westridge,Simple Road,18,13.25,stable
+SEG-0210,Sindh,Hyderabad,Saddar,Service Road,18,15.83,stable
+SEG-0293,KPK,Mingora,Mingora Bypass,Highway,18,18.42,stable
+SEG-0260,Sindh,Dadu,Sehwan Road,Highway,18,17.33,stable
+SEG-0087,Punjab,Gujrat,GT Road,Highway,18,18.17,stable
+SEG-0404,ICT,Islamabad,H-8,Service Road,18,16.17,stable
+SEG-0277,KPK,Mardan,Nowshera Road,Highway,18,18.42,stable
+SEG-0265,KPK,Peshawar,Tehkal,Simple Road,18,13.58,stable
+SEG-0241,Sindh,Khairpur,Sukkur Road,Highway,18,17.92,stable
+SEG-0320,KPK,Mansehra,Main Bazaar,Service Road,18,14.08,stable
+SEG-0183,Sindh,Karachi,Gulistan-e-Jauhar,Simple Road,18,14.92,stable
+SEG-0199,Sindh,Karachi,New Karachi,Simple Road,18,13.5,stable
+SEG-0373,Balochistan,Sibi,Harnai Road,Highway,18,16.17,stable
+SEG-0179,Sindh,Karachi,Saddar,Service Road,18,18.42,stable
+SEG-0201,Sindh,Karachi,Baldia,Simple Road,18,15.83,stable
+SEG-0019,Punjab,Lahore,Mughalpura,Service Road,18,17.92,stable
+SEG-0139,Punjab,Okara,Renala Road,Highway,18,17.92,stable
+SEG-0400,ICT,Islamabad,I-9,Simple Road,18,13.33,stable
+SEG-0032,Punjab,Rawalpindi,Satellite Town,Simple Road,18,13.67,stable
+SEG-0017,Punjab,Lahore,Thokar Niaz Baig,Service Road,18,17.83,stable
+SEG-0002,Punjab,Lahore,DHA,Simple Road,18,14.83,stable
+SEG-0449,GB,Astore,Gudai Road,Highway,18,16.42,stable
+SEG-0096,Punjab,Sargodha,Fatima Jinnah Road,Highway,17,17.5,stable
+SEG-0394,ICT,Islamabad,G-7,Service Road,17,14.08,stable
+SEG-0383,Balochistan,Loralai,Quetta Road,Highway,17,16.5,stable
+SEG-0246,Sindh,Jacobabad,Civil Lines,Service Road,17,14.42,stable
+SEG-0409,ICT,Islamabad,Golra,Simple Road,17,13.17,stable
+SEG-0086,Punjab,Gujrat,Railway Road,Service Road,17,13.75,stable
+SEG-0402,ICT,Islamabad,I-11,Simple Road,17,13.08,stable
+SEG-0076,Punjab,Sialkot,Cantt,Service Road,17,13.75,stable
+SEG-0070,Punjab,Gujranwala,Wapda Town,Simple Road,17,13.5,stable
+SEG-0249,Sindh,Jacobabad,Airport Road,Highway,17,16.67,stable
+SEG-0305,KPK,Dera Ismail Khan,Circular Road,Highway,17,17.33,stable
+SEG-0302,KPK,Dera Ismail Khan,Topanwala,Service Road,17,13.58,stable
+SEG-0046,Punjab,Faisalabad,Peoples Colony,Simple Road,17,11.33,increasing
+SEG-0104,Punjab,Bahawalpur,Circular Road,Highway,17,17.5,stable
+SEG-0114,Punjab,Sheikhupura,Civil Lines,Service Road,17,13.58,stable
+SEG-0222,Sindh,Larkana,Station Road,Service Road,17,14.92,stable
+SEG-0044,Punjab,Rawalpindi,Sadiqabad,Service Road,17,13.83,stable
+SEG-0175,Punjab,Taxila,Railway Road,Service Road,17,14.17,stable
+SEG-0169,Punjab,Mianwali,Sargodha Road,Highway,17,16.08,stable
+SEG-0134,Punjab,Okara,Cantt,Service Road,17,13.5,stable
+SEG-0138,Punjab,Okara,Faisalabad Road,Highway,17,17.58,stable
+SEG-0360,Balochistan,Hub,RCD Highway,Highway,17,17.42,stable
+SEG-0354,Balochistan,Khuzdar,Quetta Road,Highway,17,16.17,stable
+SEG-0178,Punjab,Taxila,Khanpur Road,Highway,17,17.5,stable
+SEG-0067,Punjab,Gujranwala,Model Town,Simple Road,17,13.33,stable
+SEG-0468,AJK,Kotli,Pindi Road,Highway,17,16.83,stable
+SEG-0023,Punjab,Lahore,Sabzazar,Simple Road,17,13.75,stable
+SEG-0186,Sindh,Karachi,Korangi,Service Road,17,17.5,stable
+SEG-0472,AJK,Rawalakot,Main Bazaar,Service Road,17,13.25,stable
+SEG-0202,Sindh,Karachi,Scheme 33,Simple Road,17,14.67,stable
+SEG-0185,Sindh,Karachi,Nazimabad,Simple Road,17,14.58,stable
+SEG-0056,Punjab,Faisalabad,Ghulam Muhammad Abad,Simple Road,17,12.5,stable
+SEG-0348,Balochistan,Turbat,Airport Road,Highway,16,15.75,stable
+SEG-0367,Balochistan,Chaman,Border Road,Highway,16,16.33,stable
+SEG-0200,Sindh,Karachi,Shah Faisal Colony,Simple Road,16,13.58,stable
+SEG-0296,KPK,Kohat,Bannu Road,Highway,16,16.33,stable
+SEG-0301,KPK,Dera Ismail Khan,Cantt,Service Road,16,12.92,stable
+SEG-0295,KPK,Kohat,Cantt,Service Road,16,12.5,stable
+SEG-0191,Sindh,Karachi,Liaquatabad,Service Road,16,15.75,stable
+SEG-0135,Punjab,Okara,Civil Lines,Service Road,16,13.67,stable
+SEG-0334,Balochistan,Quetta,Cantt,Service Road,16,14.17,stable
+SEG-0396,ICT,Islamabad,G-9,Simple Road,16,12.42,stable
+SEG-0403,ICT,Islamabad,E-11,Simple Road,16,12.75,stable
+SEG-0485,AJK,Bhimber,Mirpur Road,Highway,16,16.17,stable
+SEG-0174,Punjab,Taxila,HMC Road,Service Road,16,12.58,stable
+SEG-0160,Punjab,Chakwal,Civil Lines,Service Road,16,12.67,stable
+SEG-0131,Punjab,Kasur,Ferozepur Road,Highway,16,15.92,stable
+SEG-0115,Punjab,Sheikhupura,Railway Road,Service Road,16,13.33,stable
+SEG-0112,Punjab,Sahiwal,Pakpattan Road,Highway,16,15.92,stable
+SEG-0245,Sindh,Jacobabad,Station Road,Service Road,16,12.75,stable
+SEG-0109,Punjab,Sahiwal,Civil Lines,Service Road,16,13.33,stable
+SEG-0088,Punjab,Gujrat,Bhimber Road,Highway,16,15.92,stable
+SEG-0081,Punjab,Sialkot,Civil Lines,Service Road,16,13.5,stable
+SEG-0092,Punjab,Sargodha,Queens Road,Service Road,16,13.92,stable
+SEG-0091,Punjab,Sargodha,Cantt,Service Road,16,14.25,stable
+SEG-0289,KPK,Mingora,Qambar,Simple Road,16,11.5,stable
+SEG-0102,Punjab,Bahawalpur,Civil Lines,Service Road,16,13.5,stable
+SEG-0239,Sindh,Khairpur,Station Road,Service Road,16,13.5,stable
+SEG-0264,KPK,Peshawar,Hayatabad,Simple Road,16,12.75,stable
+SEG-0479,AJK,Bagh,Main Bazaar,Service Road,15,12.08,stable
+SEG-0329,KPK,Swabi,Mardan Road,Highway,15,15.0,stable
+SEG-0439,GB,Khaplu,Palace Road,Service Road,15,10.92,stable
+SEG-0483,AJK,Bagh,Mallot Road,Highway,15,15.17,stable
+SEG-0486,AJK,Bhimber,Gujrat Road,Highway,15,15.58,stable
+SEG-0344,Balochistan,Gwadar,Port Road,Highway,15,14.92,stable
+SEG-0069,Punjab,Gujranwala,DC Colony,Simple Road,15,11.58,stable
+SEG-0466,AJK,Kotli,Main Bazaar,Service Road,15,12.08,stable
+SEG-0182,Sindh,Karachi,Gulshan-e-Iqbal,Simple Road,15,13.75,stable
+SEG-0370,Balochistan,Sibi,Civil Lines,Service Road,15,12.5,stable
+SEG-0416,GB,Gilgit,Main Bazaar,Service Road,15,11.75,stable
+SEG-0085,Punjab,Gujrat,Civil Lines,Service Road,15,12.5,stable
+SEG-0386,Balochistan,Loralai,Sanjavi Road,Highway,15,15.08,stable
+SEG-0356,Balochistan,Khuzdar,Wadh Road,Highway,15,15.42,stable
+SEG-0228,Sindh,Nawabshah,Civil Lines,Service Road,15,12.67,stable
+SEG-0432,GB,Karimabad,Karakoram Highway,Highway,15,15.25,stable
+SEG-0372,Balochistan,Sibi,Jacobabad Road,Highway,15,15.33,stable
+SEG-0378,Balochistan,Zhob,Killa Saifullah Road,Highway,14,14.5,stable
+SEG-0353,Balochistan,Khuzdar,Civil Lines,Service Road,14,12.33,stable
+SEG-0173,Punjab,Taxila,Museum Road,Service Road,14,10.67,stable
+SEG-0233,Sindh,Mirpur Khas,Satellite Town,Simple Road,14,10.25,stable
+SEG-0453,AJK,Muzaffarabad,Tariqabad,Simple Road,14,11.42,stable
+SEG-0099,Punjab,Bahawalpur,Satellite Town,Simple Road,14,10.75,stable
+SEG-0473,AJK,Rawalakot,Hajira Road,Highway,14,14.17,stable
+SEG-0140,Punjab,Wah Cantonment,Lala Rukh,Simple Road,14,11.08,stable
+SEG-0333,Balochistan,Quetta,Satellite Town,Simple Road,14,11.33,stable
+SEG-0470,AJK,Kotli,Khuiratta Road,Highway,14,14.17,stable
+SEG-0141,Punjab,Wah Cantonment,Nawababad,Simple Road,14,11.17,stable
+SEG-0424,GB,Skardu,Airport Road,Highway,14,14.17,stable
+SEG-0300,KPK,Dera Ismail Khan,Kachi Paind Khan,Simple Road,14,10.83,stable
+SEG-0309,KPK,Bannu,Railway Road,Service Road,14,11.83,stable
+SEG-0093,Punjab,Sargodha,Civil Lines,Service Road,14,13.5,stable
+SEG-0351,Balochistan,Turbat,Pasni Road,Highway,14,14.08,stable
+SEG-0365,Balochistan,Chaman,Bazaar Road,Service Road,14,11.5,stable
+SEG-0379,Balochistan,Zhob,Airport Road,Highway,14,13.75,stable
+SEG-0440,GB,Khaplu,Chaqchan Road,Service Road,14,11.75,stable
+SEG-0259,Sindh,Dadu,Indus Highway,Highway,13,12.75,stable
+SEG-0058,Punjab,Multan,Cantt,Service Road,13,13.42,stable
+SEG-0458,AJK,Mirpur,Sector C,Simple Road,13,9.58,stable
+SEG-0101,Punjab,Bahawalpur,Cantt,Service Road,13,10.75,stable
+SEG-0155,Punjab,Dera Ghazi Khan,Civil Lines,Service Road,13,11.83,stable
+SEG-0150,Punjab,Jhelum,Cantt,Service Road,13,11.67,stable
+SEG-0055,Punjab,Faisalabad,Civil Lines,Service Road,13,12.92,stable
+SEG-0181,Sindh,Karachi,DHA,Simple Road,13,12.08,stable
+SEG-0146,Punjab,Jhelum,Machine Mohalla,Simple Road,13,10.25,stable
+SEG-0059,Punjab,Multan,Gulgasht Colony,Simple Road,13,10.75,stable
+SEG-0341,Balochistan,Gwadar,Shahi Bazaar,Service Road,13,10.42,stable
+SEG-0347,Balochistan,Turbat,Main Bazaar,Service Road,13,11.42,stable
+SEG-0437,GB,Chilas,Darel Road,Highway,13,13.58,stable
+SEG-0451,AJK,Muzaffarabad,Plate,Simple Road,13,10.0,stable
+SEG-0123,Punjab,Rahim Yar Khan,Club Road,Service Road,13,11.83,stable
+SEG-0107,Punjab,Sahiwal,Fateh Sher Colony,Simple Road,13,9.25,stable
+SEG-0036,Punjab,Rawalpindi,Raja Bazaar,Service Road,13,13.0,stable
+SEG-0215,Sindh,Sukkur,Military Road,Service Road,13,11.5,stable
+SEG-0261,Sindh,Dadu,Mehar Road,Highway,13,13.5,stable
+SEG-0240,Sindh,Khairpur,Civil Lines,Service Road,13,12.83,stable
+SEG-0066,Punjab,Gujranwala,Satellite Town,Simple Road,13,11.0,stable
+SEG-0078,Punjab,Sialkot,Hajipura,Simple Road,13,10.67,stable
+SEG-0013,Punjab,Lahore,Township,Simple Road,13,13.42,stable
+SEG-0258,Sindh,Dadu,Civil Lines,Service Road,13,11.33,stable
+SEG-0090,Punjab,Sargodha,Satellite Town,Simple Road,13,9.08,increasing
+SEG-0098,Punjab,Bahawalpur,Model Town,Simple Road,13,10.08,stable
+SEG-0294,KPK,Kohat,Jungle Khel,Simple Road,13,9.75,stable
+SEG-0431,GB,Karimabad,Fort Road,Service Road,12,10.5,stable
+SEG-0153,Punjab,Dera Ghazi Khan,Model Town,Simple Road,12,8.75,stable
+SEG-0156,Punjab,Dera Ghazi Khan,College Road,Service Road,12,12.08,stable
+SEG-0223,Sindh,Larkana,Jinnah Bagh Road,Service Road,12,10.42,stable
+SEG-0456,AJK,Muzaffarabad,CMH Road,Service Road,12,12.08,stable
+SEG-0234,Sindh,Mirpur Khas,Station Road,Service Road,12,10.42,stable
+SEG-0454,AJK,Muzaffarabad,Chehla Bandi,Simple Road,12,9.0,stable
+SEG-0151,Punjab,Jhelum,Railway Road,Service Road,12,12.25,stable
+SEG-0128,Punjab,Kasur,Kot Murad Khan,Simple Road,12,8.67,stable
+SEG-0043,Punjab,Rawalpindi,Tench Bhatta,Service Road,12,12.17,stable
+SEG-0077,Punjab,Sialkot,Model Town,Simple Road,12,9.08,stable
+SEG-0280,KPK,Abbottabad,Jinnahabad,Simple Road,12,8.58,stable
+SEG-0281,KPK,Abbottabad,Mandian,Simple Road,12,8.92,stable
+SEG-0392,ICT,Islamabad,F-11,Simple Road,12,10.17,stable
+SEG-0267,KPK,Peshawar,Gulbahar,Service Road,12,12.75,stable
+SEG-0410,GB,Gilgit,Jutial,Simple Road,12,9.17,stable
+SEG-0257,Sindh,Dadu,Station Road,Service Road,12,10.92,stable
+SEG-0422,GB,Skardu,New Bazaar,Service Road,12,10.17,stable
+SEG-0423,GB,Skardu,College Road,Service Road,12,10.5,stable
+SEG-0274,KPK,Mardan,Par Hoti,Simple Road,12,9.42,stable
+SEG-0387,ICT,Islamabad,F-6,Service Road,12,11.67,stable
+SEG-0198,Sindh,Karachi,North Karachi,Simple Road,12,11.83,stable
+SEG-0203,Sindh,Karachi,Gulshan-e-Maymar,Simple Road,12,12.33,stable
+SEG-0328,KPK,Swabi,Civil Lines,Service Road,12,9.58,stable
+SEG-0450,AJK,Muzaffarabad,Naluchi,Simple Road,12,9.92,stable
+SEG-0014,Punjab,Lahore,Faisal Town,Simple Road,11,11.0,stable
+SEG-0359,Balochistan,Hub,Zeal Pak,Service Road,11,10.67,stable
+SEG-0346,Balochistan,Turbat,Absor,Simple Road,11,9.08,stable
+SEG-0197,Sindh,Karachi,Surjani Town,Simple Road,11,11.75,stable
+SEG-0364,Balochistan,Chaman,Station Road,Service Road,11,9.0,stable
+SEG-0445,GB,Astore,Eidgah,Simple Road,11,8.33,stable
+SEG-0080,Punjab,Sialkot,Rangpura,Simple Road,11,9.0,stable
+SEG-0314,KPK,Nowshera,Cantt,Service Road,11,10.33,stable
+SEG-0214,Sindh,Sukkur,Barrage Colony,Simple Road,11,9.92,stable
+SEG-0172,Punjab,Taxila,HIT Colony,Simple Road,11,9.58,stable
+SEG-0122,Punjab,Rahim Yar Khan,Civil Lines,Service Road,11,11.17,stable
+SEG-0166,Punjab,Mianwali,Eidgah,Simple Road,11,8.58,stable
+SEG-0009,Punjab,Lahore,Samanabad,Simple Road,11,10.58,stable
+SEG-0211,Sindh,Hyderabad,Pakka Qila,Service Road,11,11.08,stable
+SEG-0209,Sindh,Hyderabad,Hirabad,Service Road,11,10.92,stable
+SEG-0227,Sindh,Nawabshah,Station Road,Service Road,11,11.5,stable
+SEG-0094,Punjab,Sargodha,Club Road,Service Road,11,11.25,stable
+SEG-0273,KPK,Mardan,Baghdada,Simple Road,11,9.08,stable
+SEG-0390,ICT,Islamabad,F-9,Simple Road,11,9.58,stable
+SEG-0282,KPK,Abbottabad,Nawansher,Simple Road,11,9.08,stable
+SEG-0142,Punjab,Wah Cantonment,Officers Colony,Simple Road,11,9.5,stable
+SEG-0308,KPK,Bannu,Cantt,Service Road,10,10.25,stable
+SEG-0192,Sindh,Karachi,FB Area,Simple Road,10,9.92,stable
+SEG-0381,Balochistan,Loralai,Civil Lines,Service Road,10,9.25,stable
+SEG-0184,Sindh,Karachi,North Nazimabad,Simple Road,10,9.83,stable
+SEG-0148,Punjab,Jhelum,Tahlianwala,Simple Road,10,8.42,stable
+SEG-0478,AJK,Bagh,Neela Butt,Simple Road,10,8.25,stable
+SEG-0376,Balochistan,Zhob,Bazaar Road,Service Road,10,10.58,stable
+SEG-0149,Punjab,Jhelum,Civil Lines,Service Road,10,10.33,stable
+SEG-0446,GB,Astore,Main Bazaar,Service Road,10,8.92,stable
+SEG-0352,Balochistan,Khuzdar,University Road,Service Road,10,9.33,stable
+SEG-0358,Balochistan,Hub,Hub Industrial Area,Service Road,10,9.58,stable
+SEG-0369,Balochistan,Sibi,Station Road,Service Road,10,9.67,stable
+SEG-0007,Punjab,Lahore,Manawan,Simple Road,10,10.75,stable
+SEG-0340,Balochistan,Gwadar,New Town,Simple Road,10,7.75,stable
+SEG-0327,KPK,Swabi,Main Bazaar,Service Road,10,9.5,stable
+SEG-0462,AJK,Mirpur,New Mirpur,Simple Road,10,8.75,stable
+SEG-0463,AJK,Mirpur,Allama Iqbal Road,Service Road,10,10.08,stable
+SEG-0272,KPK,Mardan,Sheikh Maltoon Town,Simple Road,10,7.75,stable
+SEG-0110,Punjab,Sahiwal,Railway Road,Service Road,10,9.92,stable
+SEG-0235,Sindh,Mirpur Khas,Civil Lines,Service Road,10,9.5,stable
+SEG-0433,GB,Chilas,Thalpan,Simple Road,10,7.83,stable
+SEG-0113,Punjab,Sheikhupura,Housing Colony,Simple Road,10,8.67,stable
+SEG-0154,Punjab,Dera Ghazi Khan,Pull Dat,Service Road,10,9.25,stable
+SEG-0428,GB,Karimabad,Altit,Simple Road,10,7.83,stable
+SEG-0130,Punjab,Kasur,Railway Road,Service Road,10,10.42,stable
+SEG-0189,Sindh,Karachi,Orangi Town,Simple Road,10,9.75,stable
+SEG-0143,Punjab,Wah Cantonment,Aslam Market,Service Road,10,10.67,stable
+SEG-0389,ICT,Islamabad,F-8,Simple Road,10,9.58,stable
+SEG-0283,KPK,Abbottabad,Supply Bazaar,Service Road,10,9.67,stable
+SEG-0484,AJK,Bhimber,Main Bazaar,Service Road,9,8.25,stable
+SEG-0060,Punjab,Multan,Shah Rukn-e-Alam Colony,Simple Road,9,8.83,stable
+SEG-0068,Punjab,Gujranwala,Peoples Colony,Simple Road,9,9.83,stable
+SEG-0188,Sindh,Karachi,Malir,Simple Road,9,9.5,stable
+SEG-0041,Punjab,Rawalpindi,Dhoke Hassu,Simple Road,9,8.5,stable
+SEG-0221,Sindh,Larkana,Lahori Mohalla,Simple Road,9,9.5,stable
+SEG-0395,ICT,Islamabad,G-8,Simple Road,9,9.33,stable
+SEG-0147,Punjab,Jhelum,Kala Gujran,Simple Road,9,7.33,stable
+SEG-0407,ICT,Islamabad,Bani Gala,Simple Road,9,8.5,stable
+SEG-0216,Sindh,Sukkur,Station Road,Service Road,9,9.25,stable
+SEG-0315,KPK,Nowshera,Amangarh,Service Road,9,8.75,stable
+SEG-0049,Punjab,Faisalabad,Millat Town,Simple Road,8,7.25,stable
+SEG-0398,ICT,Islamabad,G-11,Simple Road,8,7.58,stable
+SEG-0048,Punjab,Faisalabad,Madina Town,Simple Road,8,8.0,stable
+SEG-0375,Balochistan,Zhob,Cantt,Service Road,8,7.67,stable
+SEG-0079,Punjab,Sialkot,Shahabpura,Simple Road,8,7.67,stable
+SEG-0050,Punjab,Faisalabad,Samanabad,Simple Road,8,8.25,stable
+SEG-0441,GB,Khaplu,Main Bazaar,Service Road,8,8.17,stable
+SEG-0100,Punjab,Bahawalpur,Baghdad-ul-Jadeed,Simple Road,8,7.33,stable
+SEG-0288,KPK,Mingora,Fizagat,Simple Road,8,8.33,stable
+SEG-0290,KPK,Mingora,Amankot,Simple Road,8,7.5,stable
+SEG-0263,KPK,Peshawar,University Town,Simple Road,8,8.17,stable
+SEG-0167,Punjab,Mianwali,Civil Lines,Service Road,8,8.75,stable
+SEG-0037,Punjab,Rawalpindi,Bahria Town,Simple Road,8,7.08,stable
+SEG-0434,GB,Chilas,Main Bazaar,Service Road,8,7.83,stable
+SEG-0047,Punjab,Faisalabad,Jinnah Colony,Simple Road,8,8.08,stable
+SEG-0208,Sindh,Hyderabad,Latifabad,Simple Road,8,7.58,stable
+SEG-0415,GB,Gilgit,Kashrote,Simple Road,8,7.08,stable
+SEG-0413,GB,Gilgit,Danyore,Simple Road,8,6.67,stable
+SEG-0207,Sindh,Hyderabad,Qasimabad,Simple Road,7,6.83,stable
+SEG-0459,AJK,Mirpur,Sector D,Simple Road,7,6.5,stable
+SEG-0421,GB,Skardu,Hoto,Simple Road,7,7.25,stable
+SEG-0412,GB,Gilgit,Basin,Simple Road,7,7.17,stable
+SEG-0382,Balochistan,Loralai,Main Bazaar,Service Road,7,6.92,stable
+SEG-0391,ICT,Islamabad,F-10,Simple Road,7,7.17,stable
+SEG-0251,Sindh,Thatta,Civil Lines,Service Road,7,7.67,stable
+SEG-0420,GB,Skardu,Satellite Town,Simple Road,7,6.58,stable
+SEG-0121,Punjab,Rahim Yar Khan,Model Town,Simple Road,7,7.0,stable
+SEG-0120,Punjab,Rahim Yar Khan,Satellite Town,Simple Road,6,5.25,stable
+SEG-0427,GB,Karimabad,Baltit,Simple Road,6,6.17,stable
+SEG-0084,Punjab,Gujrat,Marghzar Colony,Simple Road,6,6.92,stable
+SEG-0307,KPK,Bannu,Township,Simple Road,6,6.25,stable
+SEG-0430,GB,Karimabad,Haiderabad,Simple Road,6,5.17,stable
+SEG-0419,GB,Skardu,Hussainabad,Simple Road,6,5.42,stable
+SEG-0429,GB,Karimabad,Ganish,Simple Road,6,6.0,stable
+SEG-0461,AJK,Mirpur,Khaliqabad,Simple Road,6,5.5,stable
+SEG-0313,KPK,Nowshera,Nowshera Kalan,Simple Road,5,5.17,stable
+SEG-0411,GB,Gilgit,Konodas,Simple Road,5,5.92,stable
+SEG-0106,Punjab,Sahiwal,Farid Town,Simple Road,5,5.5,stable
+SEG-0414,GB,Gilgit,Sonikot,Simple Road,5,4.58,stable
+SEG-0452,AJK,Muzaffarabad,Gojra,Simple Road,5,5.25,stable
+SEG-0460,AJK,Mirpur,Sector F,Simple Road,5,5.33,stable

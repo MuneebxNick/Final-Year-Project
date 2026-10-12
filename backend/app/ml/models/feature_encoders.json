@@ -16,8 +16,11 @@
   },
   "season": {
     "Winter": 0,
-    "Summer": 1,
-    "Monsoon": 2
+    "Spring": 1,
+    "Summer": 2,
+    "Monsoon": 3,
+    "Autumn": 4,
+    "Post-Monsoon": 4
   },
   "reverse": {
     "severity": {
@@ -37,8 +40,10 @@
     },
     "season": {
       "0": "Winter",
-      "1": "Summer",
-      "2": "Monsoon"
+      "1": "Spring",
+      "2": "Summer",
+      "3": "Monsoon",
+      "4": "Autumn"
     }
   }
 }

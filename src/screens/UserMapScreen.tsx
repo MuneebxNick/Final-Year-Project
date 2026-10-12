@@ -9,26 +9,27 @@ import { AdminLeafletHeatmap, type LeafletHeatPoint } from '../components/AdminL
 import { FilterChip } from '../components/FilterChip';
 import { ScreenContainer } from '../layout/ScreenContainer';
 import { AuthBackdrop } from '../layout/AuthBackdrop';
-import { severityColors, uniqueCities, type Severity } from '../models/report';
+import { areaLabel, severityColors, uniqueAreaLabels, type Severity } from '../models/report';
 import type { UserTabParamList } from '../navigation';
 import { colors } from '../theme';
 
 type Props = BottomTabScreenProps<UserTabParamList, 'Map'>;
 
-type CityFilter = 'all' | string;
+type AreaFilter = 'all' | string;
 
 type PublicLocation = {
   lat: number;
   lng: number;
   severity: Severity;
   city: string;
+  area: string;
 };
 
 export function UserMapScreen(_props: Props) {
   const [locations, setLocations] = useState<PublicLocation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [cityFilter, setCityFilter] = useState<CityFilter>('all');
+  const [areaFilter, setAreaFilter] = useState<AreaFilter>('all');
 
   useFocusEffect(
     useCallback(() => {
@@ -53,13 +54,13 @@ export function UserMapScreen(_props: Props) {
     }, []),
   );
 
-  const cityOptions = useMemo(() => uniqueCities(locations), [locations]);
+  const areaOptions = useMemo(() => uniqueAreaLabels(locations), [locations]);
   const visible = useMemo(
     () =>
-      cityFilter === 'all'
+      areaFilter === 'all'
         ? locations
-        : locations.filter((item) => item.city.trim() === cityFilter),
-    [locations, cityFilter],
+        : locations.filter((item) => areaLabel(item) === areaFilter),
+    [locations, areaFilter],
   );
   const points: LeafletHeatPoint[] = useMemo(
     () =>
@@ -88,16 +89,16 @@ export function UserMapScreen(_props: Props) {
             contentContainerStyle={styles.chips}
           >
             <FilterChip
-              label="All cities"
-              selected={cityFilter === 'all'}
-              onPress={() => setCityFilter('all')}
+              label="All areas"
+              selected={areaFilter === 'all'}
+              onPress={() => setAreaFilter('all')}
             />
-            {cityOptions.map((city) => (
+            {areaOptions.map((area) => (
               <FilterChip
-                key={city}
-                label={city}
-                selected={cityFilter === city}
-                onPress={() => setCityFilter(city)}
+                key={area}
+                label={area}
+                selected={areaFilter === area}
+                onPress={() => setAreaFilter(area)}
               />
             ))}
           </ScrollView>

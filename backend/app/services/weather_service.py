@@ -21,12 +21,21 @@ _GEOCODE_COUNT = 10
 
 
 def _season_now() -> str:
+    """Pakistan seasonal calendar (Asia/Karachi month).
+
+    Mar–Apr Spring, May–Jun Summer, Jul–Sep Monsoon,
+    Oct–Nov Autumn (post-monsoon), Dec–Feb Winter.
+    """
     month = datetime.now(_KARACHI).month
-    if month in (6, 7, 8, 9):
+    if month in (3, 4):
+        return "Spring"
+    if month in (5, 6):
+        return "Summer"
+    if month in (7, 8, 9):
         return "Monsoon"
-    if month in (11, 12, 1, 2):
-        return "Winter"
-    return "Summer"
+    if month in (10, 11):
+        return "Autumn"
+    return "Winter"
 
 
 def _location_parts(location: str) -> list[str]:

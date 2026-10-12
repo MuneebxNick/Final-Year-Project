@@ -16,10 +16,11 @@ router = APIRouter()
     response_model=list[PredictiveMaintenanceSegment],
 )
 def predictive_maintenance(
+    province: str | None = Query(default=None),
     city: str | None = Query(default=None),
     category: str | None = Query(default=None),
 ) -> list[PredictiveMaintenanceSegment]:
-    rows = list_segments(city=city, category=category)
+    rows = list_segments(province=province, city=city, category=category)
     if rows is None:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
