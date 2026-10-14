@@ -88,3 +88,56 @@ def ensure_schema() -> None:
                 "CREATE UNIQUE INDEX IF NOT EXISTS ix_reports_ref_number ON reports (ref_number)"
             )
         )
+        # Workflow columns. Do not backfill or rewrite existing report statuses.
+        conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS team VARCHAR(40)"))
+        conn.execute(text("ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check"))
+        conn.execute(
+            text(
+                "ALTER TABLE users ADD CONSTRAINT users_role_check "
+                "CHECK (role IN ('citizen', 'admin', 'team'))"
+            )
+        )
+        conn.execute(text("ALTER TABLE reports ADD COLUMN IF NOT EXISTS deadline_at TIMESTAMPTZ"))
+        conn.execute(text("ALTER TABLE reports ADD COLUMN IF NOT EXISTS assignment_note TEXT"))
+        conn.execute(text("ALTER TABLE reports ADD COLUMN IF NOT EXISTS completion_photo_url TEXT"))
+        conn.execute(
+            text(
+                "ALTER TABLE reports ADD COLUMN IF NOT EXISTS completion_photo_public_id VARCHAR(255)"
+            )
+        )
+        conn.execute(text("ALTER TABLE reports ADD COLUMN IF NOT EXISTS completion_note TEXT"))
+        conn.execute(
+            text(
+                """
+                CREATE TABLE IF NOT EXISTS report_events (
+                    id UUID PRIMARY KEY,
+                    report_id UUID NOT NULL REFERENCES reports(id) ON DELETE CASCADE,
+                    actor_id UUID REFERENCES users(id) ON DELETE SET NULL,
+                    event_type VARCHAR(40) NOT NULL,
+                    from_status VARCHAR(40),
+                    to_status VARCHAR(40) NOT NULL,
+                    note TEXT,
+                    photo_url TEXT,
+                    assigned_team VARCHAR(40),
+                    deadline_at TIMESTAMPTZ,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+                """
+            )
+        )
+        conn.execute(text("ALTER TABLE report_events ADD COLUMN IF NOT EXISTS id UUID"))
+        conn.execute(text("ALTER TABLE report_events ADD COLUMN IF NOT EXISTS report_id UUID"))
+        conn.execute(text("ALTER TABLE report_events ADD COLUMN IF NOT EXISTS actor_id UUID"))
+        conn.execute(text("ALTER TABLE report_events ADD COLUMN IF NOT EXISTS event_type VARCHAR(40)"))
+        conn.execute(text("ALTER TABLE report_events ADD COLUMN IF NOT EXISTS from_status VARCHAR(40)"))
+        conn.execute(text("ALTER TABLE report_events ADD COLUMN IF NOT EXISTS to_status VARCHAR(40)"))
+        conn.execute(text("ALTER TABLE report_events ADD COLUMN IF NOT EXISTS note TEXT"))
+        conn.execute(text("ALTER TABLE report_events ADD COLUMN IF NOT EXISTS photo_url TEXT"))
+        conn.execute(text("ALTER TABLE report_events ADD COLUMN IF NOT EXISTS assigned_team VARCHAR(40)"))
+        conn.execute(text("ALTER TABLE report_events ADD COLUMN IF NOT EXISTS deadline_at TIMESTAMPTZ"))
+        conn.execute(text("ALTER TABLE report_events ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ"))
+        conn.execute(
+            text(
+                "CREATE INDEX IF NOT EXISTS ix_report_events_report_id ON report_events (report_id)"
+            )
+        )

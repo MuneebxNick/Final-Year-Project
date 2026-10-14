@@ -10,6 +10,7 @@ export function countByUserStatus(reports: Report[]): Record<UserStatus, number>
   return {
     pending: reports.filter((report) => toUserStatus(report.status) === 'pending').length,
     inProgress: reports.filter((report) => toUserStatus(report.status) === 'inProgress').length,
+    completed: reports.filter((report) => toUserStatus(report.status) === 'completed').length,
     resolved: reports.filter((report) => toUserStatus(report.status) === 'resolved').length,
   };
 }

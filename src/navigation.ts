@@ -17,6 +17,10 @@ export type AdminTabParamList = {
   Predictive: undefined;
 };
 
+export type TeamTabParamList = {
+  Queue: undefined;
+};
+
 export type RootStackParamList = {
   Landing: undefined;
   Login: undefined;
@@ -27,4 +31,6 @@ export type RootStackParamList = {
   AdminLogin: undefined;
   AdminTabs: NavigatorScreenParams<AdminTabParamList> | undefined;
   AdminReportDetail: { reportId: string };
+  TeamTabs: NavigatorScreenParams<TeamTabParamList> | undefined;
+  TeamReportDetail: { reportId: string };
 };

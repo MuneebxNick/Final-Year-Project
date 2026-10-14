@@ -16,6 +16,8 @@ import { DetectionResultScreen } from './src/screens/DetectionResultScreen';
 import { LandingScreen } from './src/screens/LandingScreen';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { SignupScreen } from './src/screens/SignupScreen';
+import { TeamReportDetailScreen } from './src/screens/TeamReportDetailScreen';
+import { TeamTabs } from './src/screens/TeamTabs';
 import { UserReportDetailScreen } from './src/screens/UserReportDetailScreen';
 import { UserTabs } from './src/screens/UserTabs';
 import type { RootStackParamList } from './src/navigation';
@@ -41,7 +43,7 @@ const authScreenOptions = {
   statusBarStyle: 'dark' as const,
 };
 
-type BootRoute = 'Landing' | 'UserTabs' | 'AdminTabs';
+type BootRoute = 'Landing' | 'UserTabs' | 'AdminTabs' | 'TeamTabs';
 
 function BootSplash() {
   return (
@@ -65,7 +67,9 @@ export default function App() {
         return;
       }
       void reportStore.refresh().catch(() => undefined);
-      setInitialRoute(session.role === 'admin' ? 'AdminTabs' : 'UserTabs');
+      if (session.role === 'admin') setInitialRoute('AdminTabs');
+      else if (session.role === 'team') setInitialRoute('TeamTabs');
+      else setInitialRoute('UserTabs');
     })();
     return () => {
       cancelled = true;
@@ -146,6 +150,23 @@ export default function App() {
               component={AdminReportDetailScreen}
               options={{
                 title: 'Report detail',
+                headerTintColor: colors.white,
+                headerStyle: { backgroundColor: colors.teal },
+                headerTitleStyle: { fontWeight: '600', fontSize: 20 },
+                contentStyle: { backgroundColor: colors.cream },
+                statusBarStyle: 'light',
+              }}
+            />
+            <Stack.Screen
+              name="TeamTabs"
+              component={TeamTabs}
+              options={{ headerShown: false, gestureEnabled: false }}
+            />
+            <Stack.Screen
+              name="TeamReportDetail"
+              component={TeamReportDetailScreen}
+              options={{
+                title: 'Repair',
                 headerTintColor: colors.white,
                 headerStyle: { backgroundColor: colors.teal },
                 headerTitleStyle: { fontWeight: '600', fontSize: 20 },

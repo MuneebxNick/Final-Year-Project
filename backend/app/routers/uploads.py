@@ -3,7 +3,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from ..auth import require_citizen
+from ..auth import require_citizen_or_team
 from ..config import get_settings
 from ..models import User
 from ..schemas import UploadSignature
@@ -15,7 +15,7 @@ UPLOAD_FORMAT = "webp"
 
 
 @router.post("/signature", response_model=UploadSignature)
-def signature(_user: Annotated[User, Depends(require_citizen)]) -> UploadSignature:
+def signature(_user: Annotated[User, Depends(require_citizen_or_team)]) -> UploadSignature:
     settings = get_settings()
     if not settings.cloudinary_cloud_name:
         raise HTTPException(

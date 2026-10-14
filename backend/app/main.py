@@ -10,7 +10,7 @@ from .config import get_settings
 from .db import ensure_schema, get_db, ping_db
 from .ml.lifetime import load_lifetime_model
 from .ml.maintenance import load_maintenance
-from .routers import admin, ai, auth, detect, geocode, predict, reports, uploads, weather
+from .routers import admin, ai, auth, detect, geocode, predict, reports, team, uploads, weather
 
 settings = get_settings()
 
@@ -42,6 +42,7 @@ app.include_router(ai.router, prefix="/ai", tags=["ai"])
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(reports.router, prefix="/reports", tags=["reports"])
 app.include_router(admin.router, prefix="/admin", tags=["admin"])
+app.include_router(team.router, prefix="/team", tags=["team"])
 app.include_router(uploads.router, prefix="/uploads", tags=["uploads"])
 
 

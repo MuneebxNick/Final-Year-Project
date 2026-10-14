@@ -12,6 +12,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { TealButton } from '../components/Buttons';
 import { BrandMark } from '../components/BrandMark';
+import { FilterChip } from '../components/FilterChip';
 import { TextField } from '../components/TextField';
 import { api } from '../api/client';
 import { reportStore } from '../data/reportStore';
@@ -24,9 +25,12 @@ import { colors } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AdminLogin'>;
 
+type Portal = 'admin' | 'team';
+
 export function AdminLoginScreen({ navigation }: Props) {
   const { isWide } = useBreakpoint();
   const topInset = useAuthTopInset();
+  const [portal, setPortal] = useState<Portal>('admin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -47,20 +51,37 @@ export function AdminLoginScreen({ navigation }: Props) {
         method: 'POST',
         body: JSON.stringify({ email: trimmed, password }),
       });
-      if (session.role !== 'admin') {
+      if (portal === 'admin' && session.role !== 'admin') {
         setErrors({
-          password: 'Citizen accounts use the main Get Started login, not this portal.',
+          password:
+            session.role === 'team'
+              ? 'This account is a field team. Switch to Field Team to sign in.'
+              : 'Citizen accounts use the main Get Started login, not this portal.',
+        });
+        return;
+      }
+      if (portal === 'team' && session.role !== 'team') {
+        setErrors({
+          password:
+            session.role === 'admin'
+              ? 'This account is an admin. Switch to Admin to sign in.'
+              : 'Citizen accounts use the main Get Started login, not this portal.',
         });
         return;
       }
       sessionStore.signIn(session);
       void reportStore.refresh().catch(() => undefined);
-      navigation.replace('AdminTabs');
+      navigation.replace(session.role === 'team' ? 'TeamTabs' : 'AdminTabs');
     } catch (error) {
       setErrors({ password: error instanceof Error ? error.message : 'Could not sign in' });
     } finally {
       setLoading(false);
     }
+  };
+
+  const choosePortal = (next: Portal) => {
+    setPortal(next);
+    setErrors({});
   };
 
   return (
@@ -82,13 +103,31 @@ export function AdminLoginScreen({ navigation }: Props) {
               </View>
             ) : null}
             <View style={styles.iconWrap}>
-              <MaterialIcons name="account-balance" size={28} color={colors.teal} />
+              <MaterialIcons
+                name={portal === 'admin' ? 'account-balance' : 'engineering'}
+                size={28}
+                color={colors.teal}
+              />
             </View>
-            <Text style={styles.title}>Municipal Authority</Text>
+            <Text style={styles.title}>{portal === 'admin' ? 'Municipal Authority' : 'Field Team'}</Text>
             <Text style={styles.subtitle}>
-              Sign in to review citizen reports and assign field teams.
+              {portal === 'admin'
+                ? 'Sign in to review citizen reports and assign field teams.'
+                : 'Sign in to accept repairs, mark them complete, or escalate.'}
             </Text>
-            <Text style={styles.demoHint}>Demo admin: admin@rahscan.local / Admin1234!</Text>
+            <View style={styles.switchRow}>
+              <FilterChip label="Admin" selected={portal === 'admin'} onPress={() => choosePortal('admin')} />
+              <FilterChip
+                label="Field Team"
+                selected={portal === 'team'}
+                onPress={() => choosePortal('team')}
+              />
+            </View>
+            <Text style={styles.demoHint}>
+              {portal === 'admin'
+                ? 'Demo admin: admin@rahscan.local / Admin1234!'
+                : 'Demo field team: road@rahscan.local / Team1234!'}
+            </Text>
             <View style={styles.form}>
               <TextField
                 label="Work email"
@@ -173,6 +212,12 @@ const styles = StyleSheet.create({
     color: colors.tealSoft,
     fontSize: 13,
     lineHeight: 18,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 16,
   },
   form: {
     marginTop: 32,

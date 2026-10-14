@@ -15,7 +15,7 @@ import { useReports } from '../data/reportStore';
 import { ScreenContainer } from '../layout/ScreenContainer';
 import { AuthBackdrop } from '../layout/AuthBackdrop';
 import { useBreakpoint } from '../layout/useBreakpoint';
-import { userStatusLabels, type UserStatus } from '../models/report';
+import { reportStatusLabels, userStatusLabels, type UserStatus } from '../models/report';
 import type { AdminTabParamList } from '../navigation';
 import { colors, radii, shadows } from '../theme';
 
@@ -35,6 +35,7 @@ export function AdminDashboardScreen(_props: Props) {
     { key: 'total', label: 'Total', value: reports.length },
     { key: 'pending', label: userStatusLabels.pending, value: byStatus.pending },
     { key: 'inProgress', label: userStatusLabels.inProgress, value: byStatus.inProgress },
+    { key: 'completed', label: reportStatusLabels.completed, value: byStatus.completed },
     { key: 'resolved', label: userStatusLabels.resolved, value: byStatus.resolved },
   ];
 

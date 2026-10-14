@@ -1,22 +1,27 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, AliasChoices, field_validator
 from pydantic.alias_generators import to_camel
 
 from .models import Report as ReportRow
+from .models import ReportEvent as ReportEventRow
 from .models import User as UserRow
 from .services.geocode_service import ReverseGeocodeError, reverse_geocode
+from .services.workflow import is_overdue, latest_rejection_reason, public_timeline
 
 RoadType = Literal["highway", "serviceRoad", "localRoad"]
-ReportStatus = Literal["pending", "assigned", "inProgress", "resolved"]
+ReportStatus = Literal["pending", "assigned", "inProgress", "completed", "escalated", "resolved"]
 AssignedTeam = Literal["unassigned", "roadMaintenance", "emergencyRepair", "inspection"]
+TeamKey = Literal["roadMaintenance", "emergencyRepair", "inspection"]
 TimelineStage = Literal["submitted", "underReview", "repairAssigned", "inProgress", "resolved"]
 Severity = Literal["small", "medium", "large"]
-AdminUiStatus = Literal["pending", "inProgress", "resolved"]
-Role = Literal["citizen", "admin"]
+Role = Literal["citizen", "admin", "team"]
+EventType = Literal[
+    "submitted", "assigned", "accepted", "completed", "verified", "rejected", "escalated"
+]
 
 
 class CamelModel(BaseModel):
@@ -223,12 +228,14 @@ class AuthUser(CamelModel):
     email: str
     role: Role
     token: str
+    team: str | None = None
 
 
 class MeResponse(CamelModel):
     name: str
     email: str
     role: Role
+    team: str | None = None
 
 
 def format_reference_id(n: int) -> str:
@@ -284,9 +291,94 @@ class ReportCreate(CamelModel):
     )
 
 
-class AdminReportPatch(CamelModel):
+class AssignRequest(CamelModel):
+    team: TeamKey
+    deadline: datetime
+    note: str | None = None
+
+
+class CompleteRequest(CamelModel):
+    photo_uri: str
+    photo_public_id: str
+    note: str
+
+
+class ReasonRequest(CamelModel):
+    reason: str
+
+
+class PublicTimelineItem(CamelModel):
+    label: str
+    at: datetime
+    note: str | None = None
+
+
+class CitizenReportOut(ReportOut):
+    timeline: list[PublicTimelineItem]
+    completion_note: str | None = None
+
+
+class AdminReportOut(ReportOut):
+    deadline_at: datetime | None = None
+    overdue: bool = False
+    assignment_note: str | None = None
+    completion_photo_uri: str | None = None
+    completion_photo_public_id: str | None = None
+    completion_note: str | None = None
+
+
+class ReportEventOut(CamelModel):
+    id: str
+    type: EventType
+    time: datetime
+    actor: str | None = None
+    note: str | None = None
+    photo_url: str | None = None
+    team: str | None = None
+    deadline_at: datetime | None = None
+    from_status: str | None = None
+    to_status: str
+
+
+class AdminReportDetail(AdminReportOut):
+    events: list[ReportEventOut] = Field(default_factory=list)
+
+
+class TeamDetectionBox(BoundingBox):
+    severity: Severity
+
+
+class TeamReportOut(CamelModel):
+    id: str
+    reference_id: str
+    photo_uri: str | None
+    city: str
+    area: str
+    road_type: RoadType
+    status: ReportStatus
     assigned_team: AssignedTeam
-    status: AdminUiStatus
+    created_at: datetime
+    severity: Severity
+    description: str | None = None
+    landmark: str | None = None
+    address: str
+    coords: GeoCoords | None = None
+    bounding_box: BoundingBox
+    bounding_boxes: list[TeamDetectionBox] = Field(default_factory=list)
+    deadline_at: datetime | None = None
+    overdue: bool
+    assignment_note: str | None = None
+    rejection_reason: str | None = None
+    completion_photo_uri: str | None = None
+    completion_photo_public_id: str | None = None
+    completion_note: str | None = None
+
+
+class TeamStatsOut(CamelModel):
+    assigned: int
+    in_progress: int
+    completed: int
+    overdue: int
 
 
 class UploadSignature(CamelModel):
@@ -298,24 +390,6 @@ class UploadSignature(CamelModel):
     format: str
     upload_preset: str
     unsigned: bool = False
-
-
-def from_admin_ui_status(ui: AdminUiStatus, team: AssignedTeam) -> ReportStatus:
-    if ui == "resolved":
-        return "resolved"
-    if ui == "inProgress":
-        return "inProgress"
-    return "pending" if team == "unassigned" else "assigned"
-
-
-def timeline_for(status: ReportStatus) -> TimelineStage:
-    if status == "resolved":
-        return "resolved"
-    if status == "inProgress":
-        return "inProgress"
-    if status == "assigned":
-        return "repairAssigned"
-    return "underReview"
 
 
 def _detections_from_row(row: ReportRow) -> list[DetectionBox]:
@@ -421,4 +495,146 @@ def report_to_out(row: ReportRow) -> ReportOut:
 
 
 def user_to_auth(user: UserRow, token: str) -> AuthUser:
-    return AuthUser(name=user.name, email=user.email, role=user.role, token=token)  # type: ignore[arg-type]
+    return AuthUser(
+        name=user.name,
+        email=user.email,
+        role=user.role,  # type: ignore[arg-type]
+        token=token,
+        team=user.team,
+    )
+
+
+def _actor_label(user: UserRow | None) -> str | None:
+    if user is None:
+        return None
+    name = (user.name or "").strip()
+    if name:
+        return name
+    email = (user.email or "").strip()
+    return email or None
+
+
+def _event_sort_key(event: ReportEventRow) -> tuple:
+    created = event.created_at
+    if created.tzinfo is None:
+        created = created.replace(tzinfo=timezone.utc)
+    return (created, str(event.id))
+
+
+def citizen_report_to_out(row: ReportRow) -> CitizenReportOut:
+    return CitizenReportOut(
+        **report_to_out(row).model_dump(by_alias=False),
+        timeline=[
+            PublicTimelineItem(label=entry.label, at=entry.at, note=entry.note)
+            for entry in public_timeline(row)
+        ],
+        completion_note=row.completion_note,
+    )
+
+
+def _workflow_snapshot(row: ReportRow) -> dict:
+    return {
+        "deadline_at": row.deadline_at,
+        "overdue": is_overdue(row),
+        "assignment_note": row.assignment_note,
+        "completion_photo_uri": row.completion_photo_url,
+        "completion_photo_public_id": row.completion_photo_public_id,
+        "completion_note": row.completion_note,
+    }
+
+
+def admin_report_to_out(row: ReportRow) -> AdminReportOut:
+    return AdminReportOut(**report_to_out(row).model_dump(by_alias=False), **_workflow_snapshot(row))
+
+
+def admin_report_to_detail(row: ReportRow) -> AdminReportDetail:
+    events = sorted(list(row.events or []), key=_event_sort_key)
+    return AdminReportDetail(
+        **admin_report_to_out(row).model_dump(by_alias=False),
+        events=[
+            ReportEventOut(
+                id=str(event.id),
+                type=event.event_type,  # type: ignore[arg-type]
+                time=event.created_at,
+                actor=_actor_label(event.actor),
+                note=event.note,
+                photo_url=event.photo_url,
+                team=event.assigned_team,
+                deadline_at=event.deadline_at,
+                from_status=event.from_status,
+                to_status=event.to_status,
+            )
+            for event in events
+        ],
+    )
+
+
+def _team_detections(row: ReportRow) -> list[TeamDetectionBox]:
+    raw = row.detections
+    if isinstance(raw, list) and len(raw) > 0:
+        boxes: list[TeamDetectionBox] = []
+        for item in raw:
+            if not isinstance(item, dict):
+                continue
+            try:
+                boxes.append(
+                    TeamDetectionBox(
+                        left=float(item.get("left", 0)),
+                        top=float(item.get("top", 0)),
+                        width=float(item.get("width", 0)),
+                        height=float(item.get("height", 0)),
+                        severity=item.get("severity", row.severity),  # type: ignore[arg-type]
+                    )
+                )
+            except (TypeError, ValueError):
+                continue
+        if boxes:
+            return boxes
+    return [
+        TeamDetectionBox(
+            left=row.bbox_left,
+            top=row.bbox_top,
+            width=row.bbox_width,
+            height=row.bbox_height,
+            severity=row.severity,  # type: ignore[arg-type]
+        )
+    ]
+
+
+def team_report_to_out(row: ReportRow) -> TeamReportOut:
+    coords = None
+    if row.lat is not None and row.lng is not None:
+        coords = GeoCoords(lat=row.lat, lng=row.lng)
+    city, area = _overlay_city_area(row)
+    boxes = _team_detections(row)
+    primary = boxes[0]
+    return TeamReportOut(
+        id=str(row.id),
+        reference_id=format_reference_id(row.ref_number),
+        photo_uri=row.photo_url,
+        city=city,
+        area=area,
+        road_type=row.road_type,  # type: ignore[arg-type]
+        status=row.status,  # type: ignore[arg-type]
+        assigned_team=row.assigned_team,  # type: ignore[arg-type]
+        created_at=row.created_at,
+        severity=row.severity,  # type: ignore[arg-type]
+        description=row.description,
+        landmark=row.landmark,
+        address=row.address or "",
+        coords=coords,
+        bounding_box=BoundingBox(
+            left=primary.left,
+            top=primary.top,
+            width=primary.width,
+            height=primary.height,
+        ),
+        bounding_boxes=boxes,
+        deadline_at=row.deadline_at,
+        overdue=is_overdue(row),
+        assignment_note=row.assignment_note,
+        rejection_reason=latest_rejection_reason(row),
+        completion_photo_uri=row.completion_photo_url,
+        completion_photo_public_id=row.completion_photo_public_id,
+        completion_note=row.completion_note,
+    )

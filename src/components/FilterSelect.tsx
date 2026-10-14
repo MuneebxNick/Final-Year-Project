@@ -93,11 +93,13 @@ export function FilterSelect<T extends string>({
             {selectedLabel}
           </Text>
         </View>
-        <Ionicons
-          name={open ? 'chevron-up' : 'chevron-down'}
-          size={18}
-          color={colors.muted}
-        />
+        <View style={styles.iconBox}>
+          <Ionicons
+            name={open ? 'chevron-up' : 'chevron-down'}
+            size={18}
+            color={colors.muted}
+          />
+        </View>
       </Pressable>
 
       <Modal visible={open && !disabled} transparent animationType="none" onRequestClose={close}>
@@ -184,17 +186,26 @@ const styles = StyleSheet.create({
   texts: {
     flex: 1,
     minWidth: 0,
+    justifyContent: 'center',
   },
   label: {
     fontSize: 12,
+    lineHeight: 16,
     fontWeight: '600',
     color: colors.muted,
     marginBottom: 2,
   },
   value: {
     fontSize: 16,
+    lineHeight: 20,
     fontWeight: '600',
     color: colors.ink,
+  },
+  iconBox: {
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   modalRoot: {
     flex: 1,

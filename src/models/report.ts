@@ -47,6 +47,8 @@ export const reportStatuses = [
   'pending',
   'assigned',
   'inProgress',
+  'completed',
+  'escalated',
   'resolved',
 ] as const;
 export type ReportStatus = (typeof reportStatuses)[number];
@@ -55,6 +57,8 @@ export const reportStatusLabels: Record<ReportStatus, string> = {
   pending: 'Pending',
   assigned: 'Assigned',
   inProgress: 'In progress',
+  completed: 'Awaiting verification',
+  escalated: 'Needs reassignment',
   resolved: 'Resolved',
 };
 
@@ -62,26 +66,31 @@ export const reportStatusColors: Record<ReportStatus, string> = {
   pending: '#E24B4A',
   assigned: '#E08A1E',
   inProgress: '#E08A1E',
+  completed: '#1B365D',
+  escalated: '#E24B4A',
   resolved: '#1B9A5B',
 };
 
-export const userStatuses = ['pending', 'inProgress', 'resolved'] as const;
+export const userStatuses = ['pending', 'inProgress', 'completed', 'resolved'] as const;
 export type UserStatus = (typeof userStatuses)[number];
 
 export const userStatusLabels: Record<UserStatus, string> = {
   pending: 'Pending',
   inProgress: 'In Progress',
+  completed: 'Repair done, being verified',
   resolved: 'Resolved',
 };
 
 export const userStatusColors: Record<UserStatus, string> = {
   pending: '#E24B4A',
   inProgress: '#E08A1E',
+  completed: '#1B365D',
   resolved: '#1B9A5B',
 };
 
 export function toUserStatus(status: ReportStatus): UserStatus {
   if (status === 'resolved') return 'resolved';
+  if (status === 'completed') return 'completed';
   if (status === 'inProgress') return 'inProgress';
   return 'pending';
 }
@@ -184,12 +193,118 @@ export type Report = {
   boundingBoxes?: OverlayBox[];
   timelineStage: TimelineStage;
   submittedBy: string;
+  completionNote?: string | null;
+  timeline?: PublicTimelineItem[];
+  deadlineAt?: Date | null;
+  overdue?: boolean;
+  assignmentNote?: string | null;
+  completionPhotoUri?: string | null;
+  completionPhotoPublicId?: string | null;
+  events?: ReportEvent[];
 };
 
 export type OverlayBox = BoundingBox & {
   severity: Severity;
   confidence?: number;
 };
+
+export type PublicTimelineItem = {
+  label: string;
+  at: Date;
+  note: string | null;
+};
+
+export const reportEventTypes = [
+  'submitted',
+  'assigned',
+  'accepted',
+  'completed',
+  'verified',
+  'rejected',
+  'escalated',
+] as const;
+export type ReportEventType = (typeof reportEventTypes)[number];
+
+export const reportEventLabels: Record<ReportEventType, string> = {
+  submitted: 'Submitted',
+  assigned: 'Assigned',
+  accepted: 'Accepted',
+  completed: 'Completed',
+  verified: 'Verified',
+  rejected: 'Rejected',
+  escalated: 'Escalated',
+};
+
+export type ReportEvent = {
+  id: string;
+  type: ReportEventType;
+  time: Date;
+  actor: string | null;
+  note: string | null;
+  photoUrl: string | null;
+  team: string | null;
+  deadlineAt: Date | null;
+  fromStatus: string | null;
+  toStatus: string;
+};
+
+export type TeamKey = Exclude<AssignedTeam, 'unassigned'>;
+
+export function isTeamKey(value: string | null | undefined): value is TeamKey {
+  return value === 'roadMaintenance' || value === 'emergencyRepair' || value === 'inspection';
+}
+
+export type TeamBox = BoundingBox & {
+  severity: Severity;
+};
+
+export type TeamReport = {
+  id: string;
+  referenceId: string;
+  photoUri: string | null;
+  city: string;
+  area: string;
+  roadType: RoadType;
+  status: ReportStatus;
+  assignedTeam: AssignedTeam;
+  createdAt: Date;
+  severity: Severity;
+  description?: string;
+  landmark?: string;
+  address: string;
+  coords?: GeoCoords;
+  boundingBox: BoundingBox;
+  boundingBoxes?: TeamBox[];
+  deadlineAt: Date | null;
+  overdue: boolean;
+  assignmentNote: string | null;
+  rejectionReason: string | null;
+  completionPhotoUri: string | null;
+  completionPhotoPublicId: string | null;
+  completionNote: string | null;
+};
+
+export type TeamStats = {
+  assigned: number;
+  inProgress: number;
+  completed: number;
+  overdue: number;
+};
+
+export function citizenTimeline(
+  report: Pick<Report, 'timeline' | 'timelineStage' | 'createdAt'>,
+): PublicTimelineItem[] {
+  if (report.timeline && report.timeline.length > 0) return report.timeline;
+  const current = (timelineStages as readonly string[]).includes(report.timelineStage)
+    ? report.timelineStage
+    : 'submitted';
+  const end = timelineStages.indexOf(current) + 1;
+  return timelineStages.slice(0, Math.max(end, 0)).map((stage) => ({
+    label: timelineStageLabels[stage],
+    at: report.createdAt,
+    note: null,
+  }));
+}
 
 export type DetectionDraft = {
   photoUri: string;
@@ -228,6 +343,39 @@ export function formatReportDate(date: Date): string {
   });
 }
 
+export function formatReportDateTime(date: Date): string {
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+/** YYYY-MM-DD in the local calendar. */
+export function localDateInputValue(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/** End of the selected local calendar day, as a UTC ISO timestamp. */
+export function endOfLocalDateInputIso(value: string): string | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const probe = new Date(year, month - 1, day);
+  if (probe.getFullYear() !== year || probe.getMonth() !== month - 1 || probe.getDate() !== day) {
+    return null;
+  }
+  return new Date(year, month - 1, day, 23, 59, 59, 999).toISOString();
+}
+
 export const LOW_CONFIDENCE_THRESHOLD = 50;
 
 export function isIncompleteLocation(report: Pick<Report, 'coords' | 'address'>): boolean {
@@ -242,31 +390,9 @@ export function isReportFlagged(report: Pick<Report, 'coords' | 'address' | 'con
   return isIncompleteLocation(report) || isLowConfidence(report);
 }
 
-export const adminUiStatuses = ['pending', 'inProgress', 'resolved'] as const;
-export type AdminUiStatus = (typeof adminUiStatuses)[number];
-
-export const adminUiStatusLabels: Record<AdminUiStatus, string> = {
-  pending: 'Pending',
-  inProgress: 'In Progress',
-  resolved: 'Resolved',
-};
-
-export function toAdminUiStatus(status: ReportStatus): AdminUiStatus {
-  return toUserStatus(status);
-}
-
-export function fromAdminUiStatus(
-  ui: AdminUiStatus,
-  team: AssignedTeam,
-): ReportStatus {
-  if (ui === 'resolved') return 'resolved';
-  if (ui === 'inProgress') return 'inProgress';
-  return team === 'unassigned' ? 'pending' : 'assigned';
-}
-
 export function timelineFor(status: ReportStatus): TimelineStage {
   if (status === 'resolved') return 'resolved';
-  if (status === 'inProgress') return 'inProgress';
+  if (status === 'inProgress' || status === 'completed') return 'inProgress';
   if (status === 'assigned') return 'repairAssigned';
   return 'underReview';
 }

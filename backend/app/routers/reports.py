@@ -4,19 +4,20 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from ..auth import require_citizen
 from ..db import get_db
 from ..models import Report, User
 from ..schemas import (
+    CitizenReportOut,
     DetectionBox,
     ReportCreate,
     ReportLocationOut,
-    ReportOut,
     _overlay_city_area,
-    report_to_out,
+    citizen_report_to_out,
 )
+from ..services.workflow import record_submitted
 
 router = APIRouter()
 
@@ -24,18 +25,18 @@ router = APIRouter()
 def _owned_query(user_id: UUID):
     return (
         select(Report)
-        .options(joinedload(Report.submitter))
+        .options(joinedload(Report.submitter), selectinload(Report.events))
         .where(Report.submitted_by == user_id)
         .order_by(Report.created_at.desc())
     )
 
 
-@router.post("", response_model=ReportOut, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=CitizenReportOut, status_code=status.HTTP_201_CREATED)
 def create_report(
     body: ReportCreate,
     user: Annotated[User, Depends(require_citizen)],
     db: Annotated[Session, Depends(get_db)],
-) -> ReportOut:
+) -> CitizenReportOut:
     photo_url = body.photo_uri
     if photo_url and not photo_url.startswith("https://"):
         raise HTTPException(
@@ -84,19 +85,21 @@ def create_report(
         created_at=datetime.now(timezone.utc),
     )
     db.add(row)
+    db.flush()
+    record_submitted(db, row, user.id)
     db.commit()
     db.refresh(row)
     row.submitter = user
-    return report_to_out(row)
+    return citizen_report_to_out(row)
 
 
-@router.get("/me", response_model=list[ReportOut])
+@router.get("/me", response_model=list[CitizenReportOut])
 def my_reports(
     user: Annotated[User, Depends(require_citizen)],
     db: Annotated[Session, Depends(get_db)],
-) -> list[ReportOut]:
+) -> list[CitizenReportOut]:
     rows = db.scalars(_owned_query(user.id)).unique().all()
-    return [report_to_out(row) for row in rows]
+    return [citizen_report_to_out(row) for row in rows]
 
 
 @router.get("/locations", response_model=list[ReportLocationOut])
@@ -129,15 +132,17 @@ def list_locations(
     return located
 
 
-@router.get("/{report_id}", response_model=ReportOut)
+@router.get("/{report_id}", response_model=CitizenReportOut)
 def get_report(
     report_id: UUID,
     user: Annotated[User, Depends(require_citizen)],
     db: Annotated[Session, Depends(get_db)],
-) -> ReportOut:
+) -> CitizenReportOut:
     row = db.scalar(
-        select(Report).options(joinedload(Report.submitter)).where(Report.id == report_id)
+        select(Report)
+        .options(joinedload(Report.submitter), selectinload(Report.events))
+        .where(Report.id == report_id)
     )
     if row is None or row.submitted_by != user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report not found")
-    return report_to_out(row)
+    return citizen_report_to_out(row)

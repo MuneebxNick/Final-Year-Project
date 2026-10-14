@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:8081,http://127.0.0.1:8081"
     demo_citizen_password: str = "Demo1234!"
     admin_password: str = "Admin1234!"
+    team_password: str = "Team1234!"
 
     @property
     def cors_origin_list(self) -> list[str]:

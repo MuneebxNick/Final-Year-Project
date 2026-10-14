@@ -79,8 +79,9 @@ export function UserMapScreen(_props: Props) {
         <ScreenContainer>
           <Text style={styles.heading}>Road map</Text>
           <Text style={styles.lede}>
-            Spot damaged-road areas while traveling. Heat and markers show current unresolved
-            reports — no photos or personal details.
+            Spot damaged-road areas while traveling. Heat and markers show every report that is
+            not resolved, including repairs waiting on verification. Photos and personal details
+            stay off this map.
           </Text>
 
           <ScrollView

@@ -28,6 +28,14 @@ export function StatusBadge({ status, variant = 'admin' }: Props) {
   );
 }
 
+export function OverdueBadge() {
+  return (
+    <View style={styles.overdue}>
+      <Text style={styles.overdueLabel}>Overdue</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   badge: {
     flexDirection: 'row',
@@ -43,6 +51,18 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   label: {
+    fontWeight: '700',
+    fontSize: 11,
+    letterSpacing: 0.2,
+  },
+  overdue: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+    backgroundColor: '#FDECEC',
+  },
+  overdueLabel: {
+    color: '#E24B4A',
     fontWeight: '700',
     fontSize: 11,
     letterSpacing: 0.2,

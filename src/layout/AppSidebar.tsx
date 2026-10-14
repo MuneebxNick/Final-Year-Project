@@ -87,6 +87,10 @@ export const adminSidebarItems: SidebarItem[] = [
   { key: 'Predictive', label: 'Predictive', icon: 'pulse-outline' },
 ];
 
+export const teamSidebarItems: SidebarItem[] = [
+  { key: 'Queue', label: 'Queue', icon: 'clipboard-outline' },
+];
+
 const styles = StyleSheet.create({
   sidebar: {
     width: SIDEBAR_WIDTH,

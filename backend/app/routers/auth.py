@@ -53,4 +53,4 @@ def admin_login(body: LoginRequest, db: Annotated[Session, Depends(get_db)]) -> 
 
 @router.get("/me", response_model=MeResponse)
 def me(user: Annotated[User, Depends(get_current_user)]) -> MeResponse:
-    return MeResponse(name=user.name, email=user.email, role=user.role)  # type: ignore[arg-type]
+    return MeResponse(name=user.name, email=user.email, role=user.role, team=user.team)  # type: ignore[arg-type]

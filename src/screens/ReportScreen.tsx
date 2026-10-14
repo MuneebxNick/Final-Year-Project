@@ -1,6 +1,5 @@
 import { useCallback, useState } from 'react';
 import {
-    Alert,
     Image,
     KeyboardAvoidingView,
     Modal,
@@ -53,6 +52,7 @@ export function ReportScreen({ navigation }: Props) {
     const [coords, setCoords] = useState<GeoCoords | undefined>();
     const [locating, setLocating] = useState(false);
     const [locationError, setLocationError] = useState<string | null>(null);
+    const [photoNotice, setPhotoNotice] = useState<string | null>(null);
     const [description, setDescription] = useState('');
     const [landmark, setLandmark] = useState('');
     const [sheetOpen, setSheetOpen] = useState(false);
@@ -73,6 +73,7 @@ export function ReportScreen({ navigation }: Props) {
         setAddress('');
         setCoords(undefined);
         setLocationError(null);
+        setPhotoNotice(null);
         setDescription('');
         setLandmark('');
         setErrors({});
@@ -85,13 +86,18 @@ export function ReportScreen({ navigation }: Props) {
         }, []),
     );
 
+    const rememberPhoto = (uri: string) => {
+        setPhotoUri(uri);
+        setPhotoNotice(null);
+    };
+
     const pick = async (source: 'camera' | 'gallery') => {
         setSheetOpen(false);
         try {
             if (source === 'camera') {
                 const permission = await ImagePicker.requestCameraPermissionsAsync();
                 if (!permission.granted) {
-                    Alert.alert('Camera needed', 'Allow camera access to photograph potholes.');
+                    setPhotoNotice('Camera needed\nAllow camera access to photograph potholes.');
                     return;
                 }
                 const result = await ImagePicker.launchCameraAsync({
@@ -99,14 +105,14 @@ export function ReportScreen({ navigation }: Props) {
                     allowsEditing: false,
                 });
                 if (!result.canceled && result.assets[0]) {
-                    setPhotoUri(result.assets[0].uri);
+                    rememberPhoto(result.assets[0].uri);
                 }
                 return;
             }
 
             const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
             if (!permission.granted) {
-                Alert.alert('Photos needed', 'Allow photo library access to upload a pothole image.');
+                setPhotoNotice('Photos needed\nAllow photo library access to upload a pothole image.');
                 return;
             }
             const result = await ImagePicker.launchImageLibraryAsync({
@@ -114,10 +120,10 @@ export function ReportScreen({ navigation }: Props) {
                 mediaTypes: ['images'],
             });
             if (!result.canceled && result.assets[0]) {
-                setPhotoUri(result.assets[0].uri);
+                rememberPhoto(result.assets[0].uri);
             }
         } catch {
-            Alert.alert('Could not open the camera or gallery.');
+            setPhotoNotice('Could not open the camera or gallery.');
         }
     };
 
@@ -131,7 +137,7 @@ export function ReportScreen({ navigation }: Props) {
 
     const failLocation = (message: string) => {
         setLocating(false);
-        Alert.alert('Location unavailable', message);
+        setLocationError(`Location unavailable\n${message}`);
     };
 
     const requestLocation = () => {
@@ -193,12 +199,12 @@ export function ReportScreen({ navigation }: Props) {
             return;
         }
         if (!photoUri) {
-            const message = 'Add a photo of the road damage.';
-            setAnalyzeError(message);
-            Alert.alert(message);
+            setPhotoNotice('Add a photo of the road damage.');
+            setAnalyzeError(null);
             return;
         }
 
+        setPhotoNotice(null);
         setAnalyzeError(null);
         setAnalyzing(true);
         try {
@@ -206,8 +212,7 @@ export function ReportScreen({ navigation }: Props) {
             const detection = await mapYoloToDraft(photoUri, result);
             if (!detection) {
                 const message = result.message ?? 'Try another photo of the damaged road.';
-                setAnalyzeError(message);
-                Alert.alert('No potholes detected.', message);
+                setAnalyzeError(`No potholes detected.\n${message}`);
                 return;
             }
             navigation.navigate('DetectionResult', {
@@ -226,8 +231,7 @@ export function ReportScreen({ navigation }: Props) {
         } catch (error) {
             const message =
                 error instanceof Error ? error.message : 'Check that the backend is running.';
-            setAnalyzeError(message);
-            Alert.alert('Could not analyze the photo', message);
+            setAnalyzeError(`Could not analyze the photo\n${message}`);
         } finally {
             setAnalyzing(false);
         }
@@ -253,6 +257,7 @@ export function ReportScreen({ navigation }: Props) {
                             </Text>
 
                             <View style={isWide ? styles.split : undefined}>
+                                <View style={isWide ? styles.photoCol : undefined}>
                                 <View style={[styles.photoBox, isWide && styles.photoBoxWide]}>
                                     {photoUri ? (
                                         <>
@@ -288,6 +293,8 @@ export function ReportScreen({ navigation }: Props) {
                                             </Text>
                                         </Pressable>
                                     )}
+                                </View>
+                                {photoNotice ? <Text style={styles.photoNotice}>{photoNotice}</Text> : null}
                                 </View>
 
                                 <View style={isWide ? styles.formCol : undefined}>
@@ -439,8 +446,10 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start',
         gap: 28,
     },
-    photoBoxWide: {
+    photoCol: {
         flex: 1,
+    },
+    photoBoxWide: {
         height: 360,
         marginBottom: 0,
     },
@@ -489,6 +498,14 @@ const styles = StyleSheet.create({
     photoHint: {
         marginTop: 4,
         color: colors.muted,
+    },
+    photoNotice: {
+        marginTop: 8,
+        marginBottom: 12,
+        marginLeft: 4,
+        color: colors.pillRed,
+        fontSize: 13,
+        lineHeight: 18,
     },
     photoActions: {
         position: 'absolute',

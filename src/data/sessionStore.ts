@@ -3,13 +3,14 @@ import { Platform } from 'react-native';
 
 import { API_URL } from '../api/config';
 
-export type Role = 'citizen' | 'admin';
+export type Role = 'citizen' | 'admin' | 'team';
 
 export type Session = {
   name: string;
   email: string;
   role: Role;
   token: string;
+  team: string | null;
 };
 
 type Listener = () => void;
@@ -30,7 +31,7 @@ function readPersisted(): Session | null {
       localStorage.removeItem(STORAGE_KEY);
       return null;
     }
-    return parsed;
+    return normalizeSession(parsed);
   } catch {
     return null;
   }
@@ -46,16 +47,33 @@ function writePersisted(session: Session | null) {
   }
 }
 
-function isSession(value: unknown): value is Session {
+function isRole(value: unknown): value is Role {
+  return value === 'citizen' || value === 'admin' || value === 'team';
+}
+
+function isSession(value: unknown): value is Session & { team?: string | null } {
   if (!value || typeof value !== 'object') return false;
   const candidate = value as Record<string, unknown>;
+  const teamOk =
+    candidate.team === undefined || candidate.team === null || typeof candidate.team === 'string';
   return (
     typeof candidate.name === 'string' &&
     typeof candidate.email === 'string' &&
-    (candidate.role === 'citizen' || candidate.role === 'admin') &&
+    isRole(candidate.role) &&
     typeof candidate.token === 'string' &&
-    candidate.token.length > 0
+    candidate.token.length > 0 &&
+    teamOk
   );
+}
+
+function normalizeSession(value: Session & { team?: string | null }): Session {
+  return {
+    name: value.name,
+    email: value.email,
+    role: value.role,
+    token: value.token,
+    team: typeof value.team === 'string' ? value.team : null,
+  };
 }
 
 class SessionStore {
@@ -108,11 +126,15 @@ class SessionStore {
       const me: unknown = await response.json();
       if (!me || typeof me !== 'object') return stored;
       const body = me as Record<string, unknown>;
+      const role = isRole(body.role) ? body.role : stored.role;
+      const team =
+        body.team === null || typeof body.team === 'string' ? body.team : stored.team;
       const next: Session = {
         name: typeof body.name === 'string' ? body.name : stored.name,
         email: typeof body.email === 'string' ? body.email : stored.email,
-        role: body.role === 'admin' || body.role === 'citizen' ? body.role : stored.role,
+        role,
         token: stored.token,
+        team,
       };
       this.signIn(next);
       return next;

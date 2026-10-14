@@ -6,7 +6,7 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { FilterSelect } from '../components/FilterSelect';
-import { StatusBadge } from '../components/StatusBadge';
+import { OverdueBadge, StatusBadge } from '../components/StatusBadge';
 import { TextField } from '../components/TextField';
 import { useReports } from '../data/reportStore';
 import { ScreenContainer } from '../layout/ScreenContainer';
@@ -18,17 +18,16 @@ import {
   isIncompleteLocation,
   isLowConfidence,
   normalizeReferenceId,
+  reportStatusLabels,
+  reportStatuses,
   roadTypeLabels,
   severityLabels,
   severityRank,
   severities,
-  toUserStatus,
   uniqueCities,
-  userStatusLabels,
-  userStatuses,
   type Report,
+  type ReportStatus,
   type Severity,
-  type UserStatus,
 } from '../models/report';
 import type { AdminTabParamList, RootStackParamList } from '../navigation';
 import { colors, radii, shadows } from '../theme';
@@ -40,7 +39,7 @@ type Props = CompositeScreenProps<
 
 type CityFilter = 'all' | string;
 type SeverityFilter = 'all' | Severity;
-type StatusFilter = 'all' | UserStatus;
+type StatusFilter = 'all' | ReportStatus;
 type DateRange = 'all' | '7d' | '30d';
 type SortMode = 'newest' | 'oldest' | 'severity';
 
@@ -68,7 +67,7 @@ export function AdminReportsScreen({ navigation }: Props) {
       if (needle && normalizeReferenceId(report.referenceId) !== needle) return false;
       if (city !== 'all' && report.city.trim() !== city) return false;
       if (severity !== 'all' && report.severity !== severity) return false;
-      if (status !== 'all' && toUserStatus(report.status) !== status) return false;
+      if (status !== 'all' && report.status !== status) return false;
       if (cutoff && report.createdAt.getTime() < cutoff) return false;
       return true;
     });
@@ -128,7 +127,7 @@ export function AdminReportsScreen({ navigation }: Props) {
             value={status}
             options={[
               { value: 'all', label: 'All' },
-              ...userStatuses.map((item) => ({ value: item, label: userStatusLabels[item] })),
+              ...reportStatuses.map((item) => ({ value: item, label: reportStatusLabels[item] })),
             ]}
             onChange={setStatus}
             open={openFilter === 'status'}
@@ -201,7 +200,8 @@ function AdminReportCard({ report, onPress }: { report: Report; onPress: () => v
       <Text style={styles.refId}>{report.referenceId}</Text>
       <View style={styles.cardTop}>
         <Text style={styles.city}>{report.city}</Text>
-        <StatusBadge status={report.status} variant="user" />
+        <StatusBadge status={report.status} />
+        {report.overdue ? <OverdueBadge /> : null}
       </View>
       <Text style={styles.area}>{report.area}</Text>
       {flags.length > 0 ? (
@@ -284,6 +284,7 @@ const styles = StyleSheet.create({
   cardTop: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
     gap: 12,
   },
   city: {

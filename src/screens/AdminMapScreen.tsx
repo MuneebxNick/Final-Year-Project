@@ -15,11 +15,11 @@ import { webCursor, type WebPressableState } from '../layout/webStyles';
 import {
   areaLabel,
   severityColors,
-  toUserStatus,
   uniqueAreaLabels,
   userStatusLabels,
   userStatuses,
   type Report,
+  type UserStatus,
 } from '../models/report';
 import type { AdminTabParamList, RootStackParamList } from '../navigation';
 import { colors, radii, shadows } from '../theme';
@@ -61,17 +61,25 @@ function buildClusters(reports: Report[]): HeatCluster[] {
 
 function sortAreaReports(list: Report[]): Report[] {
   return [...list].sort((a, b) => {
-    const aResolved = toUserStatus(a.status) === 'resolved' ? 1 : 0;
-    const bResolved = toUserStatus(b.status) === 'resolved' ? 1 : 0;
+    const aResolved = a.status === 'resolved' ? 1 : 0;
+    const bResolved = b.status === 'resolved' ? 1 : 0;
     if (aResolved !== bResolved) return aResolved - bResolved;
     return b.createdAt.getTime() - a.createdAt.getTime();
   });
 }
 
-function countByUserStatus(reports: Report[]) {
-  const counts = { pending: 0, inProgress: 0, resolved: 0 };
+function countByUserStatus(reports: Report[]): Record<UserStatus, number> {
+  const counts: Record<UserStatus, number> = {
+    pending: 0,
+    inProgress: 0,
+    completed: 0,
+    resolved: 0,
+  };
   reports.forEach((report) => {
-    counts[toUserStatus(report.status)] += 1;
+    if (report.status === 'resolved') counts.resolved += 1;
+    else if (report.status === 'completed') counts.completed += 1;
+    else if (report.status === 'inProgress') counts.inProgress += 1;
+    else counts.pending += 1;
   });
   return counts;
 }
@@ -83,7 +91,7 @@ export function AdminMapScreen({ navigation }: Props) {
   const openLocated = useMemo(
     () =>
       reports.filter(
-        (report) => toUserStatus(report.status) !== 'resolved' && report.coords != null,
+        (report) => report.status !== 'resolved' && report.coords != null,
       ),
     [reports],
   );
@@ -97,7 +105,7 @@ export function AdminMapScreen({ navigation }: Props) {
     [reports, areaFilter],
   );
   const heatReports = useMemo(
-    () => visible.filter((report) => toUserStatus(report.status) !== 'resolved'),
+    () => visible.filter((report) => report.status !== 'resolved'),
     [visible],
   );
   const heatPoints: LeafletHeatPoint[] = useMemo(
@@ -130,8 +138,9 @@ export function AdminMapScreen({ navigation }: Props) {
       <ScreenContainer>
         <Text style={styles.heading}>City map</Text>
         <Text style={styles.lede}>
-          Heat shows active (unresolved) damage by area. Tap a hotspot to see that area's reports
-          and status mix.
+          Heat includes pending, assigned, in-progress, completed, and escalated reports. Only
+          resolved reports are left off the map. Tap a hotspot to see that area's reports and
+          status mix.
         </Text>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>

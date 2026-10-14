@@ -9,13 +9,12 @@ import { ScreenContainer } from '../layout/ScreenContainer';
 import { AuthBackdrop } from '../layout/AuthBackdrop';
 import { useBreakpoint } from '../layout/useBreakpoint';
 import {
+  citizenTimeline,
   formatReportDate,
+  formatReportDateTime,
   overlayBoxesForReport,
   roadTypeLabels,
   severityColors,
-  timelineStageLabels,
-  timelineStages,
-  type TimelineStage,
 } from '../models/report';
 import type { RootStackParamList } from '../navigation';
 import { colors, radii, shadows } from '../theme';
@@ -44,7 +43,7 @@ export function UserReportDetailScreen({ route }: Props) {
     );
   }
 
-  const currentIndex = timelineStages.indexOf(report.timelineStage);
+  const steps = citizenTimeline(report);
   const potholes = overlayBoxesForReport(report);
 
   return (
@@ -100,13 +99,14 @@ export function UserReportDetailScreen({ route }: Props) {
 
       <Text style={styles.cardTitle}>Status timeline</Text>
       <View style={styles.timeline}>
-        {timelineStages.map((stage, index) => (
+        {steps.map((step, index) => (
           <TimelineStep
-            key={stage}
-            stage={stage}
-            index={index}
-            currentIndex={currentIndex}
-            isLast={index === timelineStages.length - 1}
+            key={`${step.label}-${index}`}
+            label={step.label}
+            at={step.at}
+            note={step.note}
+            current={index === steps.length - 1}
+            isLast={index === steps.length - 1}
           />
         ))}
       </View>
@@ -138,45 +138,28 @@ function Detail({
 }
 
 function TimelineStep({
-  stage,
-  index,
-  currentIndex,
+  label,
+  at,
+  note,
+  current,
   isLast,
 }: {
-  stage: TimelineStage;
-  index: number;
-  currentIndex: number;
+  label: string;
+  at: Date;
+  note: string | null;
+  current: boolean;
   isLast: boolean;
 }) {
-  const done = index < currentIndex;
-  const current = index === currentIndex;
-  const upcoming = index > currentIndex;
-
   return (
     <View style={styles.step}>
       <View style={styles.rail}>
-        <View
-          style={[
-            styles.dot,
-            done && styles.dotDone,
-            current && styles.dotCurrent,
-            upcoming && styles.dotUpcoming,
-          ]}
-        />
-        {isLast ? null : (
-          <View style={[styles.line, (done || current) && styles.lineOn]} />
-        )}
+        <View style={[styles.dot, current ? styles.dotCurrent : styles.dotDone]} />
+        {isLast ? null : <View style={[styles.line, styles.lineOn]} />}
       </View>
       <View style={styles.stepBody}>
-        <Text
-          style={[
-            styles.stepLabel,
-            current && styles.stepCurrent,
-            upcoming && styles.stepUpcoming,
-          ]}
-        >
-          {timelineStageLabels[stage]}
-        </Text>
+        <Text style={[styles.stepLabel, current && styles.stepCurrent]}>{label}</Text>
+        <Text style={styles.when}>{formatReportDateTime(at)}</Text>
+        {note ? <Text style={styles.note}>{note}</Text> : null}
         {current ? <Text style={styles.now}>Current</Text> : null}
       </View>
     </View>
@@ -316,6 +299,16 @@ const styles = StyleSheet.create({
   dotUpcoming: {
     backgroundColor: colors.white,
     borderColor: colors.border,
+  },
+  when: {
+    marginTop: 2,
+    color: colors.muted,
+    fontSize: 12,
+  },
+  note: {
+    marginTop: 4,
+    color: colors.ink,
+    lineHeight: 18,
   },
   line: {
     flex: 1,

@@ -15,7 +15,7 @@ from .db import get_db
 from .models import User
 
 bearer = HTTPBearer(auto_error=False)
-Role = Literal["citizen", "admin"]
+Role = Literal["citizen", "admin", "team"]
 
 
 def hash_password(password: str) -> str:
@@ -74,4 +74,21 @@ def require_citizen(user: Annotated[User, Depends(get_current_user)]) -> User:
 def require_admin(user: Annotated[User, Depends(get_current_user)]) -> User:
     if user.role != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+    return user
+
+
+def require_team(user: Annotated[User, Depends(get_current_user)]) -> User:
+    from .services.workflow import TEAM_KEYS
+
+    if user.role != "team" or user.team not in TEAM_KEYS:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Team access required")
+    return user
+
+
+def require_citizen_or_team(user: Annotated[User, Depends(get_current_user)]) -> User:
+    if user.role not in ("citizen", "team"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Citizen or team access required",
+        )
     return user

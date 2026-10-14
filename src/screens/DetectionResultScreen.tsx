@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { PhotoWithBoundingBox } from '../components/PhotoWithBoundingBox';
@@ -39,8 +39,7 @@ export function DetectionResultScreen({ navigation, route }: Props) {
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Try again in a moment.';
-      setSubmitError(message);
-      Alert.alert('Could not submit the report', message);
+      setSubmitError(`Could not submit the report\n${message}`);
     } finally {
       setSubmitting(false);
     }

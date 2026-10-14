@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -8,6 +9,7 @@ import {
   type KeyboardTypeOptions,
   type ReturnKeyTypeOptions,
   type TextInputProps,
+  type TextStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -30,6 +32,37 @@ type Props = {
   multiline?: boolean;
   numberOfLines?: number;
 };
+
+const ICON_BOX = 24;
+const LINE = 24;
+const BORDER = 1;
+const FIELD_MIN = 56;
+const AREA_MIN = 96;
+// (56 - 24 - 2) / 2. Shared top inset so the icon box and the first line start together.
+const INSET = (FIELD_MIN - LINE - BORDER * 2) / 2;
+const AREA_INNER = AREA_MIN - INSET * 2 - BORDER * 2;
+
+// Inline so it beats the web TextInput `font` shorthand, which resets line-height,
+// and the textarea user-agent padding.
+const webInputReset: TextStyle =
+  Platform.OS === 'web'
+    ? {
+        lineHeight: LINE,
+        marginTop: 0,
+        marginBottom: 0,
+        paddingTop: 0,
+        paddingBottom: 0,
+        paddingLeft: 0,
+        paddingRight: 0,
+      }
+    : {};
+
+const webSingleLineCenter: TextStyle =
+  Platform.OS === 'web'
+    ? {
+        height: LINE,
+      }
+    : {};
 
 export function TextField({
   label,
@@ -60,12 +93,13 @@ export function TextField({
           !!error && styles.fieldError,
         ]}
       >
-        <Ionicons
-          name={icon}
-          size={20}
-          color={error ? colors.pillRed : focused ? colors.tealMid : colors.muted}
-          style={styles.icon}
-        />
+        <View style={[styles.iconBox, multiline && styles.iconTop]}>
+          <Ionicons
+            name={icon}
+            size={20}
+            color={error ? colors.pillRed : focused ? colors.tealMid : colors.muted}
+          />
+        </View>
         <TextInput
           value={value}
           onChangeText={onChangeText}
@@ -81,7 +115,13 @@ export function TextField({
           onBlur={() => setFocused(false)}
           multiline={multiline}
           numberOfLines={numberOfLines}
-          style={[styles.input, multiline && styles.multiline, webInputNoOutline]}
+          style={[
+            styles.input,
+            multiline ? styles.multiline : styles.singleLine,
+            webInputReset,
+            !multiline && webSingleLineCenter,
+            webInputNoOutline,
+          ]}
         />
         {secureTextEntry ? (
           <Pressable
@@ -89,7 +129,7 @@ export function TextField({
             hitSlop={10}
             accessibilityRole="button"
             accessibilityLabel={hidden ? 'Show password' : 'Hide password'}
-            style={webNoOutline}
+            style={[styles.iconBox, styles.trailing, multiline && styles.iconTop, webNoOutline]}
           >
             <Ionicons
               name={hidden ? 'eye-outline' : 'eye-off-outline'}
@@ -105,42 +145,69 @@ export function TextField({
 }
 
 const styles = StyleSheet.create({
-    wrap: {
+  wrap: {
     marginBottom: 18,
   },
   field: {
-    minHeight: 56,
+    minHeight: FIELD_MIN,
     backgroundColor: colors.white,
     borderRadius: radii.button,
-    borderWidth: 1,
+    borderWidth: BORDER,
     borderColor: colors.inputBorder,
     paddingHorizontal: 16,
+    paddingVertical: INSET,
     flexDirection: 'row',
     alignItems: 'center',
   },
   fieldMultiline: {
     alignItems: 'flex-start',
-    minHeight: 96,
+    minHeight: AREA_MIN,
+    paddingTop: INSET,
+    paddingBottom: INSET,
   },
-    fieldFocused: {
+  fieldFocused: {
     borderColor: colors.blueMid,
     borderWidth: 1.4,
   },
   fieldError: {
     borderColor: colors.pillRed,
   },
-  icon: {
+  iconBox: {
+    width: ICON_BOX,
+    height: ICON_BOX,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 10,
+    flexShrink: 0,
+    overflow: 'hidden',
+  },
+  iconTop: {
+    alignSelf: 'flex-start',
+  },
+  trailing: {
+    marginRight: 0,
   },
   input: {
     flex: 1,
     fontSize: 16,
+    lineHeight: LINE,
     color: colors.ink,
-    paddingVertical: 14,
+    margin: 0,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
     backgroundColor: 'transparent',
+    includeFontPadding: false,
+  },
+  singleLine: {
+    height: LINE,
+    textAlignVertical: 'center',
   },
   multiline: {
-    minHeight: 88,
+    alignSelf: 'stretch',
+    minHeight: AREA_INNER,
+    lineHeight: LINE,
+    paddingTop: 0,
+    paddingBottom: 0,
     textAlignVertical: 'top',
   },
   error: {
@@ -148,5 +215,6 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     color: colors.pillRed,
     fontSize: 13,
+    lineHeight: 18,
   },
 });
