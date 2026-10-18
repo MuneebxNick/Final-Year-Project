@@ -19,6 +19,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { OutlineButton, PrimaryButton } from '../components/Buttons';
+import { LocationPickerMap } from '../components/LocationPickerMap';
 import { TextField } from '../components/TextField';
 import { detectPotholes, mapYoloToDraft } from '../api/detect';
 import { reverseGeocode } from '../api/geocode';
@@ -51,6 +52,8 @@ export function ReportScreen({ navigation }: Props) {
     const [address, setAddress] = useState('');
     const [coords, setCoords] = useState<GeoCoords | undefined>();
     const [locating, setLocating] = useState(false);
+    const [resolvingPin, setResolvingPin] = useState(false);
+    const [mapOpen, setMapOpen] = useState(false);
     const [locationError, setLocationError] = useState<string | null>(null);
     const [photoNotice, setPhotoNotice] = useState<string | null>(null);
     const [description, setDescription] = useState('');
@@ -72,6 +75,7 @@ export function ReportScreen({ navigation }: Props) {
         setUseGps(false);
         setAddress('');
         setCoords(undefined);
+        setMapOpen(false);
         setLocationError(null);
         setPhotoNotice(null);
         setDescription('');
@@ -137,7 +141,34 @@ export function ReportScreen({ navigation }: Props) {
 
     const failLocation = (message: string) => {
         setLocating(false);
+        setMapOpen(true);
         setLocationError(`Location unavailable\n${message}`);
+    };
+
+    const applyCoords = async (gps: GeoCoords) => {
+        setResolvingPin(true);
+        setLocationError(null);
+        try {
+            const place = await reverseGeocode(gps.lat, gps.lng);
+            setUseGps(true);
+            setCoords(gps);
+            if (place.city) setCity(place.city);
+            if (place.area) setArea(place.area);
+            setErrors((prev) => ({
+                ...prev,
+                city: place.city ? undefined : prev.city,
+                area: place.area ? undefined : prev.area,
+            }));
+            if (!place.city) {
+                setLocationError('Coordinates saved, but the city was not found. Enter the city yourself.');
+            }
+        } catch {
+            setUseGps(true);
+            setCoords(gps);
+            setLocationError('Coordinates saved, but the city could not be looked up. Enter the city yourself.');
+        } finally {
+            setResolvingPin(false);
+        }
     };
 
     const requestLocation = () => {
@@ -145,43 +176,24 @@ export function ReportScreen({ navigation }: Props) {
         setLocationError(null);
         const geo = typeof navigator !== 'undefined' ? navigator.geolocation : undefined;
         if (!geo) {
-            failLocation('This device cannot provide GPS. Enter city, area, and address manually.');
+            failLocation('This device cannot provide GPS. Pick the spot on the map instead.');
             return;
         }
         geo.getCurrentPosition(
-            async (position) => {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                const gps = { lat, lng };
-                try {
-                    const place = await reverseGeocode(lat, lng);
-                    setUseGps(true);
-                    setCoords(gps);
-                    if (place.city) setCity(place.city);
-                    if (place.area) setArea(place.area);
-                    setErrors((prev) => ({
-                        ...prev,
-                        city: place.city ? undefined : prev.city,
-                        area: place.area ? undefined : prev.area,
-                    }));
-                    if (!place.city) {
-                        setLocationError('Coordinates saved, but the city was not found. Enter the city yourself.');
-                    }
-                } catch {
-                    setUseGps(true);
-                    setCoords(gps);
-                    setLocationError('Coordinates saved, but the city could not be looked up. Enter the city yourself.');
-                } finally {
-                    setLocating(false);
-                }
+            (position) => {
+                setLocating(false);
+                void applyCoords({
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                });
             },
             (error: { code?: number }) => {
                 const message =
                     error?.code === 1
-                        ? 'Location permission was denied. Enable it in your browser or device settings, then try again.'
+                        ? 'The browser blocked GPS on this page. Pick the spot on the map instead.'
                         : error?.code === 3
-                            ? 'Location request timed out. Try again or enter the address manually.'
-                            : 'Could not get your current location. Enter the address manually.';
+                            ? 'Location request timed out. Pick the spot on the map instead.'
+                            : 'Could not get your current location. Pick the spot on the map instead.';
                 failLocation(message);
             },
             { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
@@ -258,43 +270,43 @@ export function ReportScreen({ navigation }: Props) {
 
                             <View style={isWide ? styles.split : undefined}>
                                 <View style={isWide ? styles.photoCol : undefined}>
-                                <View style={[styles.photoBox, isWide && styles.photoBoxWide]}>
-                                    {photoUri ? (
-                                        <>
-                                            <Image source={{ uri: photoUri }} style={styles.photo} />
-                                            <View style={styles.photoActions}>
-                                                <Pressable style={[styles.photoBtn, webCursor]} onPress={openPhotoSource}>
-                                                    <Text style={styles.photoBtnText}>Retake</Text>
-                                                </Pressable>
-                                                <Pressable
-                                                    style={[styles.photoBtn, styles.photoBtnGhost, webCursor]}
-                                                    onPress={() => setPhotoUri(null)}
-                                                >
-                                                    <Text style={styles.photoBtnGhostText}>Remove</Text>
-                                                </Pressable>
-                                            </View>
-                                        </>
-                                    ) : (
-                                        <Pressable
-                                            onPress={openPhotoSource}
-                                            style={[styles.photoEmpty, webCursor]}
-                                            accessibilityRole="button"
-                                        >
-                                            <Ionicons name="camera-outline" size={40} color={colors.tealMid} />
-                                            <Text style={styles.photoTitle}>
-                                                {Platform.OS === 'web' && isWide
-                                                    ? 'Choose a photo from your gallery'
-                                                    : 'Take photo or choose from gallery'}
-                                            </Text>
-                                            <Text style={styles.photoHint}>
-                                                {Platform.OS === 'web' && isWide
-                                                    ? 'Click to add a photo'
-                                                    : 'Tap to add a photo'}
-                                            </Text>
-                                        </Pressable>
-                                    )}
-                                </View>
-                                {photoNotice ? <Text style={styles.photoNotice}>{photoNotice}</Text> : null}
+                                    <View style={[styles.photoBox, isWide && styles.photoBoxWide]}>
+                                        {photoUri ? (
+                                            <>
+                                                <Image source={{ uri: photoUri }} style={styles.photo} />
+                                                <View style={styles.photoActions}>
+                                                    <Pressable style={[styles.photoBtn, webCursor]} onPress={openPhotoSource}>
+                                                        <Text style={styles.photoBtnText}>Retake</Text>
+                                                    </Pressable>
+                                                    <Pressable
+                                                        style={[styles.photoBtn, styles.photoBtnGhost, webCursor]}
+                                                        onPress={() => setPhotoUri(null)}
+                                                    >
+                                                        <Text style={styles.photoBtnGhostText}>Remove</Text>
+                                                    </Pressable>
+                                                </View>
+                                            </>
+                                        ) : (
+                                            <Pressable
+                                                onPress={openPhotoSource}
+                                                style={[styles.photoEmpty, webCursor]}
+                                                accessibilityRole="button"
+                                            >
+                                                <Ionicons name="camera-outline" size={40} color={colors.tealMid} />
+                                                <Text style={styles.photoTitle}>
+                                                    {Platform.OS === 'web' && isWide
+                                                        ? 'Choose a photo from your gallery'
+                                                        : 'Take photo or choose from gallery'}
+                                                </Text>
+                                                <Text style={styles.photoHint}>
+                                                    {Platform.OS === 'web' && isWide
+                                                        ? 'Click to add a photo'
+                                                        : 'Tap to add a photo'}
+                                                </Text>
+                                            </Pressable>
+                                        )}
+                                    </View>
+                                    {photoNotice ? <Text style={styles.photoNotice}>{photoNotice}</Text> : null}
                                 </View>
 
                                 <View style={isWide ? styles.formCol : undefined}>
@@ -360,9 +372,38 @@ export function ReportScreen({ navigation }: Props) {
                                             {locating ? 'Finding location…' : 'Use Current Location'}
                                         </Text>
                                     </Pressable>
+                                    <Pressable
+                                        onPress={() => setMapOpen((open) => !open)}
+                                        accessibilityRole="button"
+                                        style={(state: WebPressableState) => [
+                                            styles.gpsRow,
+                                            webCursor,
+                                            mapOpen && styles.gpsRowOn,
+                                            state.hovered && styles.gpsHover,
+                                        ]}
+                                    >
+                                        <Ionicons
+                                            name="map-outline"
+                                            size={20}
+                                            color={mapOpen ? colors.blue : colors.teal}
+                                        />
+                                        <Text style={styles.gpsLabel}>
+                                            {mapOpen ? 'Hide map' : 'Pick on map'}
+                                        </Text>
+                                    </Pressable>
+                                    {mapOpen ? (
+                                        <View style={styles.mapBlock}>
+                                            <Text style={styles.mapHint}>
+                                                {resolvingPin
+                                                    ? 'Looking up that spot…'
+                                                    : 'Tap the map to drop a pin. Those coordinates are saved on the report.'}
+                                            </Text>
+                                            <LocationPickerMap coords={coords} onPick={(picked) => void applyCoords(picked)} />
+                                        </View>
+                                    ) : null}
                                     {coords ? (
                                         <Text style={styles.gpsCoords}>
-                                            GPS: {coords.lat.toFixed(6)}, {coords.lng.toFixed(6)}
+                                            Coordinates: {coords.lat.toFixed(6)}, {coords.lng.toFixed(6)}
                                         </Text>
                                     ) : null}
                                     {locationError ? <Text style={styles.locationError}>{locationError}</Text> : null}
@@ -580,6 +621,16 @@ const styles = StyleSheet.create({
     gpsLabel: {
         fontWeight: '700',
         color: colors.ink,
+    },
+    mapBlock: {
+        marginTop: -4,
+        marginBottom: 12,
+        gap: 8,
+    },
+    mapHint: {
+        color: colors.muted,
+        fontSize: 13,
+        lineHeight: 18,
     },
     gpsCoords: {
         marginTop: -4,
