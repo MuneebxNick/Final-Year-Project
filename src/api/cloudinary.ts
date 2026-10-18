@@ -1,6 +1,5 @@
-import { Platform } from 'react-native';
-
 import { ApiError, api } from './client';
+import { appendPhoto } from './photoForm';
 import { sessionStore } from '../data/sessionStore';
 
 type UploadSignature = {
@@ -35,19 +34,6 @@ function uploadConfigError(error: unknown): Error {
     return new Error(error.message);
   }
   return error instanceof Error ? error : new Error('Could not upload the photo.');
-}
-
-async function appendPhoto(form: FormData, uri: string) {
-  if (Platform.OS === 'web' || uri.startsWith('blob:') || uri.startsWith('data:') || uri.startsWith('http')) {
-    const blob = await (await fetch(uri)).blob();
-    form.append('file', blob, 'pothole.jpg');
-    return;
-  }
-  form.append('file', {
-    uri,
-    type: 'image/jpeg',
-    name: 'pothole.jpg',
-  } as unknown as Blob);
 }
 
 export async function uploadReportPhoto(localUri: string): Promise<{

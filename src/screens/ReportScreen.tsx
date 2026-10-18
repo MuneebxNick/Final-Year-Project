@@ -11,6 +11,7 @@ import {
     View,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as Location from 'expo-location';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import type { CompositeScreenProps } from '@react-navigation/native';
@@ -171,33 +172,30 @@ export function ReportScreen({ navigation }: Props) {
         }
     };
 
-    const requestLocation = () => {
+    const requestLocation = async () => {
         setLocating(true);
         setLocationError(null);
-        const geo = typeof navigator !== 'undefined' ? navigator.geolocation : undefined;
-        if (!geo) {
-            failLocation('This device cannot provide GPS. Pick the spot on the map instead.');
-            return;
-        }
-        geo.getCurrentPosition(
-            (position) => {
-                setLocating(false);
-                void applyCoords({
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude,
-                });
-            },
-            (error: { code?: number }) => {
-                const message =
-                    error?.code === 1
+        try {
+            const permission = await Location.requestForegroundPermissionsAsync();
+            if (permission.status !== 'granted') {
+                failLocation(
+                    Platform.OS === 'web'
                         ? 'The browser blocked GPS on this page. Pick the spot on the map instead.'
-                        : error?.code === 3
-                            ? 'Location request timed out. Pick the spot on the map instead.'
-                            : 'Could not get your current location. Pick the spot on the map instead.';
-                failLocation(message);
-            },
-            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
-        );
+                        : 'Location permission was denied. Pick the spot on the map instead.',
+                );
+                return;
+            }
+            const position = await Location.getCurrentPositionAsync({
+                accuracy: Location.Accuracy.Balanced,
+            });
+            setLocating(false);
+            await applyCoords({
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+            });
+        } catch {
+            failLocation('Could not get your current location. Pick the spot on the map instead.');
+        }
     };
 
     const analyze = async () => {

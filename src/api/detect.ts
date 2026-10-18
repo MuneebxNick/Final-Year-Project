@@ -1,6 +1,7 @@
-import { Image, Platform } from 'react-native';
+import { Image } from 'react-native';
 
 import { api } from './client';
+import { appendPhoto } from './photoForm';
 import { toSeverity, type BoundingBox, type OverlayBox, type Severity } from '../models/report';
 
 export type YoloSeverity = 'Small' | 'Medium' | 'Large';
@@ -31,19 +32,6 @@ export type MappedDetection = {
   boundingBox: BoundingBox;
   boundingBoxes: OverlayBox[];
 };
-
-async function appendPhoto(form: FormData, uri: string) {
-  if (Platform.OS === 'web' || uri.startsWith('blob:') || uri.startsWith('data:') || uri.startsWith('http')) {
-    const blob = await (await fetch(uri)).blob();
-    form.append('file', blob, 'pothole.jpg');
-    return;
-  }
-  form.append('file', {
-    uri,
-    type: 'image/jpeg',
-    name: 'pothole.jpg',
-  } as unknown as Blob);
-}
 
 function getImageSize(uri: string): Promise<{ width: number; height: number }> {
   return new Promise((resolve, reject) => {

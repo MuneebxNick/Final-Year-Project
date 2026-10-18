@@ -98,7 +98,7 @@ export function TrendChart({
   };
 
   const totals = points.map((point) =>
-    point.segments.reduce((sum, segment) => sum + segment.value, 0),
+    (point.segments ?? []).reduce((sum, segment) => sum + segment.value, 0),
   );
   const yMax = niceAxisMax(Math.max(...totals, 0));
   const ticks = [yMax, yMax / 2, 0];
@@ -113,7 +113,7 @@ export function TrendChart({
     const x = pad.left + slot * index + (slot - barWidth) / 2;
     const centerX = pad.left + slot * index + slot / 2;
     let cursor = 0;
-    const layers = point.segments.map((segment) => {
+    const layers = (point.segments ?? []).map((segment) => {
       const layerHeight = yMax === 0 ? 0 : (segment.value / yMax) * plotHeight;
       const y = baseY - cursor - layerHeight;
       cursor += layerHeight;
@@ -130,7 +130,7 @@ export function TrendChart({
 
   const summary = points
     .map((point) => {
-      const total = point.segments.reduce((sum, segment) => sum + segment.value, 0);
+      const total = (point.segments ?? []).reduce((sum, segment) => sum + segment.value, 0);
       return `${point.label} ${total}`;
     })
     .join(', ');
