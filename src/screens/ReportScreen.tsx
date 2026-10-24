@@ -175,18 +175,41 @@ export function ReportScreen({ navigation }: Props) {
     const requestLocation = async () => {
         setLocating(true);
         setLocationError(null);
+        if (Platform.OS === 'web') {
+            const geo = typeof navigator !== 'undefined' ? navigator.geolocation : undefined;
+            if (!geo) {
+                failLocation('This browser cannot provide a location. Pick the spot on the map instead.');
+                return;
+            }
+            geo.getCurrentPosition(
+                (position) => {
+                    setLocating(false);
+                    void applyCoords({
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                    });
+                },
+                (error: GeolocationPositionError) => {
+                    const message =
+                        error.code === error.PERMISSION_DENIED
+                            ? 'The browser blocked location on this page. Allow location for this site, then try again.'
+                            : error.code === error.TIMEOUT
+                              ? 'Location request timed out. Try again, or pick the spot on the map.'
+                              : 'Could not get your current location. Try again, or pick the spot on the map.';
+                    failLocation(message);
+                },
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
+            );
+            return;
+        }
         try {
             const permission = await Location.requestForegroundPermissionsAsync();
             if (permission.status !== 'granted') {
-                failLocation(
-                    Platform.OS === 'web'
-                        ? 'The browser blocked GPS on this page. Pick the spot on the map instead.'
-                        : 'Location permission was denied. Pick the spot on the map instead.',
-                );
+                failLocation('Location permission was denied. Pick the spot on the map instead.');
                 return;
             }
             const position = await Location.getCurrentPositionAsync({
-                accuracy: Location.Accuracy.Balanced,
+                accuracy: Location.Accuracy.High,
             });
             setLocating(false);
             await applyCoords({
